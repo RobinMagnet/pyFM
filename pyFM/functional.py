@@ -3,10 +3,12 @@ import copy
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 
-import pyFM.tools as tools
+
 import pyFM.signatures as sg
 import pyFM.opt_func as opt_func
 import pyFM.refine
+import pyFM.spectral as spectral
+import pyFM.tools as tools
 
 
 class FunctionalMapping:
@@ -120,7 +122,7 @@ class FunctionalMapping:
         if not self.fitted or not self.preprocessed:
             raise ValueError('Model should be processed and fit to obtain p2p map')
 
-        return tools.get_P2P(self.FM,self.mesh1.eigenvectors,self.mesh2.eigenvectors)
+        return spectral.get_P2P(self.FM,self.mesh1.eigenvectors,self.mesh2.eigenvectors)
 
     
     # BOOLEAN PROPERTIES
@@ -137,7 +139,7 @@ class FunctionalMapping:
         return self.FM is not None
     
 
-    def preprocess(self, n_ev = (40,40), n_descr=100, descr_type='HKS', landmarks=None, subsample_step = 1, verbose = False):
+    def preprocess(self, n_ev = (50,50), n_descr=100, descr_type='WKS', landmarks=None, subsample_step = 1, verbose = False):
         """
         Saves the information about the Laplacian mesh for opt
 
@@ -215,7 +217,8 @@ class FunctionalMapping:
         self.descr2 /= no2[None,:]
 
         if verbose:
-            print(f'\n\t{self.descr1.shape[1]} out of {n_descr*(1+np.asarray(landmarks).shape[0])} possible descriptors kept')
+            n_lmks = np.asarray(landmarks).shape[0] if use_lm else 0
+            print(f'\n\t{self.descr1.shape[1]} out of {n_descr*(1+n_lmks)} possible descriptors kept')
             print('\tDone')
 
         return self

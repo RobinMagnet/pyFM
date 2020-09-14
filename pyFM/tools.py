@@ -20,7 +20,6 @@ def display_C(FM):
     plt.show()
 
 
-
 def farthest_point(D,k):
     inds = [np.random.randint(D.shape[0])]
     
