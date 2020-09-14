@@ -2,7 +2,7 @@ import os
 import numpy as np
 from scipy import sparse
 
-import pyFM.tools as tools
+import pyFM.file_utils as file_utils
 from .fem_laplacian import fem_laplacian
 
 class TriMesh:
@@ -42,7 +42,7 @@ class TriMesh:
 
         if vertices is None and faces is None:
             assert path is not None, "You should provide either a path to an .off file or a list of vertices and faces"
-            self.vertlist,self.facelist = tools.read_off(path)
+            self.vertlist,self.facelist = file_utils.read_off(path)
 
         else:
             self.vertlist = np.asarray(vertices)
@@ -280,5 +280,5 @@ class TriMesh:
 
         """
         assert os.path.splitext(filename)[1] == '.off', "Can only export .off files"
-        tools.write_off(filename, self.vertlist, self.facelist)
+        file_utils.write_off(filename, self.vertlist, self.facelist)
         return self

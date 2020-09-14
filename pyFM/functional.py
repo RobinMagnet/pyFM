@@ -1,13 +1,12 @@
 import copy
 
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.optimize import fmin_l_bfgs_b
-from sklearn.neighbors import KDTree
 
 import pyFM.tools as tools
 import pyFM.signatures as sg
 import pyFM.opt_func as opt_func
+import pyFM.refine
 
 
 class FunctionalMapping:
@@ -343,7 +342,7 @@ class FunctionalMapping:
         if not self.fitted:
             raise ValueError("The Functional map must be fit before refining it")
 
-        self.FM_icp = tools.icp_refine(self.mesh1.eigenvectors[:,:self.k1],self.mesh2.eigenvectors[:,:self.k2],self.FM,nit)
+        self.FM_icp = pyFM.refine.icp_refine(self.mesh1.eigenvectors[:,:self.k1],self.mesh2.eigenvectors[:,:self.k2],self.FM,nit)
         if overwrite:
             self.FM_type = 'icp'
         return self
@@ -362,7 +361,7 @@ class FunctionalMapping:
         if not self.fitted:
             raise ValueError("The Functional map must be fit before refining it")
 
-        self.FM_zo = tools.zoomout_refine(self.mesh1.eigenvectors,self.mesh2.eigenvectors,self.mesh2.A,self.FM,nit)
+        self.FM_zo = pyFM.refine.zoomout_refine(self.mesh1.eigenvectors,self.mesh2.eigenvectors,self.mesh2.A,self.FM,nit)
         if overwrite:
             self.SD_type = 'zoomout'
         return self
