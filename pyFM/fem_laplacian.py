@@ -1,11 +1,12 @@
-import numpy as np
-from scipy import sparse
-from scipy.sparse.linalg import eigsh, lobpcg
 """
 CODE WAS TAKEN FROM MINDBOGGLE GITHUB, MINIMALLY ADAPTED
 I think there is a lot of speedup to be done with their computeAB function
 since it doesn't use any broadcast or einstein summation.
 """
+
+import numpy as np
+from scipy import sparse
+from scipy.sparse.linalg import eigsh, lobpcg
 
 def area_of_faces(points, faces):
     """

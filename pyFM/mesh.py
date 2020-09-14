@@ -2,8 +2,8 @@ import os
 import numpy as np
 from scipy import sparse
 
-import tools
-from fem_laplacian import fem_laplacian
+import pyFM.tools as tools
+from .fem_laplacian import fem_laplacian
 
 class TriMesh:
     """
@@ -192,7 +192,7 @@ class TriMesh:
         func : (n,p) or (n,) projected function
         """
         k = projection.shape[0]
-        elif k <= self.eigenvectors.shape[1]:
+        if k <= self.eigenvectors.shape[1]:
             return self.eigenvectors[:,:k]@projection
 
         else:

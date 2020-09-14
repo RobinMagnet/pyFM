@@ -5,12 +5,10 @@ import matplotlib.pyplot as plt
 from scipy.optimize import fmin_l_bfgs_b
 from sklearn.neighbors import KDTree
 
-import tools
-import signatures as sg
-import opt_func
+import pyFM.tools as tools
+import pyFM.signatures as sg
+import pyFM.opt_func as opt_func
 
-sns.set_style("white")
-sns.set_style("ticks")
 
 class FunctionalMapping:
     """
