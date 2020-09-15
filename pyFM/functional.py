@@ -1,14 +1,14 @@
 import copy
+import time
 
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 
-
 import pyFM.signatures as sg
-import pyFM.opt_func as opt_func
+import pyFM.optimize as opt_func
 import pyFM.refine
-import pyFM.spectral as spectral
-import pyFM.tools as tools
+import pyFM.utils.spectral as spectral
+import pyFM.utils.tools as tools
 
 
 class FunctionalMapping:
@@ -324,12 +324,14 @@ class FunctionalMapping:
                 )
 
         # Optimization
+        start_time = time.time()
         res = fmin_l_bfgs_b(energy_func, x0.reshape(-1),fprime=grad_energy,args=args)
+        opt_time = time.time() - start_time
         self.FM = res[0].reshape((self.k2,self.k1))
 
         if verbose:
             print("\tTask : {task}, funcall : {funcalls}, nit : {nit}, warnflag : {warnflag}".format(**res[2]))
-            print('\tDone')
+            print(f'\tDone in {opt_time:.2f} seconds')
         
     
     def icp_refine(self,nit=5, overwrite=True):

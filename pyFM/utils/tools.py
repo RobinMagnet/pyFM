@@ -1,6 +1,4 @@
 import numpy as np
-from sklearn.neighbors import KDTree
-
 import matplotlib.pyplot as plt
 
 

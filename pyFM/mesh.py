@@ -1,9 +1,10 @@
 import os
+
 import numpy as np
 from scipy import sparse
 
 import pyFM.file_utils as file_utils
-from .fem_laplacian import fem_laplacian
+from pyFM.utils.fem_laplacian import fem_laplacian
 
 class TriMesh:
     """
