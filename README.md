@@ -5,7 +5,7 @@ pyFM is a pure python implementation of multiple tools used for Functional Maps 
 
 * A TriMesh class allowing to compute the area, geodesic distances (using dijkstra not fast marching yet), to use the LB basis to project or decode functions, and compute squared norm of a function on the mesh
 * A pure Python (fast) implementation of Laplace-Beltrami computation using FEM (taken from [mindboggles github](https://github.com/nipy/mindboggle))
-* Implementation of HKS and WKS with multiple level of automation for parameters selection (from full automatic to total control)
+* Implementation of HKS and WKS (and their version for landmarks) with multiple level of automation for parameters selection (from full automatic to total control)
 * Implementation of icp and zoomout on Python
 * Small functions like farthest point sampling, shape difference computations, conversion from Functional Map to vertex to vertex map 
 * A FunctionalMapping class allowing straightforward computation of Functional Maps mixing all the previous features
