@@ -83,3 +83,20 @@ new_func_canonical = model.decode(new_func,mesh_ind=2) # (n2,) chose on which me
 ```
 
 ## Example code for TriMesh class
+```python
+import numpy as np
+from pyFM.mesh import TriMesh
+
+mesh = TriMesh('data/cat-00.off')
+
+mesh.process() # Computes naturally the first 150 eigenvalues and eigenvectors of the LB spectrum
+eigenvalues = mesh.eigenvalues # (K,)
+eigenvectors = mesh.eigenvectors # (N,K)
+print(f'Total Area : {mesh.area}')
+
+# Compute Geodesic matrix
+M = mesh.get_geodesic() # not saved in the mesh for memory efficiency
+
+# Check the eigenvectors are normalized on the mesh
+sqnorms = mesh.l2_sqnorm(mesh.eigenvectors) # (K,)
+```
