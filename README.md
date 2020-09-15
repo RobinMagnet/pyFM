@@ -21,6 +21,8 @@ I did not build on the [trimesh](https://github.com/mikedh/trimesh) package whic
 Running the [example notebook](https://github.com/RobinMagnet/pyFM/blob/master/example_notebook.ipynb) gives you an overview of the package functions.
 Note that this notebook requires the [`meshplot` package](https://skoch9.github.io/meshplot/), which is an easy to use interface for `pythreejs`, which allows to display mesh in an easy fashion on notebooks.
 
+All functions in the package are documented, with a descriptions of parameters and output.
+
 ## Example Code for shape matching
 
 ```python
