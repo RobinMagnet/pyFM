@@ -12,7 +12,7 @@ pyFM is a pure python implementation of multiple tools used for Functional Maps 
 
 ## Dependencies
 
-There are few dependencies. Most functions use `numpy` and `scipy`, sometimes `scikit-learn` is used only for its KDTree implementation, and `matplotlib` for a single function.
+There are few dependencies, namely `numpy`, `scipy`, `scikit-learn` for its KDTree implementation, and `matplotlib` for a single optional function.
 
 I did not build on the [trimesh](https://github.com/mikedh/trimesh) package which has some strange behaviour with vertex reordering.
 
