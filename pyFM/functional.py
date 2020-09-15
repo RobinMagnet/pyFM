@@ -242,8 +242,8 @@ class FunctionalMapping:
             self.preprocess()
 
         # Project the descriptors on the LB basis
-        descr1_red = self.encode_f(self.descr1,mesh_ind=1) # (n_ev1, n_descr)
-        descr2_red = self.encode_f(self.descr2,mesh_ind=2) # (n_ev2, n_descr)
+        descr1_red = self.project(self.descr1,mesh_ind=1) # (n_ev1, n_descr)
+        descr2_red = self.project(self.descr2,mesh_ind=2) # (n_ev2, n_descr)
 
         # Compute the operators associated with each descriptor
         list_descr = []
@@ -411,9 +411,9 @@ class FunctionalMapping:
 
         return list_descr
 
-    def encode_f(self,func,k=None,mesh_ind=1):
+    def project(self,func,k=None,mesh_ind=1):
         """
-        Encode a function on the LB basis
+        Projects a function on the LB basis
 
         Parameters
         -----------------------
@@ -435,7 +435,7 @@ class FunctionalMapping:
         else:
             raise ValueError(f'Only indices 1 or 2 are accepted, not {mesh_ind}')
 
-    def decode_f(self,encoded_func,mesh_ind=2):
+    def decode(self,encoded_func,mesh_ind=2):
         """
         Decode a function from the LB basis
 
@@ -456,7 +456,7 @@ class FunctionalMapping:
         else:
             raise ValueError(f'Only indices 1 or 2 are accepted, not {mesh_ind}')
         
-    def transport_f(self,encoded_func, reverse=False):
+    def transport(self,encoded_func, reverse=False):
         """
         transport a function from LB basis 1 to LB basis 2. 
         If reverse is True, then the functions are transposed the other way
@@ -480,7 +480,7 @@ class FunctionalMapping:
             return self.FM.T @ encoded_func
 
 
-    def transfer_f(self,func, reverse=False):
+    def transfer(self,func, reverse=False):
         """
         Transfer a function from mesh1 to mesh2.
         If 'reverse' is set to true, then the transfer goes
@@ -498,10 +498,10 @@ class FunctionalMapping:
         """
 
         if not reverse:
-            return self.decode_f(self.transport_f(self.encode_f(func)))
+            return self.decode(self.transport(self.project(func)))
 
         else:
-            encoding = self.encode_f(func, mesh_ind=2)
-            return self.decode_f(self.transport_f(encoding,reverse=True),
+            encoding = self.project(func, mesh_ind=2)
+            return self.decode(self.transport(encoding,reverse=True),
                                  mesh_ind=1
                                  )
