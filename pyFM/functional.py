@@ -353,22 +353,34 @@ class FunctionalMapping:
         return self
 
 
-    def zoomout_refine(self,nit=10,overwrite=True):
+    def zoomout_refine(self,nit=10,step=1, subsample=None, use_ANN=False, overwrite=True):
         """
         Refines the functional map using ZoomOut and saves the result
 
         Parameters
         -------------------
         nit       : int - number of iterations to do
+        step      : increase in dimension at each Zoomout Iteration
+        subsample : int - number of points to subsample for ZoomOut. If None or 0, no subsampling is done.
+        use_ANN   : bool - If True, use approximate nearest neighbor
         overwrite : bool - If True changes FM type to 'zoomout' so that next call of self.FM
                     will be the zoomout refined FM (larger than the other 2)
         """
         if not self.fitted:
             raise ValueError("The Functional map must be fit before refining it")
 
-        self.FM_zo = pyFM.refine.zoomout_refine(self.mesh1.eigenvectors,self.mesh2.eigenvectors,self.mesh2.A,self.FM,nit)
+        if subsample is None or subsample == 0:
+            sub = None
+        else:
+            sub1 = self.mesh1.extract_fps(subsample)
+            sub2 = self.mesh2.extract_fps(subsample)
+            sub = (sub1,sub2)
+
+
+        self.FM_zo = pyFM.refine.zoomout_refine(self.mesh1.eigenvectors,self.mesh2.eigenvectors,self.mesh2.A,self.FM,nit,
+                                                step=step, subsample=sub, use_ANN=use_ANN, return_p2p=False)
         if overwrite:
-            self.SD_type = 'zoomout'
+            self.FM_type = 'zoomout'
         return self
 
     def display_C(self):
