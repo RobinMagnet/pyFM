@@ -5,6 +5,7 @@ from scipy import sparse
 
 import pyFM.file_utils as file_utils
 from pyFM.utils.fem_laplacian import fem_laplacian
+import pyFM.utils.tools as tools
 
 class TriMesh:
     """
@@ -37,6 +38,8 @@ class TriMesh:
         vertices : (n,3) vertices coordinates
         faces    : (m,3) list of indices of triangles
         """
+
+        self.path = path
 
         self._vertlist = None
         self._facelist = None
@@ -214,14 +217,23 @@ class TriMesh:
         """
         return self.decode(self.project(func,k=k))
 
-    def get_geodesic(self):
+    def get_geodesic(self, save=False):
         """
-        Compute the geodesic distances using the Dijkstra algorithm
+        Compute the geodesic distances using the Dijkstra algorithm.
+        Loads from cache if possible
 
         Output
         -----------------
         distances : (n,n) matrix of geodesic distances
         """
+
+        if self.path is not None:
+            root_dir,filename = os.path.split(self.path)
+            meshname = os.path.splitext(filename)[0]
+            geod_filename = os.path.join(root_dir,'geod_cache',f'{meshname}.npy')
+            if os.path.isfile(geod_filename):
+                return np.load(geod_filename)
+
         edges = self.get_edges()
         
         I = edges[:,0]
@@ -231,7 +243,19 @@ class TriMesh:
         
         graph = (distmat + distmat.T).tocsr()
 
-        return sparse.csgraph.dijkstra(graph)
+        geod_dist = sparse.csgraph.dijkstra(graph)
+
+        if save:
+            if self.path is None:
+                raise ValueError('No path specified')
+            root_dir,filename = os.path.split(self.path)
+            meshname = os.path.splitext(filename)[0]
+            geod_filename = os.path.join(root_dir,'geod_cache',f'{meshname}.npy')
+
+            os.makedirs(os.path.dirname(geod_filename),exist_ok=True)
+            np.save(geod_filename,geod_dist)
+
+        return  geod_dist
 
     def get_edges(self):
         """
@@ -269,6 +293,14 @@ class TriMesh:
             return np.einsum('np,np->p', func, self.A@func).flatten().item()
 
         return np.einsum('np,np->p', func, self.A@func).flatten()
+
+    def extract_fps(self,size):
+        A_geod = self.get_geodesic()
+
+        fps = tools.farthest_point(A_geod,size,init='farthest')
+        return fps
+
+
 
 
     def export(self,filename):
