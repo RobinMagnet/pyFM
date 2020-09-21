@@ -17,7 +17,7 @@ Incoming :
 
 There are few dependencies, namely `numpy`, `scipy`, `scikit-learn` for its KDTree implementation, and `matplotlib` for a single optional function.
 
-`pynndescent' (see [here](https://github.com/lmcinnes/pynndescent)) is an optional package which is only required if one wish to use Approximate Nearest Neighbor. Else it is not required.
+`pynndescent` (see [here](https://github.com/lmcinnes/pynndescent)) is an optional package which is only required if one wish to use Approximate Nearest Neighbor. Else it is not required.
 
 I did not build on the [trimesh](https://github.com/mikedh/trimesh) package which has some strange behaviour with vertex reordering.
 
