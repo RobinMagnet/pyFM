@@ -25,7 +25,7 @@ def zoomout_refine(L1, L2, A2, C, nit, step=1, subsample=None, use_ANN=False, re
     step       : increase in dimension at each Zoomout Iteration
     subsample  : tuple or iterable of size 2. Each gives indices of vertices so sample
                  for faster optimization. If not specified, no subsampling is done.
-    use_ANN    : bool - whether to use approximate nearest neighbor
+    use_ANN    : bool - whether to use approximate nearest neighbor. Only trigger once dimension 90 is reached.
     return_p2p : bool - if True returns the vertex to vertex map 
 
     Output
@@ -55,12 +55,15 @@ def zoomout_refine(L1, L2, A2, C, nit, step=1, subsample=None, use_ANN=False, re
     assert L1.shape[1] >= kinit+nit*step, f"Enough eigenvectors should be provided, here {kinit+step*nit} are needed when {L1.shape[1]} are provided"
     assert L2.shape[1] >= kinit+nit*step, f"Enough eigenvectors should be provided, here {kinit+step*nit} are needed when {L2.shape[1]} are provided"
 
-
+    ANN_adventage = False
     for k in [kinit + i*step for i in range(nit)]:
 
-        C_zo = zoomout_iteration(L1_zo, L2_zo, A2_zo, C_zo, k+step, use_ANN=use_ANN)
-    
-    return zoomout_iteration(L1, L2, A2, C_zo, kinit+nit*step, use_ANN=use_ANN, return_p2p=return_p2p)
+        if use_ANN and k > 90:
+            ANN_adventage = True
+
+        C_zo = zoomout_iteration(L1_zo, L2_zo, A2_zo, C_zo, k+step, use_ANN=ANN_adventage)
+
+    return zoomout_iteration(L1, L2, A2, C_zo, kinit+nit*step, use_ANN=False, return_p2p=return_p2p)
 
 
 def zoomout_iteration(L1,L2,A2,C,k_end,use_ANN=False, return_p2p=False):
@@ -87,15 +90,15 @@ def zoomout_iteration(L1,L2,A2,C,k_end,use_ANN=False, return_p2p=False):
     k_init = C.shape[0]
 
     if use_ANN:
-            index = pynndescent.NNDescent((C@L1[:,:k_init].T).T,n_jobs=2)
-            matches,_ = index.query(L2[:,:k_init],k=1) # (n2',1)
-            matches = matches.flatten() # (n2',)
+        index = pynndescent.NNDescent((C@L1[:,:k_init].T).T,n_jobs=2)
+        matches,_ = index.query(L2[:,:k_init],k=1)  # (n2',1)
+        matches = matches.flatten()  # (n2',)
     else:
-        tree = KDTree((C@L1[:,:k_init].T).T) # Tree on (n1',K2)
-        matches = tree.query(L2[:,:k_init],k=1,return_distance=False).flatten() # (n2',)
-        
-    P = scipy.sparse.coo_matrix( (np.ones(n2),(np.arange(n2),matches)), shape=(n2,n1)).tocsc() # (n2',n1') point2point
-    
+        tree = KDTree((C@L1[:,:k_init].T).T)  # Tree on (n1',K2)
+        matches = tree.query(L2[:,:k_init],k=1,return_distance=False).flatten()  # (n2',)
+
+    P = scipy.sparse.coo_matrix((np.ones(n2),(np.arange(n2),matches)), shape=(n2,n1)).tocsc()  # (n2',n1') point2point
+
     C = L2[:,:k_end].T @ A2 @ P @ L1[:,:k_end] # (k_end,k_end)
 
     if return_p2p:
