@@ -10,9 +10,14 @@ pyFM is a pure python implementation of multiple tools used for Functional Maps 
 * Small functions like farthest point sampling, shape difference computations, conversion from Functional Map to vertex to vertex map 
 * A FunctionalMapping class allowing straightforward computation of Functional Maps mixing all the previous features
 
+Incoming :
+* Support for Functional Map Networks : Consistent Latent Basis, Canonical Consistent Latent Basis, ISCM weights, Consistent ZoomOut
+
 ## Dependencies
 
 There are few dependencies, namely `numpy`, `scipy`, `scikit-learn` for its KDTree implementation, and `matplotlib` for a single optional function.
+
+`pynndescent` (see [here](https://github.com/lmcinnes/pynndescent)) is an optional package which is only required if one wish to use Approximate Nearest Neighbor. Else it is not required.
 
 I did not build on the [trimesh](https://github.com/mikedh/trimesh) package which has some strange behaviour with vertex reordering.
 
