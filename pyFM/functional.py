@@ -6,7 +6,8 @@ from scipy.optimize import fmin_l_bfgs_b
 
 import pyFM.signatures as sg
 import pyFM.optimize as opt_func
-import pyFM.refine
+import pyFM.refine.zoomout as zoomout
+import pyFM.refine.icp as icp
 import pyFM.utils.spectral as spectral
 import pyFM.utils.tools as tools
 
@@ -33,6 +34,7 @@ class FunctionalMapping:
     p2p     : (n2,) point to point map associated to the current functional map
     """
     def __init__(self,mesh1,mesh2):
+
 
         self.mesh1 = copy.deepcopy(mesh1)
         self.mesh2 = copy.deepcopy(mesh2)
@@ -70,6 +72,7 @@ class FunctionalMapping:
             return self.FM.shape[0]
         else:
             return self._k2
+    
     @k2.setter
     def k2(self,k2):
         self._k2 = k2
@@ -120,7 +123,7 @@ class FunctionalMapping:
         if not self.fitted or not self.preprocessed:
             raise ValueError('Model should be processed and fit to obtain p2p map')
 
-        return spectral.get_P2P(self.FM,self.mesh1.eigenvectors,self.mesh2.eigenvectors)
+        return spectral.FM_to_p2p(self.FM,self.mesh1.eigenvectors,self.mesh2.eigenvectors)
 
     
     # BOOLEAN PROPERTIES
@@ -160,7 +163,6 @@ class FunctionalMapping:
             self.mesh1.process(max(self.k1,200),verbose=verbose)
         if self.mesh2.eigenvalues is None or len(self.mesh2.eigenvalues) < self.k2:
             self.mesh2.process(max(self.k2,200),verbose=verbose)
-
         
         if verbose:
             print('\nComputing descriptors')
@@ -180,26 +182,26 @@ class FunctionalMapping:
             self.descr2 = sg.mesh_HKS(self.mesh2,n_descr,k=self.k2) # (N2, n_descr)
 
             if use_lm:
-                lm_descr1 = sg.mesh_HKS(self.mesh1,n_descr,landmarks=lm1,k=self.k1) # (N1, p*n_descr)
-                lm_descr2 = sg.mesh_HKS(self.mesh2,n_descr,landmarks=lm2,k=self.k2) # (N2, p*n_descr)
+                lm_descr1 = sg.mesh_HKS(self.mesh1,n_descr,landmarks=lm1,k=self.k1)  # (N1, p*n_descr)
+                lm_descr2 = sg.mesh_HKS(self.mesh2,n_descr,landmarks=lm2,k=self.k2)  # (N2, p*n_descr)
 
-                self.descr1 = np.hstack([self.descr1,lm_descr1]) # (N1, (p+1)*n_descr)
-                self.descr2 = np.hstack([self.descr2,lm_descr2]) # (N2, (p+1)*n_descr)
+                self.descr1 = np.hstack([self.descr1,lm_descr1])  # (N1, (p+1)*n_descr)
+                self.descr2 = np.hstack([self.descr2,lm_descr2])  # (N2, (p+1)*n_descr)
 
         elif descr_type == 'WKS':
-            self.descr1 = sg.mesh_WKS(self.mesh1,n_descr,k=self.k1) # (N1, n_descr)
-            self.descr2 = sg.mesh_WKS(self.mesh2,n_descr,k=self.k2) # (N2, n_descr)
+            self.descr1 = sg.mesh_WKS(self.mesh1,n_descr,k=self.k1)  # (N1, n_descr)
+            self.descr2 = sg.mesh_WKS(self.mesh2,n_descr,k=self.k2)  # (N2, n_descr)
 
             if use_lm:
-                lm_descr1 = sg.mesh_WKS(self.mesh1,n_descr,landmarks=lm1,k=self.k1) # (N1, p*n_descr)
-                lm_descr2 = sg.mesh_WKS(self.mesh2,n_descr,landmarks=lm2,k=self.k2) # (N2, p*n_descr)
+                lm_descr1 = sg.mesh_WKS(self.mesh1,n_descr,landmarks=lm1,k=self.k1)  # (N1, p*n_descr)
+                lm_descr2 = sg.mesh_WKS(self.mesh2,n_descr,landmarks=lm2,k=self.k2)  # (N2, p*n_descr)
 
-                self.descr1 = np.hstack([self.descr1,lm_descr1]) # (N1, (p+1)*n_descr)
-                self.descr2 = np.hstack([self.descr2,lm_descr2]) # (N2, (p+1)*n_descr)
+                self.descr1 = np.hstack([self.descr1,lm_descr1])  # (N1, (p+1)*n_descr)
+                self.descr2 = np.hstack([self.descr2,lm_descr2])  # (N2, (p+1)*n_descr)
 
         else:
             raise ValueError(f'Descriptor type "{descr_type}" not implemented')
-        
+
         # Subsample descriptors
         self.descr1 = self.descr1[:,np.arange(0,self.descr1.shape[1],subsample_step)]
         self.descr2 = self.descr2[:,np.arange(0,self.descr2.shape[1],subsample_step)]
@@ -221,9 +223,7 @@ class FunctionalMapping:
 
         return self
 
-
-    
-    def fit(self,descr_mu = 1e-1,lap_mu = 1e-3, descr_comm_mu=1, optinit='sign', verbose=False):
+    def fit(self,descr_mu=1e-1, lap_mu=1e-3, descr_comm_mu=1, optinit='sign', verbose=False):
         """
         Solves the functional mapping problem and saves the computed Functional Map.
 
@@ -248,12 +248,12 @@ class FunctionalMapping:
         if descr_comm_mu > 0:
             if verbose:
                 print('Computing new descriptors')
-            list_descr = self.compute_new_descr() # (n_descr,)
+            list_descr = self.compute_new_descr()  # (n_descr,)
             if verbose:
                 print('\tDone')
 
         # Compute the squared differences between eigenvalues for LB commutativity
-        ev_sqdiff = np.square(self.mesh1.eigenvalues[None,:self.k1] - self.mesh2.eigenvalues[:self.k2,None]) # (n_ev2,n_ev1)
+        ev_sqdiff = np.square(self.mesh1.eigenvalues[None,:self.k1] - self.mesh2.eigenvalues[:self.k2,None])  # (n_ev2,n_ev1)
         ev_sqdiff /= np.linalg.norm(ev_sqdiff)**2
 
         # Defines current optimization functions
@@ -266,13 +266,13 @@ class FunctionalMapping:
             C = C.reshape((k2,k1))
 
             energy = 0
-            
+
             if descr_mu > 0:
                 energy += descr_mu * opt_func.descr_preservation(C,descr1_red,descr2_red)
 
             if lap_mu > 0:
                 energy += lap_mu * opt_func.LB_commutation(C,ev_sqdiff)
-            
+
             if descr_comm_mu > 0:
                 energy += descr_comm_mu * opt_func.oplist_commutation(C,list_descr)
 
@@ -287,13 +287,13 @@ class FunctionalMapping:
             C = C.reshape((k2,k1))
 
             gradient = np.zeros_like(C)
-            
+
             if descr_mu > 0:
                 gradient += descr_mu * opt_func.descr_preservation_grad(C,descr1_red,descr2_red)
 
             if lap_mu > 0:
                 gradient += lap_mu * opt_func.LB_commutation_grad(C,ev_sqdiff)
-            
+
             if descr_comm_mu > 0:
                 gradient += descr_comm_mu * opt_func.oplist_commutation_grad(C,list_descr)
 
@@ -318,7 +318,8 @@ class FunctionalMapping:
                   f'\tHyperparameters :\n'
                   f'\t\tDescriptors preservation :{descr_mu:.1e}\n'
                   f'\t\tDescriptors commutativity :{descr_comm_mu:.1e}\n'
-                  f'\t\tLaplacian commutativity :{lap_mu:.1e}\n')
+                  f'\t\tLaplacian commutativity :{lap_mu:.1e}\n'
+                  )
 
         # Optimization
         start_time = time.time()
@@ -329,9 +330,8 @@ class FunctionalMapping:
         if verbose:
             print("\tTask : {task}, funcall : {funcalls}, nit : {nit}, warnflag : {warnflag}".format(**res[2]))
             print(f'\tDone in {opt_time:.2f} seconds')
-        
-    
-    def icp_refine(self,nit=5, overwrite=True):
+
+    def icp_refine(self, nit=5, overwrite=True):
         """
         Refines the functional map using ICP and saves the result
 
@@ -344,13 +344,12 @@ class FunctionalMapping:
         if not self.fitted:
             raise ValueError("The Functional map must be fit before refining it")
 
-        self.FM_icp = pyFM.refine.icp_refine(self.mesh1.eigenvectors[:,:self.k1],self.mesh2.eigenvectors[:,:self.k2],self.FM,nit)
+        self.FM_icp = icp.icp_refine(self.mesh1.eigenvectors[:,:self.k1],self.mesh2.eigenvectors[:,:self.k2],self.FM,nit)
         if overwrite:
             self.FM_type = 'icp'
         return self
 
-
-    def zoomout_refine(self,nit=10,step=1, subsample=None, use_ANN=False, overwrite=True):
+    def zoomout_refine(self,nit=10,step=1, subsample=None, use_ANN=False, overwrite=True, verbose=False):
         """
         Refines the functional map using ZoomOut and saves the result
 
@@ -373,9 +372,8 @@ class FunctionalMapping:
             sub2 = self.mesh2.extract_fps(subsample)
             sub = (sub1,sub2)
 
-
-        self.FM_zo = pyFM.refine.zoomout_refine(self.mesh1.eigenvectors,self.mesh2.eigenvectors,self.mesh2.A,self.FM,nit,
-                                                step=step, subsample=sub, use_ANN=use_ANN, return_p2p=False)
+        self.FM_zo = zoomout.mesh_zoomout_refine(self.mesh1, self.mesh2, self.FM, nit,
+                                                 step=1, subsample=sub, use_ANN=use_ANN, verbose=verbose)
         if overwrite:
             self.FM_type = 'zoomout'
         return self

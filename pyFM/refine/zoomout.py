@@ -1,29 +1,29 @@
 import numpy as np
-import scipy.sparse
-from sklearn.neighbors import KDTree
+from tqdm import tqdm
 
-try:
-    import pynndescent
-    index = pynndescent.NNDescent(np.random.random((100,3)),n_jobs=2)
-    del index
-    ANN = True
-except ImportError:
-    ANN = False
+import pyFM.utils.spectral as spectral
+
+def mesh_zoomout_refine(mesh1, mesh2, FM, nit,step=1, subsample=None, use_ANN=False, return_p2p=False, verbose=False):
+    result = zoomout_refine(mesh1.eigenvectors, mesh2.eigenvectors, FM, nit,
+                            step=step, subsample=subsample,
+                            use_ANN=use_ANN, return_p2p=return_p2p, verbose=verbose)
+
+    return result
 
 
-def zoomout_refine(L1, L2, A2, C, nit, step=1, subsample=None, use_ANN=False, return_p2p=False):
+def zoomout_refine(eigvects1, eigvects2, FM, nit, step=1, A2=None, subsample=None, use_ANN=False, return_p2p=False, verbose=False):
     """
     Refine a functional map with ZoomOut.
     Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
 
     Parameters
     --------------------
-    L1         : (n1,k1) eigenvectors on source shape with k1 >= K + nit
-    L2         : (n2,k2) eigenvectors on target shape with k2 >= K + nit
-    A2         : (n2,n2) sparse area matrix on target mesh
-    C          : (K,K) Functional map from from L1[:,:K] to L2[:,:K]
+    eigvects1  : (n1,k1) eigenvectors on source shape with k1 >= K + nit
+    eigvects2  : (n2,k2) eigenvectors on target shape with k2 >= K + nit
+    FM         : (K,K) Functional map from from L1[:,:K] to L2[:,:K]
     nit        : int - number of iteration of zoomout
     step       : increase in dimension at each Zoomout Iteration
+    A2         : (n2,n2) sparse area matrix on target mesh.
     subsample  : tuple or iterable of size 2. Each gives indices of vertices so sample
                  for faster optimization. If not specified, no subsampling is done.
     use_ANN    : bool - whether to use approximate nearest neighbor.
@@ -32,82 +32,72 @@ def zoomout_refine(L1, L2, A2, C, nit, step=1, subsample=None, use_ANN=False, re
 
     Output
     --------------------
-    C_zo : zoomout-refined functional map
+    FM_zo : zoomout-refined functional map
     """
-    if use_ANN and not ANN:
-        raise ValueError('Please install pydescent to achieve Approximate Nearest Neighbor')
-    assert C.shape[0] == C.shape[1], f"Zoomout input should be square not {C.shape}"
+    k2_0,k1_0 = FM.shape
+    assert k2_0 + nit*step <= eigvects2.shape[1], \
+        f"Not enough eigenvectors on source : \
+        {k1_0 + nit*step} are needed when {eigvects1.shape[1]} are provided"
+    assert k2_0 + nit*step <= eigvects2.shape[1], \
+        f"Not enough eigenvectors on target : \
+        {k2_0 + nit*step} are needed when {eigvects2.shape[1]} are provided"
 
+    use_subsample = False
     if subsample is not None:
-        L1_zo = L1[subsample[0]]
-        L2_zo = L2[subsample[1]]
-        A2_zo = A2[subsample[1][:,None],subsample[1]]
-    else:
-        L1_zo = L1
-        L2_zo = L2
-        A2_zo = A2
+        use_subsample = True
+        sub1,sub2 = subsample
 
-    kinit = C.shape[0]
-
-    C_zo = C.copy()
-
-    if L1.shape[1] >= kinit+nit*step:
-        raise ValueError(f"Enough eigenvectors should be provided on the source mesh, "
-                         f"here {kinit+step*nit} are needed when {L1.shape[1]} are provided")
-    if L2.shape[1] >= kinit+nit*step:
-        raise ValueError(f"Enough eigenvectors should be provided on the target mesh, "
-                         f"here {kinit+step*nit} are needed when {L2.shape[1]} are provided")
+    FM_zo = FM.copy()
 
     ANN_adventage = False
-    for k in [kinit + i*step for i in range(nit)]:
-
-        if use_ANN and k > 90:
+    iterable = range(nit-1) if not verbose else tqdm(range(nit-1))
+    for it in iterable:
+        if use_ANN and FM_zo.shape[0] > 90 and FM_zo.shape[1] > 90:
             ANN_adventage = True
 
-        C_zo = zoomout_iteration(L1_zo, L2_zo, A2_zo, C_zo, k+step, use_ANN=ANN_adventage)
+        if use_subsample:
+            FM_zo = zoomout_iteration(eigvects1[sub1], eigvects2[sub2], FM_zo,
+                                      step=step, use_ANN=ANN_adventage)
 
-    return zoomout_iteration(L1, L2, A2, C_zo, kinit+nit*step, use_ANN=False, return_p2p=return_p2p)
+        else:
+            FM_zo = zoomout_iteration(eigvects1, eigvects2, FM_zo, A2=A2,
+                                      step=step, use_ANN=ANN_adventage)
+
+    result = zoomout_iteration(eigvects1, eigvects2, FM_zo,
+                               A2=A2,step=step, use_ANN=False, return_p2p=return_p2p)
+
+    return result
 
 
-def zoomout_iteration(L1,L2,A2,C,k_end,use_ANN=False, return_p2p=False):
+def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, return_p2p=False, use_ANN=False):
     """
     Performs an iteration of zoomout.
 
     Parameters
     --------------------
-    L1         : (n1',k1) eigenvectors on source shape with k1 >= K + nit.
-                 Can be a subsample of the original ones.
-    L2         : (n2',k2) eigenvectors on target shape with k2 >= K + nit.
-                 Can be a subsample of the original ones.
-    A2         : (n2',n2') sparse area matrix on target mesh.
-                 Can be a subsample from the original matrix
-    C          : (K,K) Functional map from from L1[:,:K] to L2[:,:K]
-    k_end      : int - dimension at the end of the iteration
-    use_ANN    : bool - whether to use approximate nearest neighbor
+    eigvects1  : (n1,k1') eigenvectors on source shape with k1' >= k1 + step.
+                 Can be a subsample of the original ones on the first dimension.
+    eigvects2  : (n2,k2') eigenvectors on target shape with k2' >= k2 + step.
+                 Can be a subsample of the original ones on the first dimension.
+    FM         : (k2,k1) Functional map from from eigvects1[:,:k1] to eigvects2[:,:k2]
+    step       : int - step of increase of dimension.
+    A2         : (n2,n2) sparse area matrix on target mesh, for vertex to vertex computation.
+                 If specified, the eigenvectors can't be subsampled !
     return_p2p : bool - if True returns the vertex to vertex map.
+    use_ANN    : bool - if True, uses approximate nearest neighbor
 
     Output
     --------------------
-    C_zo : zoomout-refined functional map
-    p2p  : If return_p2p is True, (n2',) vertex to vertex mapping.
+    FM_zo : zoomout-refined functional map
+    p2p   : If return_p2p is True, (n2',) vertex to vertex mapping.
     """
-    n1 = L1.shape[0]
-    n2 = L2.shape[0]
-    k_init = C.shape[0]
+    k2,k1 = FM.shape
+    new_k1, new_k2 = k1+step, k2+step
 
-    if use_ANN:
-        index = pynndescent.NNDescent((C@L1[:,:k_init].T).T,n_jobs=2)
-        matches,_ = index.query(L2[:,:k_init],k=1)  # (n2',1)
-        matches = matches.flatten()  # (n2',)
-    else:
-        tree = KDTree((C@L1[:,:k_init].T).T)  # Tree on (n1',K2)
-        matches = tree.query(L2[:,:k_init],k=1,return_distance=False).flatten()  # (n2',)
-
-    P = scipy.sparse.coo_matrix((np.ones(n2),(np.arange(n2),matches)), shape=(n2,n1)).tocsc()  # (n2',n1') point2point
-
-    C = L2[:,:k_end].T @ A2 @ P @ L1[:,:k_end]  # (k_end,k_end)
+    p2p = spectral.FM_to_p2p(FM, eigvects1, eigvects2, use_ANN=use_ANN)  # (n2,)
+    FM_zo = spectral.p2p_to_FM(p2p, eigvects1[:,:new_k1], eigvects2[:,:new_k2], A2=A2)  # (k2+step,k1+step)
 
     if return_p2p:
-        return C,matches
-    else:
-        return C
+        return FM_zo, spectral.FM_to_p2p(FM_zo, eigvects1, eigvects2, use_ANN=use_ANN)
+
+    return FM_zo
