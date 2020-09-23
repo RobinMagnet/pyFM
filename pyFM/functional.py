@@ -34,7 +34,6 @@ class FunctionalMapping:
     """
     def __init__(self,mesh1,mesh2):
 
-
         self.mesh1 = copy.deepcopy(mesh1)
         self.mesh2 = copy.deepcopy(mesh2)
 
@@ -71,7 +70,6 @@ class FunctionalMapping:
             return self.FM.shape[0]
         else:
             return self._k2
-    
     @k2.setter
     def k2(self,k2):
         self._k2 = k2
@@ -315,13 +313,12 @@ class FunctionalMapping:
 
         if verbose:
             print(f'\nOptimization :\n'
-                f'\t{self.k1} Ev on source - {self.k2} Ev on Target\n'
-                f'\tUsing {self.descr1.shape[1]} Descriptors\n'
-                f'\tHyperparameters :\n'
-                f'\t\tDescriptors preservation :{descr_mu:.1e}\n'
-                f'\t\tDescriptors commutativity :{descr_comm_mu:.1e}\n'
-                f'\t\tLaplacian commutativity :{lap_mu:.1e}\n'
-                )
+                  f'\t{self.k1} Ev on source - {self.k2} Ev on Target\n'
+                  f'\tUsing {self.descr1.shape[1]} Descriptors\n'
+                  f'\tHyperparameters :\n'
+                  f'\t\tDescriptors preservation :{descr_mu:.1e}\n'
+                  f'\t\tDescriptors commutativity :{descr_comm_mu:.1e}\n'
+                  f'\t\tLaplacian commutativity :{lap_mu:.1e}\n')
 
         # Optimization
         start_time = time.time()
