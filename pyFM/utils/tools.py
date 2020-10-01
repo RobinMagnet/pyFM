@@ -18,8 +18,11 @@ def display_C(FM):
     plt.show()
 
 
-def farthest_point(D,k):
-    inds = [np.random.randint(D.shape[0])]
+def farthest_point(D,k,init='random'):
+    if init=='random':
+        inds = [np.random.randint(D.shape[0])]
+    else:
+        inds = [np.argmax(D.sum(1))]
     
     dists = D[inds]
     
@@ -29,5 +32,3 @@ def farthest_point(D,k):
         dists = np.minimum(dists,D[newid])
     
     return np.asarray(inds)
-
-

@@ -150,7 +150,6 @@ def p2p_to_FM(p2p,eigvects1,eigvects2,A2=None):
     if A2 is not None:
         if A2.shape[0] != eigvects2.shape[0]:
             raise ValueError("Can't compute pseudo inverse with subsampled eigenvectors")
-
         return eigvects2.T @ A2 @ eigvects1[p2p,:]  # (k2,k1)
 
     return scipy.linalg.lstsq(eigvects2, eigvects1[p2p,:])[0]  # (k2,k1)

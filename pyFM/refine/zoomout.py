@@ -3,9 +3,18 @@ from tqdm import tqdm
 
 import pyFM.utils.spectral as spectral
 
+try:
+    import pynndescent
+    index = pynndescent.NNDescent(np.random.random((100,3)),n_jobs=2)
+    del index
+    ANN = True
+except ImportError:
+    ANN = False
+
+
 def mesh_zoomout_refine(mesh1, mesh2, FM, nit,step=1, subsample=None, use_ANN=False, return_p2p=False, verbose=False):
     result = zoomout_refine(mesh1.eigenvectors, mesh2.eigenvectors, FM, nit,
-                            step=step, subsample=subsample,
+                            step=step, A2=mesh2.A, subsample=subsample,
                             use_ANN=use_ANN, return_p2p=return_p2p, verbose=verbose)
 
     return result
@@ -94,7 +103,7 @@ def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, return_p2p=Fals
     k2,k1 = FM.shape
     new_k1, new_k2 = k1+step, k2+step
 
-    p2p = spectral.FM_to_p2p(FM, eigvects1, eigvects2, use_ANN=use_ANN)  # (n2,)
+    p2p = spectral.FM_to_p2p(FM.copy(), eigvects1, eigvects2, use_ANN=use_ANN)  # (n2,)
     FM_zo = spectral.p2p_to_FM(p2p, eigvects1[:,:new_k1], eigvects2[:,:new_k2], A2=A2)  # (k2+step,k1+step)
 
     if return_p2p:
