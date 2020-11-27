@@ -3,11 +3,11 @@ pyFM is a pure python implementation of multiple tools used for Functional Maps 
 
 ## Features
 
-* A TriMesh class allowing to compute the area, geodesic distances (using dijkstra not fast marching yet), to use the LB basis to project or decode functions, and compute squared norm of a function on the mesh
-* A pure Python (fast) implementation of Laplace-Beltrami computation using FEM (taken from [mindboggles github](https://github.com/nipy/mindboggle))
+* A TriMesh class allowing to compute the area, geodesic distances (using dijkstra not fast marching yet), normals, projection on the LBO basis, export .off or .obj files with textures.
+* A pure Python (fast) implementation of Laplace-Beltrami computation using FEM or a diagonal area matrix.
 * Implementation of HKS and WKS (and their version for landmarks) with multiple level of automation for parameters selection (from full automatic to total control)
 * Implementation of icp and zoomout on Python
-* Small functions like farthest point sampling, shape difference computations, conversion from Functional Map to vertex to vertex map 
+* Conversion from Functional Map to vertex to vertex map or precise map with barycentric coordinates.
 * A FunctionalMapping class allowing straightforward computation of Functional Maps mixing all the previous features
 
 Incoming :
@@ -15,7 +15,7 @@ Incoming :
 
 ## Dependencies
 
-There are few dependencies, namely `numpy`, `scipy`, `scikit-learn` for its KDTree implementation, and `matplotlib` for a single optional function.
+There are few dependencies, namely `numpy`, `scipy`, `tqdm`, `scikit-learn` for its KDTree implementation, and `matplotlib` for a single optional function.
 
 `pynndescent` (see [here](https://github.com/lmcinnes/pynndescent)) is an optional package which is only required if one wish to use Approximate Nearest Neighbor. Else it is not required.
 
