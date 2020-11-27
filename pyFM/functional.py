@@ -8,8 +8,7 @@ import pyFM.signatures as sg
 import pyFM.optimize as opt_func
 import pyFM.refine.zoomout as zoomout
 import pyFM.refine.icp as icp
-import pyFM.utils.spectral as spectral
-import pyFM.utils.tools as tools
+import pyFM.spectral as spectral
 
 
 class FunctionalMapping:
@@ -47,7 +46,7 @@ class FunctionalMapping:
         self.FM_icp = None
         self.FM_zo = None
 
-        self._k1, self._k2 = None,None
+        self._k1, self._k2 = None, None
 
     # DIMENSION PROPERTIES
     @property
@@ -110,6 +109,22 @@ class FunctionalMapping:
     def FM(self, FM):
         self.FM_base = FM
 
+    # BOOLEAN PROPERTIES
+    @property
+    def preprocessed(self):
+        """
+        check if enough information is provided to fit the model
+        """
+        test_descr = (self.descr1 is not None) and (self.descr2 is not None)
+        test_evals = (self.mesh1.eigenvalues is not None) and (self.mesh2.eigenvalues is not None)
+        test_evects = (self.mesh1.eigenvectors is not None) and (self.mesh2.eigenvectors is not None)
+
+        return test_descr and test_evals and test_evects
+
+    @property
+    def fitted(self):
+        return self.FM is not None
+
     @property
     def p2p(self):
         """
@@ -119,35 +134,43 @@ class FunctionalMapping:
         --------------------
         p2p : (n2,) point to point map associated to the current functional map
         """
-        if not self.fitted or not self.preprocessed:
-            raise ValueError('Model should be processed and fit to obtain p2p map')
+        if not self.fitted:
+            raise ValueError('Model should be fit and fit to obtain p2p map')
 
-        return spectral.FM_to_p2p(self.FM,self.mesh1.eigenvectors,self.mesh2.eigenvectors)
+        return spectral.FM_to_p2p(self.FM, self.mesh1.eigenvectors, self.mesh2.eigenvectors)
 
-    # BOOLEAN PROPERTIES
-    @property
-    def preprocessed(self):
-        test_descr = (self.descr1 is not None) and (self.descr2 is not None)
-        # test_evals = (self.mesh1.eigenvalues is not None) and (self.mesh2.eigenvalues is not None)
-        # test_evects = (self.mesh1.eigenvectors is not None) and (self.mesh2.eigenvectors is not None)
+    def precise_map(self,precompute=True):
+        """
+        Returns a precise map between the two meshes using the map deblurring paper
 
-        return test_descr  #and test_evals and test_evects
+        Paramaters
+        -------------------
+        precompute : Set to precompute values for faster computation but heavier
+                     memory use.
 
-    @property
-    def fitted(self):
-        return self.FM is not None
+        Output
+        -------------------
+        precise_map : (n2,n1) sparse - precise map
+        """
+        if not self.fitted:
+            raise ValueError('Model should be fit and fit to obtain p2p map')
 
-    def preprocess(self, n_ev=(50,50), n_descr=100, descr_type='WKS', landmarks=None, subsample_step=1, verbose=False):
+        return spectral.precise_map.precise_map(self.mesh1,self.mesh2, self.FM, precompute_dmin=precompute)
+
+    def preprocess(self, n_ev=(50,50), n_descr=100, descr_type='WKS', landmarks=None, subsample_step=1, fem_area=False, verbose=False):
         """
         Saves the information about the Laplacian mesh for opt
 
         Parameters
         -----------------------------
-        n_ev        : (k1, k2) tuple - with the number of Laplacian eigenvalues to consider. Sets these parameters for the rest !!
-        n_descr     : int - number of descriptors to consider
-        descr_type  : str - "HKS" | "WKS"
-        landmarks   : (p,1|2) array of indices of landmarks to match. If (p,1) uses the same indices for both
-        subsample_step : int - step at which to subsample the descriptors (important to use w/ landmarks !)
+        n_ev           : (k1, k2) tuple - with the number of Laplacian eigenvalues to consider.
+        n_descr        : int - number of descriptors to consider
+        descr_type     : str - "HKS" | "WKS"
+        landmarks      : (p,1|2) array of indices of landmarks to match.
+                         If (p,1) uses the same indices for both.
+        subsample_step : int - step with which to subsample the descriptors.
+        fem_area       : bool - Whether to compute the area matrix using finite element method
+                         instead of the diagonal matrix.
         """
         self.k1,self.k2 = n_ev
 
@@ -157,13 +180,14 @@ class FunctionalMapping:
         if verbose:
             print('\nComputing Laplacian spectrum')
         if self.mesh1.eigenvalues is None or len(self.mesh1.eigenvalues) < self.k1:
-            self.mesh1.process(max(self.k1,200),verbose=verbose)
+            self.mesh1.process(max(self.k1,200), fem_area=fem_area, verbose=verbose)
         if self.mesh2.eigenvalues is None or len(self.mesh2.eigenvalues) < self.k2:
-            self.mesh2.process(max(self.k2,200),verbose=verbose)
+            self.mesh2.process(max(self.k2,200), fem_area=fem_area, verbose=verbose)
 
         if verbose:
             print('\nComputing descriptors')
 
+        # Extract landmarks indices
         if use_lm:
             if len(landmarks.shape) == 1 or landmarks.shape[1] == 1:
                 if verbose:
@@ -175,8 +199,8 @@ class FunctionalMapping:
 
         # Compute descriptors
         if descr_type == 'HKS':
-            self.descr1 = sg.mesh_HKS(self.mesh1,n_descr,k=self.k1) # (N1, n_descr)
-            self.descr2 = sg.mesh_HKS(self.mesh2,n_descr,k=self.k2) # (N2, n_descr)
+            self.descr1 = sg.mesh_HKS(self.mesh1,n_descr,k=self.k1)  # (N1, n_descr)
+            self.descr2 = sg.mesh_HKS(self.mesh2,n_descr,k=self.k2)  # (N2, n_descr)
 
             if use_lm:
                 lm_descr1 = sg.mesh_HKS(self.mesh1,n_descr,landmarks=lm1,k=self.k1)  # (N1, p*n_descr)
@@ -200,113 +224,96 @@ class FunctionalMapping:
             raise ValueError(f'Descriptor type "{descr_type}" not implemented')
 
         # Subsample descriptors
-        self.descr1 = self.descr1[:,np.arange(0,self.descr1.shape[1],subsample_step)]
-        self.descr2 = self.descr2[:,np.arange(0,self.descr2.shape[1],subsample_step)]
+        self.descr1 = self.descr1[:, np.arange(0, self.descr1.shape[1], subsample_step)]
+        self.descr2 = self.descr2[:, np.arange(0, self.descr2.shape[1], subsample_step)]
 
         # Normalize descriptors
         if verbose:
             print('\tNormalizing descriptors')
 
-        no1 = np.sqrt(self.mesh1.l2_sqnorm(self.descr1))
-        no2 = np.sqrt(self.mesh2.l2_sqnorm(self.descr2))
+        no1 = np.sqrt(self.mesh1.l2_sqnorm(self.descr1))  # (p,)
+        no2 = np.sqrt(self.mesh2.l2_sqnorm(self.descr2))  # (p,)
 
-        self.descr1 /= no1[None,:]
-        self.descr2 /= no2[None,:]
+        self.descr1 /= no1[None, :]
+        self.descr2 /= no2[None, :]
 
         if verbose:
             n_lmks = np.asarray(landmarks).shape[0] if use_lm else 0
             print(f'\n\t{self.descr1.shape[1]} out of {n_descr*(1+n_lmks)} possible descriptors kept')
-            print('\tDone')
 
         return self
 
-    def fit(self, descr_mu=1e-1, lap_mu=1e-3, descr_comm_mu=1, optinit='sign', verbose=False):
+    def fit(self, descr_mu=1e-1, lap_mu=1e-3, descr_comm_mu=1, orient_mu=0, orient_reversing=False, optinit='zeros', verbose=False):
         """
-        Solves the functional mapping problem and saves the computed Functional Map.
+        Solves the functional map optimization problem :
+
+        min_C descr_mu * ||C@A - B||^2 + descr_comm_mu * (sum_i ||C@D_Ai - D_Bi@C||^2)
+              + lap_mu * ||C@L1 - L2@C||^2 + orient_mu * (sum_i ||C@G_Ai - G_Bi@C||^2)
+
+        with A and B descriptors, D_Ai and D_Bi multiplicative operators extracted
+        from the i-th descriptors, L1 and L2 laplacian on each shape, G_Ai and G_Bi
+        orientation preserving (or reversing) operators association to the i-th descriptors.
 
         Parameters
         -------------------------------
-        descr_mu  : scaling of the descriptor loss
-        lap_mu    : scaling of the laplacian commutativity loss
-        descr_comm_mu   : scaling of the descriptor commutativity loss
-        optinit : 'random' | 'identity' | 'sign' initialization. 'sign' sets all parameters to 0 and compute the top left component.
+        descr_mu         : scaling for the descriptor preservation term
+        lap_mu           : scaling of the laplacian commutativity term
+        descr_comm_mu    : scaling of the multiplicative operator commutativity
+        orient_mu        : scaling of the orientation preservation term
+                           (in addition to relative scaling with the other terms as in the original
+                           code)
+        orient_reversing : Whether to use the orientation reversing term instead of the orientation
+                           preservation one
+        optinit          : 'random' | 'identity' | 'zeros' initialization.
+                           In any case, the first column of the functional map is computed by hand
+                           and not modified during optimization
         """
-        assert optinit in ['random','identity', 'sign'], f"optinit arg should be 'random', 'identity' or 'sign', not {optinit}"
+        if optinit not in ['random','identity', 'zeros']:
+            raise ValueError(f"optinit arg should be 'random', 'identity' or 'zeros', not {optinit}")
 
         if not self.preprocessed:
             self.preprocess()
 
         # Project the descriptors on the LB basis
-        descr1_red = self.project(self.descr1,mesh_ind=1) # (n_ev1, n_descr)
-        descr2_red = self.project(self.descr2,mesh_ind=2) # (n_ev2, n_descr)
+        descr1_red = self.project(self.descr1, mesh_ind=1)  # (n_ev1, n_descr)
+        descr2_red = self.project(self.descr2, mesh_ind=2)  # (n_ev2, n_descr)
 
-        # Compute the operators associated with each descriptor
+        # Compute multiplicative operators associated to each descriptor
         list_descr = []
         if descr_comm_mu > 0:
             if verbose:
-                print('Computing new descriptors')
-            list_descr = self.compute_new_descr()  # (n_descr,)
+                print('Computing commutativity operators')
+            list_descr = self.compute_new_descr()  # (n_descr, ((k1,k1), (k2,k2)) )
+
+        # Compute orientation operators associated to each descriptor
+        orient_op = []
+        if orient_mu > 0:
             if verbose:
-                print('\tDone')
+                print('Computing orientation operators')
+            orient_op = self.compute_orientation_op(reversing=orient_reversing)  # (n_descr,)
 
         # Compute the squared differences between eigenvalues for LB commutativity
-        ev_sqdiff = np.square(self.mesh1.eigenvalues[None,:self.k1] - self.mesh2.eigenvalues[:self.k2,None])  # (n_ev2,n_ev1)
+        ev_sqdiff = np.square(self.mesh1.eigenvalues[None, :self.k1] - self.mesh2.eigenvalues[:self.k2, None])  # (n_ev2,n_ev1)
         ev_sqdiff /= np.linalg.norm(ev_sqdiff)**2
 
-        # Defines current optimization functions
-        def energy_func(C, descr_mu, lap_mu, descr_comm_mu, descr1_red, descr2_red, list_descr, ev_sqdiff):
-            """
-            Evaluation of the energy
-            """
-            k1 = descr1_red.shape[0]
-            k2 = descr2_red.shape[0]
-            C = C.reshape((k2,k1))
+        # rescale orientation term
+        if orient_mu > 0:
+            args_native = (np.eye(self.k2,self.k1),
+                           descr_mu, lap_mu, descr_comm_mu, 0,
+                           descr1_red, descr2_red,list_descr, orient_op, ev_sqdiff)
 
-            energy = 0
+            eval_native = opt_func.energy_func_std(*args_native)
+            eval_orient = opt_func.oplist_commutation(np.eye(self.k2,self.k1), orient_op)
+            orient_mu *= eval_native / eval_orient
+            if verbose:
+                print(f'\tScaling orientation preservation weight by {eval_native / eval_orient:.1e}')
 
-            if descr_mu > 0:
-                energy += descr_mu * opt_func.descr_preservation(C,descr1_red,descr2_red)
-
-            if lap_mu > 0:
-                energy += lap_mu * opt_func.LB_commutation(C,ev_sqdiff)
-
-            if descr_comm_mu > 0:
-                energy += descr_comm_mu * opt_func.oplist_commutation(C,list_descr)
-
-            return energy
-
-        def grad_energy(C, descr_mu, lap_mu, descr_comm_mu, descr1_red, descr2_red, list_descr, ev_sqdiff):
-            """
-            Gradient of the energy
-            """
-            k1 = descr1_red.shape[0]
-            k2 = descr2_red.shape[0]
-            C = C.reshape((k2,k1))
-
-            gradient = np.zeros_like(C)
-
-            if descr_mu > 0:
-                gradient += descr_mu * opt_func.descr_preservation_grad(C,descr1_red,descr2_red)
-
-            if lap_mu > 0:
-                gradient += lap_mu * opt_func.LB_commutation_grad(C,ev_sqdiff)
-
-            if descr_comm_mu > 0:
-                gradient += descr_comm_mu * opt_func.oplist_commutation_grad(C,list_descr)
-
-            return gradient.reshape(-1)
-
-        # Constants
-        args = (descr_mu,lap_mu,descr_comm_mu,descr1_red,descr2_red,list_descr,ev_sqdiff)
+        # Arguments for the optimization problem
+        args = (descr_mu, lap_mu, descr_comm_mu, orient_mu,
+                descr1_red, descr2_red, list_descr, orient_op, ev_sqdiff)
 
         # Initialization
-        if optinit == 'random':
-            x0 = np.random.random((self.k2,self.k1))
-        elif optinit == 'identity':
-            x0 = np.eye(self.k2, self.k1)
-        elif optinit == 'sign':
-            x0 = np.zeros((self.k2, self.k1))
-            x0[0,0] = np.sign(self.mesh1.eigenvectors[0,0]*self.mesh2.eigenvectors[0,0])* np.sqrt(self.mesh2.A.sum()/self.mesh1.A.sum())
+        x0 = self.get_x0(optinit=optinit)
 
         if verbose:
             print(f'\nOptimization :\n'
@@ -316,11 +323,12 @@ class FunctionalMapping:
                   f'\t\tDescriptors preservation :{descr_mu:.1e}\n'
                   f'\t\tDescriptors commutativity :{descr_comm_mu:.1e}\n'
                   f'\t\tLaplacian commutativity :{lap_mu:.1e}\n'
+                  f'\t\tOrientation preservation :{orient_mu:.1e}\n'
                   )
 
         # Optimization
         start_time = time.time()
-        res = fmin_l_bfgs_b(energy_func, x0.reshape(-1),fprime=grad_energy,args=args)
+        res = fmin_l_bfgs_b(opt_func.energy_func_std, x0.ravel(), fprime=opt_func.grad_energy_std, args=args)
         opt_time = time.time() - start_time
         self.FM = res[0].reshape((self.k2,self.k1))
 
@@ -328,20 +336,23 @@ class FunctionalMapping:
             print("\tTask : {task}, funcall : {funcalls}, nit : {nit}, warnflag : {warnflag}".format(**res[2]))
             print(f'\tDone in {opt_time:.2f} seconds')
 
-    def icp_refine(self, nit=5, overwrite=True):
+    def icp_refine(self, nit=5, tol=None, overwrite=True, verbose=False):
         """
         Refines the functional map using ICP and saves the result
 
         Parameters
         -------------------
-        nit       : int - number of iterations to do
+        nit       : int - number of iterations of icp to apply
+        tol       : float - threshold of change in functional map in order to stop refinement
+                    (only applies if nit is None)
         overwrite : bool - If True changes FM type to 'icp' so that next call of self.FM
                     will be the icp refined FM
         """
         if not self.fitted:
             raise ValueError("The Functional map must be fit before refining it")
 
-        self.FM_icp = icp.icp_refine(self.mesh1.eigenvectors[:,:self.k1],self.mesh2.eigenvectors[:,:self.k2],self.FM,nit)
+        self.FM_icp = icp.mesh_icp_refine(self.mesh1, self.mesh2, self.FM,
+                                          nit=nit, tol=tol, verbose=verbose)
         if overwrite:
             self.FM_type = 'icp'
         return self
@@ -375,12 +386,6 @@ class FunctionalMapping:
             self.FM_type = 'zoomout'
         return self
 
-    def display_C(self):
-        """
-        Display the Functional Map
-        """
-        tools.display_C(self.FM)
-
     def compute_SD(self):
         """
         Compute the shape difference operators associated to the functional map
@@ -388,8 +393,38 @@ class FunctionalMapping:
         if not self.fitted:
             raise ValueError("The Functional map must be fit before computing the shape difference")
 
-        self.D_a = self.FM.T @ self.FM
-        self.D_c = np.linalg.pinv(np.diag(self.mesh1.eigenvalues[:self.k1])) @ self.FM.T @ (self.mesh2.eigenvalues[:self.k2,None] *self.FM)
+        self.D_a = spectral.area_SD(self.FM)
+        self.D_c = spectral.conformal_SD(self.FM, self.mesh1.eigenvalues, self.mesh2.eigenvalues)
+
+    def get_x0(self, optinit="zeros"):
+        """
+        Returns the initial functional map for optimization.
+
+        Parameters
+        ------------------------
+        optinit : 'random' | 'identity' | 'zeros' initialization.
+                  In any case, the first column of the functional map is computed by hand
+                  and not modified during optimization
+
+        Output
+        ------------------------
+        x0 : corresponding initial vector
+        """
+        if optinit == 'random':
+            x0 = np.random.random((self.k2, self.k1))
+        elif optinit == 'identity':
+            x0 = np.eye(self.k2, self.k1)
+        else:
+            x0 = np.zeros((self.k2, self.k1))
+
+        # Sets the equivalence between the constant functions
+        ev_sign = np.sign(self.mesh1.eigenvectors[0,0]*self.mesh2.eigenvectors[0,0])
+        area_ratio = np.sqrt(self.mesh2.area/self.mesh1.area)
+
+        x0[:,0] = np.zeros(self.k2)
+        x0[0,0] = ev_sign * area_ratio
+
+        return x0
 
     def compute_new_descr(self):
         """
@@ -402,8 +437,8 @@ class FunctionalMapping:
         if not self.preprocessed:
             raise ValueError("Preprocessing must be done before computing the new descriptors")
 
-        pinv1 = self.mesh1.eigenvectors[:,:self.k1].T @ self.mesh1.A # (k1,n)
-        pinv2 = self.mesh2.eigenvectors[:,:self.k2].T @ self.mesh2.A # (k2,n)
+        pinv1 = self.mesh1.eigenvectors[:,:self.k1].T @ self.mesh1.A  # (k1,n)
+        pinv2 = self.mesh2.eigenvectors[:,:self.k2].T @ self.mesh2.A  # (k2,n)
 
         list_descr = [
                       (pinv1@(self.descr1[:,i,None]*self.mesh1.eigenvectors[:,:self.k1]),
@@ -413,6 +448,47 @@ class FunctionalMapping:
                       ]
 
         return list_descr
+
+    def compute_orientation_op(self, reversing=False, normalize=False):
+        """
+        Compute orientation preserving or reversing operators associated to each descriptor.
+
+        Parameters
+        ---------------------------------
+        reversing : whether to return operators associated to orientation inversion instead
+                    of orientation preservation (return the opposite of the second operator)
+        normalize : whether to normalize the gradient on each face. Might improve results
+                    according to the authors
+
+        Output
+        ---------------------------------
+        list_op : (n_descr,) where term i contains (D1,D2) respectively of size (k1,k1) and
+                  (k2,k2) which represent operators supposed to commute.
+        """
+        n_descr = self.descr1.shape[1]
+
+        # Precompute the inverse of the eigenvectors matrix
+        pinv1 = self.mesh1.eigenvectors[:,:self.k1].T @ self.mesh1.A  # (k1,n)
+        pinv2 = self.mesh2.eigenvectors[:,:self.k2].T @ self.mesh2.A  # (k2,n)
+
+        # Compute the gradient of each descriptor
+        grads1 = [self.mesh1.gradient(self.descr1[:,i], normalize=normalize) for i in range(n_descr)]
+        grads2 = [self.mesh2.gradient(self.descr2[:,i], normalize=normalize) for i in range(n_descr)]
+
+        # Compute the operators in reduced basis
+        can_op1 = [pinv1 @ self.mesh1.orientation_op(gradf) @ self.mesh1.eigenvectors[:, :self.k1]
+                   for gradf in grads1]
+
+        if reversing:
+            can_op2 = [- pinv2 @ self.mesh2.orientation_op(gradf) @ self.mesh2.eigenvectors[:, :self.k2]
+                       for gradf in grads2]
+        else:
+            can_op2 = [pinv2 @ self.mesh2.orientation_op(gradf) @ self.mesh2.eigenvectors[:, :self.k2]
+                       for gradf in grads2]
+
+        list_op = list(zip(can_op1,can_op2))
+
+        return list_op
 
     def project(self, func, k=None, mesh_ind=1):
         """

@@ -11,7 +11,6 @@ def WKS(evals,evects,energy_list, sigma, scaled=False):
     evals       : (K,) array of the K corresponding eigenvalues
     energy_list : (num_E,) values of e to use
     sigma       : (float) [positive] standard deviation to use
-
     scaled      : (bool) Whether to scale each energy level
 
     Output
@@ -21,18 +20,20 @@ def WKS(evals,evects,energy_list, sigma, scaled=False):
     assert sigma > 0, f"Sigma should be positive ! Given value : {sigma}"
 
     evals = np.asarray(evals).flatten()
-    indices = np.where(evals>1e-2)[0].flatten()
+    indices = np.where(evals>1e-5)[0].flatten()
     evals = evals[indices]
     evects = evects[:,indices]
 
-    e_list =np.asarray(energy_list)
+    e_list = np.asarray(energy_list)
     coefs = np.exp(-np.square(e_list[:,None] - np.log(np.abs(evals))[None,:])/(2*sigma**2)) # (num_E,K)
+
     weighted_evects = evects[None,:,:] * coefs[:,None,:] # (num_E,N,K)
 
     natural_WKS = np.einsum('tnk,nk->nt',weighted_evects,evects) # (N,num_E)
 
     if scaled:
         inv_scaling = coefs.sum(1) # (num_E)
+        
         return (1/inv_scaling)[None,:] * natural_WKS
     
     else:
