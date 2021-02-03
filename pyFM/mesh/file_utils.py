@@ -21,7 +21,7 @@ def read_off(filepath):
             raise TypeError('Not a valid OFF header')
         n_verts, n_faces, _ = [int(x) for x in f.readline().strip().split(' ')]
         vertices = [[float(x) for x in f.readline().strip().split()] for _ in range(n_verts)]
-        faces = [[int(x) for x in f.readline().strip().split()][1:] for _ in range(n_faces)]
+        faces = [[int(x) for x in f.readline().strip().split()][1:4] for _ in range(n_faces)]
 
     return np.asarray(vertices), np.asarray(faces)
 
