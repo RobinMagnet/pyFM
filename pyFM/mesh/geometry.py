@@ -87,7 +87,7 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False):
     vertices   : (n,3) coordinates of vertices
     faces      : (m,3) indices of vertices for each face
     normals    : (m,3) normals coordinate for each face
-    faces_area : (m,) - Optional, array of per-face area, for faster computation
+    face_area : (m,) - Optional, array of per-face area, for faster computation
     use_sym    : bool - If true, uses the (slower but) symmetric expression
                  of the gradient
 
@@ -245,6 +245,78 @@ def geodesic_distmat(vertices, faces):
     geod_dist = sparse.csgraph.dijkstra(graph)
 
     return geod_dist
+
+
+def heat_geodesic_from(i, vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_areas=None):
+    """
+    Computes geodesic distances between vertex i and all other vertices
+    using the Heat Method
+
+    Parameters
+    -------------------------
+    i          : int of array of ints - index of the source vertex (or vertices)
+    vertices   : (n,3) vertices coordinates
+    faces      : (m,3) triangular faces defined by 3 vertices index
+    normals    : (m,3) per-face normals
+    A          : (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W
+    W          : (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W
+    t          : float - time parameter for which to solve the heat equation
+    face_area  : (m,) - Optional, array of per-face area, for faster computation
+    vert_areas : (n,) - Optional, array of per-vertex area, for faster computation
+
+    """
+    n_vertices = vertices.shape[0]
+
+    # Define the dirac function  d on the given index. Not that the area normalization
+    # will be simplified later on so this is actually A*d with A the area matrix
+    delta = np.zeros(n_vertices)
+    delta[i] = 1
+
+    # Solve (I + tL)u = d. Actually (A + tW)u = Ad
+    u = sparse.linalg.spsolve(A + t*W, delta)  # (n,)
+
+    # Compute and normalize the gradient of the solution
+    g = grad_f(u, vertices, faces, normals, face_areas=face_areas)  # (m,3)
+    h = - g / np.linalg.norm(g, axis=1, keepdims=True)  # (m,3)
+
+    # Solve L*phi = div(h). Actually W*phi = A*div(h)
+    div_h = div_f(h, vertices, faces, normals, vert_areas=vert_areas)  # (n,1)
+    phi = sparse.linalg.spsolve(W, A @ div_h)  # (n,1)
+    phi -= np.min(phi)  # phi is defined up to an additive constant. Minimum distance is 0
+
+    return phi.flatten()
+
+
+def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_areas=None):
+    """
+    Computes geodesic distances between all pairs of vertices using the Heat Method
+
+    Parameters
+    -------------------------
+    vertices   : (n,3) vertices coordinates
+    faces      : (m,3) triangular faces defined by 3 vertices index
+    normals    : (m,3) per-face normals
+    A          : (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W
+    W          : (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W
+    t          : float - time parameter for which to solve the heat equation
+    face_area  : (m,) - Optional, array of per-face area, for faster computation
+    vert_areas : (n,) - Optional, array of per-vertex area, for faster computation
+
+    """
+    n_vertices = vertices.shape[0]
+
+    if face_areas is None:
+        face_areas = compute_faces_areas(vertices, faces)
+    if vert_areas is None:
+        vert_areas = compute_vertex_areas(vertices, faces, face_areas)
+
+    distmat = np.zeros((n_vertices,n_vertices))
+
+    for index in range(n_vertices):
+        distmat[index] = heat_geodesic_from(index, vertices, faces, normals, A, W, t=t,
+                                            face_areas=face_areas, vert_areas=vert_areas)
+
+    return distmat
 
 
 def edges_from_faces(faces):

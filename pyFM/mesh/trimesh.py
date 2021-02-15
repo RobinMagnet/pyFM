@@ -156,7 +156,7 @@ class TriMesh:
         if fem_area:
             self.A = laplacian.fem_area_mat(self.vertlist, self.facelist)
         else:
-            self.A = laplacian.dia_area_mat(self.vertlist ,self.facelist)
+            self.A = laplacian.dia_area_mat(self.vertlist, self.facelist)
 
         # If k is 0, stop here
         if k > 0:
@@ -247,24 +247,49 @@ class TriMesh:
         """
         return self.decode(self.project(func, k=k))
 
-    def get_geodesic(self, save=False):
+    def get_geodesic(self, dijkstra=False, save=False, force_compute=False):
         """
-        Compute the geodesic distances using the Dijkstra algorithm.
+        Compute the geodesic distances using either the Dijkstra algorithm
+        or the Heat Method.
         Loads from cache if possible
+
+        Parameters
+        -----------------
+        dijkstra      : bool - If True, use Dijkstra algorithm instead of the
+                        heat method
+        save          : bool - If True, save the resulting distance matrix at
+                        '{path}/geod_cache/{meshname}.npy' with 'path/meshname.off'
+                        being the current mesh.
+        force_compute : bool - If True, doesn't look for a cached distance matrix.
 
         Output
         -----------------
         distances : (n,n) matrix of geodesic distances
         """
         # Load cache if possible
-        if self.path is not None:
+        if not force_compute and self.path is not None:
             root_dir,filename = os.path.split(self.path)
             meshname = os.path.splitext(filename)[0]
             geod_filename = os.path.join(root_dir,'geod_cache',f'{meshname}.npy')
             if os.path.isfile(geod_filename):
                 return np.load(geod_filename)
 
-        geod_dist = geom.geodesic_distmat(self.vertlist, self.facelist)
+        if dijkstra:
+            geod_dist = geom.geodesic_distmat(self.vertlist, self.facelist)
+        else:
+            if self.A is None or self.W is None:
+                self.process(k=0)
+            if self.normals is None:
+                self.compute_normals()
+
+            # Set the time parameter as the squared mean edge length
+            edges = self.edges
+            v1 = self.vertlist[edges[:,0]]
+            v2 = self.vertlist[edges[:,1]]
+            t = np.linalg.norm(v2-v1).mean()**2
+
+            geod_dist = geom.heat_geodmat(self.vertlist, self.facelist, self.normals,
+                                          self.A, self.W, t=t)
 
         if save:
             if self.path is None:
@@ -277,6 +302,36 @@ class TriMesh:
             np.save(geod_filename,geod_dist)
 
         return geod_dist
+
+    def geod_from(self, i, t=None):
+        """
+        Compute geodesic distances from vertex i sing the Heat Method
+
+        Parameters
+        ----------------------
+        i : int - index from source
+        t : float - time parameter. If not specified, uses the squared
+            mean edge length
+
+        Output
+        ----------------------
+        dist : (n,) distances to vertex i
+        """
+        if self.A is None or self.W is None:
+            self.process(k=0)
+        if self.normals is None:
+            self.compute_normals()
+
+        # Set the time parameter as the squared mean edge length
+        edges = self.edges
+        v1 = self.vertlist[edges[:,0]]
+        v2 = self.vertlist[edges[:,1]]
+        t = np.linalg.norm(v2-v1).mean()**2
+
+        dists = geom.heat_geodesic_from(i, self.vertlist, self.facelist, self.normals,
+                                        self.A, self.W, t=t)
+
+        return dists
 
     def l2_sqnorm(self, func):
         """
