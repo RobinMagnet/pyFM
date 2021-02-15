@@ -84,7 +84,7 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False):
     Parameters
     --------------------------
     f          : (n,) function value on each vertex
-    vertices   : (m,3) coordinates of vertices
+    vertices   : (n,3) coordinates of vertices
     faces      : (m,3) indices of vertices for each face
     normals    : (m,3) normals coordinate for each face
     faces_area : (m,) - Optional, array of per-face area, for faster computation
@@ -108,19 +108,58 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False):
         face_areas = 0.5 * np.linalg.norm(np.cross(v2-v1,v3-v1),axis=1)  # (m)
 
     if not use_sym:
-        grad2 = np.cross(normals, v1-v3)/(2*face_areas[:,None])  # (n_f,3)
-        grad3 = np.cross(normals, v2-v1)/(2*face_areas[:,None])  # (n_f,3)
+        grad2 = np.cross(normals, v1-v3)/(2*face_areas[:,None])  # (m,3)
+        grad3 = np.cross(normals, v2-v1)/(2*face_areas[:,None])  # (m,3)
 
         gradient = (f2-f1)[:,None] * grad2 + (f3-f1)[:,None] * grad3
 
     else:
-        grad1 = np.cross(normals, v3-v2)/(2*face_areas[:,None])  # (n_f,3)
-        grad2 = np.cross(normals, v1-v3)/(2*face_areas[:,None])  # (n_f,3)
-        grad3 = np.cross(normals, v2-v1)/(2*face_areas[:,None])  # (n_f,3)
+        grad1 = np.cross(normals, v3-v2)/(2*face_areas[:,None])  # (m,3)
+        grad2 = np.cross(normals, v1-v3)/(2*face_areas[:,None])  # (m,3)
+        grad3 = np.cross(normals, v2-v1)/(2*face_areas[:,None])  # (m,3)
 
         gradient = f1[:,None] * grad1 + f2[:,None] * grad2 + f3[:,None] * grad3
 
     return gradient
+
+
+def div_f(f, vertices, faces, normals, vert_areas=None):
+    """
+    Compute the divergence of a vector field on a mesh
+
+    Parameters
+    --------------------------
+    f          : (m,3) vector field on each face
+    vertices   : (n,3) coordinates of vertices
+    faces      : (m,3) indices of vertices for each face
+    normals    : (m,3) normals coordinate for each face
+    faces_area : (m,) - Optional, array of per-face area, for faster computation
+
+    Output
+    --------------------------
+    gradient : (m,3) gradient of f on the mesh
+    """
+    n_vertices = vertices.shape[0]
+
+    v1 = vertices[faces[:,0]]  # (m,3)
+    v2 = vertices[faces[:,1]]  # (m,3)
+    v3 = vertices[faces[:,2]]  # (m,3)
+
+    # Compute area for each face
+    if vert_areas is None:
+        vert_areas = compute_vertex_areas(vertices, faces, faces_areas=None)  # (n,)
+
+    grad1 = np.einsum('ij,ij->i', np.cross(normals, v3 - v2) / 2, f)  # (m,)
+    grad2 = np.einsum('ij,ij->i', np.cross(normals, v1 - v3) / 2, f)  # (m,)
+    grad3 = np.einsum('ij,ij->i', np.cross(normals, v2 - v1) / 2, f)  # (m,)
+
+    I = np.concatenate([faces[:, 0], faces[:, 1], faces[:, 2]])  # (3*m)
+    J = np.zeros_like(I)
+    V = np.concatenate([grad1, grad2, grad3])
+
+    div_val = sparse.coo_matrix((V, (I, J)), shape=(n_vertices, 1)).todense()
+
+    return np.asarray(div_val).flatten() / vert_areas
 
 
 def get_orientation_op(grad_field, vertices, faces, normals, per_vert_area, rotated=False):

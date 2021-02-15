@@ -166,7 +166,7 @@ class TriMesh:
             if return_spectrum:
                 return self.eigenvalues, self.eigenvectors
 
-    def process(self, k=200, fem_area=True, skip_normals=False, verbose=False):
+    def process(self, k=200, fem_area=False, skip_normals=False, verbose=False):
         """
         Process the LB spectrum and saves it.
         Additionnaly computes per-face normals
@@ -336,6 +336,22 @@ class TriMesh:
             grad /= np.linalg.norm(grad,axis=1,keepdims=True)
 
         return grad
+
+    def divergence(self, f):
+        """
+        Computes the divergence of a vector field on the mesh
+
+        Parameters
+        --------------------------
+        f         : (n_f, 3) vector0 value on each face
+
+        Output
+        --------------------------
+        divergence : (n_v,) divergence of f on each vertex
+        """
+        div = geom.div_f(f, self.vertlist, self.facelist, self.normals)
+
+        return div
 
     def orientation_op(self, gradf, normalize=False):
         """
