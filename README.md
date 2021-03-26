@@ -58,23 +58,27 @@ print(f'Mesh 1 : {mesh1.n_vertices:4d} vertices, {mesh1.n_faces:5d} faces\n'
 
 
 # Initialize a FunctionalMapping object in order to compute maps
+process_params = {
+    'n_ev': (35,35),  # Number of eigenvalues on source and Target
+    'landmarks': np.loadtxt('data/landmarks.txt',dtype=int)[:5],  # loading 5 landmarks
+    'subsample_step': 5,  # In order not to use too many descriptors
+    'descr_type': 'WKS',  # WKS or HKS
+}
+
 model = FunctionalMapping(mesh1,mesh2)
-
-# Define parameters for descriptors computations and compute it
-descr_type = 'WKS' # WKS or HKS
-k1,k2 = 60,60 # Number of eigenvalues on source and Target
-landmarks = np.loadtxt('data/landmarks.txt',dtype=int)[:5] # loading 5 landmarks
-subsample_step = 5 # In order not to use too many descriptors*
-
-model.preprocess(n_ev=(k1,k2), subsample_step=subsample_step, landmarks=landmarks, descr_type=descr_type, verbose=True)
+model.preprocess(**process_params,verbose=True)
 
 
 # Define parameters for optimization and fit the Functional Map
-descr_mu = 1e0
-lap_mu = 1e-3
-descr_comm_mu=1e-1
+fit_params = {
+    'descr_mu': 1e0,
+    'lap_mu': 1e-3,
+    'descr_comm_mu': 1e-1,
+    'orient_mu': 0
+}
 
-model.fit(descr_mu=descr_mu, lap_mu=lap_mu, descr_comm_mu=descr_comm_mu, verbose=True)
+model.fit(**fit_params, verbose=True)
+
 
 # One can access the functional map FM and vertex to vertex mapping p2p
 FM = model.FM
@@ -90,6 +94,29 @@ model.change_FM_type('classic') # Chose between 'classic', 'icp' or 'zoomout'
 FM = model.FM # This is now the original FM
 
 model.zoomout_refine(nit=10) # This refines the current model.FM, be careful which FM type is used
+
+# EVALUATION
+import pyFM.eval
+# Compute geodesic distance matrix on the cat mesh
+A_geod = mesh1.get_geodesic(verbose=True)
+
+# Load an approximate ground truth map
+gt_p2p = np.loadtxt('data/lion2cat',dtype=int)
+
+# Compute accuracies
+model.change_FM_type('classic')
+acc_base = pyFM.eval.accuracy(model.p2p, gt_p2p, A_geod, sqrt_area=np.sqrt(mesh1.area))
+model.change_FM_type('icp')
+acc_icp = pyFM.eval.accuracy(model.p2p, gt_p2p, A_geod, sqrt_area=np.sqrt(mesh1.area))
+model.change_FM_type('zoomout')
+acc_zo = pyFM.eval.accuracy(model.p2p, gt_p2p, A_geod, sqrt_area=np.sqrt(mesh1.area))
+
+print(f'Accuracy results\n'
+      f'\tBasic FM : {1e3*acc_base:.2f}\n'
+      f'\tICP refined : {1e3*acc_icp:.2f}\n'
+      f'\tZoomOut refined : {1e3*acc_zo:.2f}\n')
+
+
 
 
 # Functions can now be transfered from one shape to another
