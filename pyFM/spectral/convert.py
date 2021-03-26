@@ -1,5 +1,6 @@
 from sklearn.neighbors import KDTree
 import scipy.linalg
+import numpy as np
 
 try:
     import pynndescent

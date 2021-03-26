@@ -6,8 +6,7 @@ from scipy.optimize import fmin_l_bfgs_b
 
 import pyFM.signatures as sg
 import pyFM.optimize as opt_func
-import pyFM.refine.zoomout as zoomout
-import pyFM.refine.icp as icp
+import pyFM.refine
 import pyFM.spectral as spectral
 
 
@@ -193,10 +192,10 @@ class FunctionalMapping:
 
         # Extract landmarks indices
         if use_lm:
-            if np.asarray(landmarks).flatten().ndim == 1:
+            if np.asarray(landmarks).squeeze().ndim == 1:
                 if verbose:
                     print('\tUsing same landmarks indices for both meshes')
-                lm1 = np.asarray(landmarks).flatten()
+                lm1 = np.asarray(landmarks).squeeze()
                 lm2 = lm1
             else:
                 lm1, lm2 = landmarks[:, 0], landmarks[:, 1]
@@ -355,8 +354,8 @@ class FunctionalMapping:
         if not self.fitted:
             raise ValueError("The Functional map must be fit before refining it")
 
-        self.FM_icp = icp.mesh_icp_refine(self.mesh1, self.mesh2, self.FM,
-                                          nit=nit, tol=tol, use_adj=use_adj, verbose=verbose)
+        self.FM_icp = pyFM.refine.mesh_icp_refine(self.mesh1, self.mesh2, self.FM,
+                                                  nit=nit, tol=tol, use_adj=use_adj, verbose=verbose)
         if overwrite:
             self.FM_type = 'icp'
         return self
@@ -384,8 +383,8 @@ class FunctionalMapping:
             sub2 = self.mesh2.extract_fps(subsample)
             sub = (sub1,sub2)
 
-        self.FM_zo = zoomout.mesh_zoomout_refine(self.mesh1, self.mesh2, self.FM, nit,
-                                                 step=step, subsample=sub, use_ANN=use_ANN, verbose=verbose)
+        self.FM_zo = pyFM.refine.mesh_zoomout_refine(self.mesh1, self.mesh2, self.FM, nit,
+                                                     step=step, subsample=sub, use_ANN=use_ANN, verbose=verbose)
         if overwrite:
             self.FM_type = 'zoomout'
         return self
