@@ -1,14 +1,13 @@
 from sklearn.neighbors import KDTree
 import scipy.linalg
 
-# try:
-#     import pynndescent
-#     index = pynndescent.NNDescent(np.random.random((100, 3)), n_jobs=2)
-#     del index
-#     ANN = True
-# except ImportError:
-#     ANN = False
-ANN = False
+try:
+    import pynndescent
+    index = pynndescent.NNDescent(np.random.random((100, 3)), n_jobs=2)
+    del index
+    ANN = True
+except ImportError:
+    ANN = False
 
 
 def p2p_to_FM(p2p, eigvects1, eigvects2, A2=None):
