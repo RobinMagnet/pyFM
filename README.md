@@ -3,15 +3,14 @@ pyFM is a pure python implementation of multiple tools used for Functional Maps 
 
 ## Features
 
-* A TriMesh class allowing to compute the area, geodesic distances (using dijkstra not fast marching yet), normals, projection on the LBO basis, export .off or .obj files with textures.
+* A TriMesh class allowing to compute the area, geodesic distances (usign the heat [method](https://www.cs.cmu.edu/~kmcrane/Projects/HeatMethod/)), normals, projection on the LBO basis, export .off or .obj files with textures.
 * A pure Python (fast) implementation of Laplace-Beltrami computation using FEM or a diagonal area matrix.
-* Implementation of HKS and WKS (and their version for landmarks) with multiple level of automation for parameters selection (from full automatic to total control)
-* Implementation of icp and zoomout on Python
-* Conversion from Functional Map to vertex to vertex map or precise map with barycentric coordinates.
+* Implementation of [HKS](http://www.lix.polytechnique.fr/~maks/papers/hks.pdf) and [WKS](https://ieeexplore.ieee.org/document/6130444) (and their version for landmarks) with multiple level of automation for parameters selection (from full automatic to total control)
+* Implementation of icp and [ZoomOut](https://arxiv.org/abs/1904.07865) on Python
+* Conversion from Functional Map to vertex to vertex map or [precise map](https://www.cs.technion.ac.il/~mirela/publications/p2p_recovery.pdf) with barycentric coordinates.
 * A FunctionalMapping class allowing straightforward computation of Functional Maps mixing all the previous features
-
-Incoming :
-* Support for Functional Map Networks : Consistent Latent Basis, Canonical Consistent Latent Basis, ISCM weights, Consistent ZoomOut
+* Functions for evaluating results
+* Support for Functional Map Networks : Consistent Latent Basis, Canonical Consistent Latent Basis, consistency weights, Consistent ZoomOut
 
 ## Dependencies
 
