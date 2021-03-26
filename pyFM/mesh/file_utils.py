@@ -21,9 +21,13 @@ def read_off(filepath):
             raise TypeError('Not a valid OFF header')
         n_verts, n_faces, _ = [int(x) for x in f.readline().strip().split(' ')]
         vertices = [[float(x) for x in f.readline().strip().split()] for _ in range(n_verts)]
-        faces = [[int(x) for x in f.readline().strip().split()][1:4] for _ in range(n_faces)]
+        if n_faces > 0:
+            faces = [[int(x) for x in f.readline().strip().split()][1:4] for _ in range(n_faces)]
+            faces = np.asarray(faces)
+        else:
+            faces = None
 
-    return np.asarray(vertices), np.asarray(faces)
+    return np.asarray(vertices), faces
 
 
 def write_off(filepath, vertices, faces):
@@ -37,7 +41,7 @@ def write_off(filepath, vertices, faces):
     faces    : (m,3) array of indices of face vertices
     """
     n_vertices = vertices.shape[0]
-    n_faces = faces.shape[0]
+    n_faces = faces.shape[0] if faces is not None else 0
 
     with open(filepath, 'w') as f:
         f.write('OFF\n')
@@ -45,8 +49,9 @@ def write_off(filepath, vertices, faces):
         for i in range(n_vertices):
             f.write(f'{" ".join([str(coord) for coord in vertices[i]])}\n')
 
-        for j in range(n_faces):
-            f.write(f'3 {" ".join([str(tri) for tri in faces[j]])}\n')
+        if n_faces != 0:
+            for j in range(n_faces):
+                f.write(f'3 {" ".join([str(tri) for tri in faces[j]])}\n')
 
 
 def read_vert(filepath):

@@ -1,6 +1,8 @@
 import numpy as np
 import scipy.sparse as sparse
 
+from tqdm import tqdm
+
 
 def compute_normals(vertices, faces):
     """
@@ -137,7 +139,7 @@ def div_f(f, vertices, faces, normals, vert_areas=None):
 
     Output
     --------------------------
-    gradient : (m,3) gradient of f on the mesh
+    divergence : (n,) divergence of f on the mesh
     """
     n_vertices = vertices.shape[0]
 
@@ -164,10 +166,9 @@ def div_f(f, vertices, faces, normals, vert_areas=None):
 
 def get_orientation_op(grad_field, vertices, faces, normals, per_vert_area, rotated=False):
     """
-    Compute the orientation operator associated to a gradient field grad(f).
+    Compute the linear orientation operator associated to a gradient field grad(f).
 
-    For a given function g, this operator linearly computes
-    < grad(f) x grad(g), n> for each vertex by averaging along the adjacent faces.
+    This operator computes g -> < grad(f) x grad(g), n> (given at each vertex) for any function g
     In practice, we compute < n x grad(f), grad(g) > for simpler computation.
 
     Parameters
@@ -191,10 +192,10 @@ def get_orientation_op(grad_field, vertices, faces, normals, per_vert_area, rota
     v3 = vertices[faces[:,2]]  # (n_f,3)
 
     # Define (normalized) gradient directions for each barycentric coordinate on each face
-    # Remove normalization since it will disappear after multiplcation
-    Jc1 = np.cross(normals,v3-v2)/2
-    Jc2 = np.cross(normals,v1-v3)/2
-    Jc3 = np.cross(normals,v2-v1)/2
+    # Remove normalization since it will disappear later on after multiplcation
+    Jc1 = np.cross(normals, v3-v2)/2
+    Jc2 = np.cross(normals, v1-v3)/2
+    Jc3 = np.cross(normals, v2-v1)/2
 
     # Rotate the gradient field
     if rotated:
@@ -240,29 +241,32 @@ def geodesic_distmat(vertices, faces):
     Jn = np.concatenate([J,I])
     Vn = np.concatenate([V,V])
 
-    graph = sparse.coo_matrix((Vn, (In, Jn)),shape=(N,N)).tocsr()
+    graph = sparse.coo_matrix((Vn, (In, Jn)), shape=(N, N)).tocsc()
 
     geod_dist = sparse.csgraph.dijkstra(graph)
 
     return geod_dist
 
 
-def heat_geodesic_from(i, vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_areas=None):
+def heat_geodesic_from(i, vertices, faces, normals, A, W=None, t=1e-3, face_areas=None, vert_areas=None, solver_heat=None, solver_lap=None):
     """
     Computes geodesic distances between vertex i and all other vertices
     using the Heat Method
 
     Parameters
     -------------------------
-    i          : int of array of ints - index of the source vertex (or vertices)
-    vertices   : (n,3) vertices coordinates
-    faces      : (m,3) triangular faces defined by 3 vertices index
-    normals    : (m,3) per-face normals
-    A          : (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W
-    W          : (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W
-    t          : float - time parameter for which to solve the heat equation
-    face_area  : (m,) - Optional, array of per-face area, for faster computation
-    vert_areas : (n,) - Optional, array of per-vertex area, for faster computation
+    i           : int of array of ints - index of the source vertex (or vertices)
+    vertices    : (n,3) vertices coordinates
+    faces       : (m,3) triangular faces defined by 3 vertices index
+    normals     : (m,3) per-face normals
+    A           : (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W
+    W           : (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W.
+                  Optional if solvers are given !
+    t           : float - time parameter for which to solve the heat equation
+    face_area   : (m,) - Optional, array of per-face area, for faster computation
+    vert_areas  : (n,) - Optional, array of per-vertex area, for faster computation
+    solver_heat : callable -Optional, solver for (A + tW)x = b given b
+    solver_lap  : callable -Optional, solver for Wx = b given b
 
     """
     n_vertices = vertices.shape[0]
@@ -273,7 +277,10 @@ def heat_geodesic_from(i, vertices, faces, normals, A, W, t=1e-3, face_areas=Non
     delta[i] = 1
 
     # Solve (I + tL)u = d. Actually (A + tW)u = Ad
-    u = sparse.linalg.spsolve(A + t*W, delta)  # (n,)
+    if solver_heat is not None:
+        u = solver_heat(delta)
+    else:
+        u = sparse.linalg.spsolve(A + t*W, delta)  # (n,)
 
     # Compute and normalize the gradient of the solution
     g = grad_f(u, vertices, faces, normals, face_areas=face_areas)  # (m,3)
@@ -281,13 +288,19 @@ def heat_geodesic_from(i, vertices, faces, normals, A, W, t=1e-3, face_areas=Non
 
     # Solve L*phi = div(h). Actually W*phi = A*div(h)
     div_h = div_f(h, vertices, faces, normals, vert_areas=vert_areas)  # (n,1)
-    phi = sparse.linalg.spsolve(W, A @ div_h)  # (n,1)
+
+    if solver_lap is not None:
+        phi = solver_lap(A@div_h)
+    else:
+        phi = sparse.linalg.spsolve(W, A @ div_h)  # (n,1)
+
     phi -= np.min(phi)  # phi is defined up to an additive constant. Minimum distance is 0
+    phi[i] = 0
 
     return phi.flatten()
 
 
-def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_areas=None):
+def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_areas=None, verbose=False):
     """
     Computes geodesic distances between all pairs of vertices using the Heat Method
 
@@ -310,11 +323,19 @@ def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_a
     if vert_areas is None:
         vert_areas = compute_vertex_areas(vertices, faces, face_areas)
 
+    solver_heat = sparse.linalg.factorized(A.tocsc() + t * W)
+    solver_lap = sparse.linalg.factorized(W)
+
     distmat = np.zeros((n_vertices,n_vertices))
 
-    for index in range(n_vertices):
-        distmat[index] = heat_geodesic_from(index, vertices, faces, normals, A, W, t=t,
-                                            face_areas=face_areas, vert_areas=vert_areas)
+    if verbose:
+        ind_list = tqdm(range(n_vertices))
+    else:
+        ind_list = range(n_vertices)
+    for index in ind_list:
+        distmat[index] = heat_geodesic_from(index, vertices, faces, normals, A, W=None, t=t,
+                                            face_areas=face_areas, vert_areas=vert_areas,
+                                            solver_heat=solver_heat, solver_lap=solver_lap)
 
     return distmat
 
@@ -347,9 +368,38 @@ def edges_from_faces(faces):
     return edges
 
 
-def farthest_point_sampling(D, k, random_init=True):
+def farthest_point_sampling(d, k, random_init=True, n_points=None):
     """
-    Samples points using farthest point sampling
+    Samples points using farthest point sampling using either a complete distance matrix
+    or a function giving distances to a given index i
+
+    Parameters
+    -------------------------
+    d           : (n,n) array or callable - Either a distance matrix between points or
+                  a function computing geodesic distance from a given index.
+    k           : int - number of points to sample
+    random_init : Whether to sample the first point randomly or to take the furthest away
+                  from all the other ones. Only used if d is a distance matrix
+    n_points    : In the case where d is callable, specifies the size of the output
+
+    Output
+    --------------------------
+    fps : (k,) array of indices of sampled points
+    """
+
+    if callable(d):
+        return farthest_point_sampling_call(d, k, n_points=n_points)
+
+    else:
+        if d.shape[0] != d.shape[1]:
+            raise ValueError(f"D should be a n x n matrix not a {d.shape[0]} x {d.shape[1]}")
+
+        return farthest_point_sampling_distmat(d, k, random_init=random_init)
+
+
+def farthest_point_sampling_distmat(D, k, random_init=True):
+    """
+    Samples points using farthest point sampling using a complete distance matrix
 
     Parameters
     -------------------------
@@ -367,11 +417,45 @@ def farthest_point_sampling(D, k, random_init=True):
     else:
         inds = [np.argmax(D.sum(1))]
 
-    dists = D[inds]
+    dists = D[inds[0]]
 
     for _ in range(k-1):
         newid = np.argmax(dists)
         inds.append(newid)
-        dists = np.minimum(dists,D[newid])
+        dists = np.minimum(dists, D[newid])
+
+    return np.asarray(inds)
+
+
+def farthest_point_sampling_call(d_func, k, n_points=None, verbose=False):
+    """
+    Samples points using farthest point sampling, initialized randomly
+
+    Parameters
+    -------------------------
+    d_func   : callable - for index i, d_func(i) is a (n_points,) array of geodesic distance to
+               other points
+    k        : int - number of points to sample
+    n_points : Number of points. If not specified, checks d_func(0)
+
+    Output
+    --------------------------
+    fps : (k,) array of indices of sampled points
+    """
+
+    if n_points is None:
+        n_points = d_func(0).shape
+
+    else:
+        assert n_points > 0
+
+    inds = [np.random.randint(n_points)]
+    dists = d_func(inds[0])
+
+    iterable = range(k-1) if not verbose else tqdm(range(k-1))
+    for _ in iterable:
+        newid = np.argmax(dists)
+        inds.append(newid)
+        dists = np.minimum(dists, d_func(newid))
 
     return np.asarray(inds)

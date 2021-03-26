@@ -145,6 +145,7 @@ def laplacian_spectrum(W, A, spectrum_size=200):
 
     except RuntimeError:
         # Initial eigenvector values:
+        print('PB WITH LBO')
         init_eigenvecs = np.random.random((A.shape[0], spectrum_size))
         eigenvalues, eigenvectors = sparse.linalg.lobpcg(W, init_eigenvecs,
                                                          B=A, largest=False, maxiter=40)
