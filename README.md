@@ -5,12 +5,27 @@ pyFM is a pure python implementation of multiple tools used for Functional Maps 
 
 * A TriMesh class allowing to compute the area, geodesic distances (usign the [heat method](https://www.cs.cmu.edu/~kmcrane/Projects/HeatMethod/)), normals, projection on the LBO basis, export .off or .obj files with textures.
 * A pure Python (fast) implementation of Laplace-Beltrami computation using FEM or a diagonal area matrix.
-* Implementation of [HKS](http://www.lix.polytechnique.fr/~maks/papers/hks.pdf) and [WKS](https://ieeexplore.ieee.org/document/6130444) (and their version for landmarks) with multiple level of automation for parameters selection (from full automatic to total control)
+* Implementation of [HKS](http://www.lix.polytechnique.fr/~maks/papers/hks.pdf) and [WKS](http://imagine.enpc.fr/~aubrym/projects/wks/index.html) (and their version for landmarks) with multiple level of automation for parameters selection (from full automatic to total control)
 * Implementation of icp and [ZoomOut](https://arxiv.org/abs/1904.07865) on Python
 * Conversion from Functional Map to vertex to vertex map or [precise map](https://www.cs.technion.ac.il/~mirela/publications/p2p_recovery.pdf) with barycentric coordinates.
 * A FunctionalMapping class allowing straightforward computation of Functional Maps mixing all the previous features
 * Functions for evaluating results
 * Support for Functional Map Networks : Consistent Latent Basis, Canonical Consistent Latent Basis, consistency weights, Consistent ZoomOut
+
+
+This code contains implementations of features described in the following papers :
+ * [The Heat Method for Distance Computation](https://www.cs.cmu.edu/~kmcrane/Projects/HeatMethod/)
+ * [A Concise and Provably Informative Multi-Scale Signature Based on Heat Diffusion](http://www.lix.polytechnique.fr/~maks/papers/hks.pdf)
+ * [The Wave Kernel Signature: A Quantum Mechanical Approach To Shape Analysis](http://imagine.enpc.fr/~aubrym/projects/wks/index.html)
+ * [ZoomOut: Spectral Upsampling for Efficient Shape Correspondence](https://arxiv.org/abs/1904.07865), with MatLab implementation [here](https://github.com/llorz/SGA19_zoomOut)
+ * [Deblurring and Denoising of Maps between Shapes](https://www.cs.technion.ac.il/~mirela/publications/p2p_recovery.pdf), with Matlab implementation [here](https://mirela.net.technion.ac.il/publications/)
+ * [Functional Maps: A Flexible Representation of Maps Between Shapes](http://www.lix.polytechnique.fr/~maks/papers/obsbg_fmaps.pdf)
+ * [Informative Descriptor Preservation via Commutativity for Shape Matching](http://www.lix.polytechnique.fr/~maks/papers/fundescEG17.pdf)
+ * [Continuous and Orientation-preserving Correspondences via Functional Maps](https://arxiv.org/abs/1806.04455), only the orientation preserving / reversing term, matlab implementation can be found [here](https://github.com/llorz/SGA18_orientation_BCICP_code)
+ * [Map-Based Exploration of Intrinsic Shape Differences and Variability](https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.642.4287&rep=rep1&type=pdf)
+ * [An Optimization Approach to Improving Collections of Shape Maps](http://fodava.gatech.edu/files/reports/FODAVA-11-22.pdf)
+ * [Limit Shapes – A Tool for Understanding Shape Differences and Variability in 3D Model Collections](http://www.lix.polytechnique.fr/~maks/papers/limit_shapes_SGP19.pdf)
+ * [CONSISTENT ZOOMOUT: Efficient Spectral Map Synchronization](http://www.lix.polytechnique.fr/~maks/papers/ConsistentZoomOut_SGP2020.pdf)
 
 ## Dependencies
 
