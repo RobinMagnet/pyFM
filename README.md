@@ -29,7 +29,7 @@ This code contains implementations of features described in the following papers
 
 ## Dependencies
 
-There are few dependencies, namely `numpy`, `scipy`, `tqdm`, `scikit-learn` for its KDTree implementation, and `matplotlib` for a single optional function.
+There are few dependencies, namely `numpy`, `scipy`, `tqdm` and `scikit-learn` for its KDTree implementation.
 
 `pynndescent` (see [here](https://github.com/lmcinnes/pynndescent)) is an optional package which is only required if one wish to use Approximate Nearest Neighbor. Else it is not required.
 
