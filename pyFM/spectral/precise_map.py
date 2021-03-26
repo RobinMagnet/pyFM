@@ -1,8 +1,55 @@
+"""
+This code implements the procedure described in
+"Deblurring and Denoising of Maps between Shapes", by Danielle Ezuz and Mirela Ben-Chen.
+
+Notations of variables will follow those from the paper, except that our functional
+maps go from mesh1 to mesh2 while their directions are reversed in the paper.
+"""
 import numpy as np
 import scipy.spatial.distance
 from tqdm import tqdm
 import scipy.sparse as sparse
 from sklearn.neighbors import KDTree
+
+
+def precise_map(mesh1, mesh2, FM, precompute_dmin=True):
+    """
+    Parameters
+    ----------------------------
+    mesh1           : Source mesh (for the functional map)
+    mesh2           : Target mesh (for the functional map)
+    FM              : (k2,k1) Functional map
+    precompute_dmin : Whether to precompute all the values of delta_min.
+                      Faster but heavier in memory
+
+    Output
+    ----------------------------
+    precise_map : (n2,n1) - precise point to point map
+    """
+    n2 = mesh2.n_vertices
+    k2,k1 = FM.shape
+
+    face_match = np.zeros(n2, dtype=int)
+    bary_coord = np.zeros((n2, 3))
+
+    print('Compute lmax')
+    lmax = compute_lmax(mesh1, k1)  # (n1,)
+
+    print('Compute Deltamin')
+    Deltamin = compute_Deltamin(mesh1, mesh2, FM)  # (n2,)
+
+    dmin = None
+    if precompute_dmin:
+        print('Precompute dmin')
+        dmin = compute_dmin(mesh1, mesh2, FM, vertind=None)  # (n_f1,n2)
+
+    # Iterate along all points
+    for vertind in tqdm(range(n2)):
+        faceind, bary = project_to_mesh(mesh1,mesh2,FM,vertind,lmax,Deltamin,dmin=dmin)
+        face_match[vertind] = faceind
+        bary_coord[vertind] = bary
+
+    return barycentric_to_precise(mesh1, mesh2, face_match, bary_coord)
 
 
 def compute_lmax(mesh1, k1):
@@ -61,11 +108,9 @@ def compute_Deltamin(mesh1, mesh2, FM):
 
 def compute_dmin(mesh1, mesh2, FM, vertind=None):
     """
-    Compute for each face on the source shape, either
-    delta_min for a given vertex on the target shape or
-    the values for all the vertices.
-    For a given face on the source shape and vertex on the
-    target shape, we have
+    Compute for each face on the source shape, either delta_min for a given vertex on the target
+    shape or the values for all the vertices.
+    For a given face on the source shape and vertex on the target shape:
         delta_min = min_{i=1..3} ||A_{c_i,*} - b||_2
     with notations from the map deblurring paper.
 
@@ -104,19 +149,18 @@ def compute_dmin(mesh1, mesh2, FM, vertind=None):
 
 def project_to_mesh(mesh1, mesh2, FM, vertind, lmax, Deltamin, dmin=None):
     """
-    Project a vertex of the target mesh to a face on the first mesh using
-    its embedding.
+    Project a vertex of the target mesh to a face on the first mesh using its embedding.
 
     Parameters
     ----------------------------
-    mesh1   : Source mesh (for the functional map)
-    mesh2   : Target mesh (for the functional map)
-    FM      : (k2,k1) Functional map
-    vertind : int - index of the vertex to project
-    lmax : (m1,) value of lmax
+    mesh1    : Source mesh (for the functional map)
+    mesh2    : Target mesh (for the functional map)
+    FM       : (k2,k1) Functional map
+    vertind  : int - index of the vertex to project
+    lmax     : (m1,) value of lmax
     Deltamin : (n2,) value of Deltamin
-    dmin : (m1,n2) values of dmin. If not specified, the required value
-           value of deltamin is computed.
+    dmin     : (m1,n2) values of dmin. If not specified, the required value
+                value of deltamin is computed.
 
     Output
     -----------------------------
@@ -154,7 +198,7 @@ def project_to_mesh(mesh1, mesh2, FM, vertind, lmax, Deltamin, dmin=None):
     return min_faceind, min_bary
 
 
-def barycentric_to_precise(mesh1,mesh2,face_match,bary_coord):
+def barycentric_to_precise(mesh1, mesh2, face_match, bary_coord):
     """
     Transforms set of barycentric coordinates into a precise map
 
@@ -182,46 +226,6 @@ def barycentric_to_precise(mesh1,mesh2,face_match,bary_coord):
 
     precise_map = sparse.coo_matrix((Sn, (In,Jn)), shape=(mesh2.n_vertices, mesh1.n_vertices)).tocsc()
     return precise_map
-
-
-def precise_map(mesh1,mesh2,FM, precompute_dmin=True):
-    """
-    Parameters
-    ----------------------------
-    mesh1           : Source mesh (for the functional map)
-    mesh2           : Target mesh (for the functional map)
-    FM              : (k2,k1) Functional map
-    precompute_dmin : Whether to precompute all the values of delta_min.
-                      Faster but heavier in memory
-
-    Output
-    ----------------------------
-    precise_map : (n2,n1) - precise point to point map
-    """
-    n2 = mesh2.n_vertices
-    k2,k1 = FM.shape
-
-    face_match = np.zeros(n2, dtype=int)
-    bary_coord = np.zeros((n2, 3))
-
-    print('Compute lmax')
-    lmax = compute_lmax(mesh1, k1)  # (n1,)
-
-    print('Compute Deltamin')
-    Deltamin = compute_Deltamin(mesh1, mesh2, FM)  # (n2,)
-
-    dmin = None
-    if precompute_dmin:
-        print('Precompute dmin')
-        dmin = compute_dmin(mesh1, mesh2, FM, vertind=None)  # (n_f1,n2)
-
-    # Iterate along all points
-    for vertind in tqdm(range(n2)):
-        faceind, bary = project_to_mesh(mesh1,mesh2,FM,vertind,lmax,Deltamin,dmin=dmin)
-        face_match[vertind] = faceind
-        bary_coord[vertind] = bary
-
-    return barycentric_to_precise(mesh1,mesh2,face_match,bary_coord)
 
 
 def pointTriangleDistance(TRI, P, return_bary=False):

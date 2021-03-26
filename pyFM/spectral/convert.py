@@ -1,14 +1,14 @@
-import numpy as np
 from sklearn.neighbors import KDTree
 import scipy.linalg
 
-try:
-    import pynndescent
-    index = pynndescent.NNDescent(np.random.random((100, 3)), n_jobs=2)
-    del index
-    ANN = True
-except ImportError:
-    ANN = False
+# try:
+#     import pynndescent
+#     index = pynndescent.NNDescent(np.random.random((100, 3)), n_jobs=2)
+#     del index
+#     ANN = True
+# except ImportError:
+#     ANN = False
+ANN = False
 
 
 def p2p_to_FM(p2p, eigvects1, eigvects2, A2=None):
@@ -32,6 +32,10 @@ def p2p_to_FM(p2p, eigvects1, eigvects2, A2=None):
     if A2 is not None:
         if A2.shape[0] != eigvects2.shape[0]:
             raise ValueError("Can't compute pseudo inverse with subsampled eigenvectors")
+
+        if len(A2.shape) == 1:
+            return eigvects2.T @ (A2[:, None] * eigvects1[p2p, :])  # (k2,k1)
+
         return eigvects2.T @ A2 @ eigvects1[p2p, :]  # (k2,k1)
 
     # Solve with least square
@@ -68,14 +72,18 @@ def mesh_p2p_to_FM(p2p, mesh1, mesh2, dims=None, subsample=None):
     if subsample is None:
         return p2p_to_FM(p2p, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2], A2=mesh2.A)
 
-    sub1,sub2 = subsample
-    return p2p_to_FM(p2p, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2])
+    sub1, sub2 = subsample
+    A2 = None
+    # if type(mesh2.A) == scipy.sparse.dia.dia_matrix:
+    #     A2 = np.array(mesh2.A.sum(1)).flatten()[sub2]
+    return p2p_to_FM(p2p, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=A2)
 
 
 def FM_to_p2p(FM, eigvects1, eigvects2, use_ANN=False):
     """
-    Obtain a point to point map from a functional map using the adjoint.
-    For each row in Phi2, looks for the nearest row in Phi1 @ C.T
+    Obtain a point to point map from a functional map C.
+    Compares embeddings of dirac functions on the second mesh Phi_2.T with embeddings
+    of dirac functions of the first mesh (transported with the functional map) C@Phi_1.T
 
     Parameters
     --------------------------
@@ -103,7 +111,7 @@ def FM_to_p2p(FM, eigvects1, eigvects2, use_ANN=False):
 
     if use_ANN:
         index = pynndescent.NNDescent(eigvects1[:, :k1] @ FM.T, n_jobs=8)
-        matches,_ = index.query(eigvects2[:, :k2],k=1)  # (n2,1)
+        matches,_ = index.query(eigvects2[:, :k2], k=1)  # (n2,1)
         matches = matches.flatten()  # (n2,)
     else:
         tree = KDTree(eigvects1[:, :k1] @ FM.T)  # Tree on (n1,k2)
@@ -112,10 +120,11 @@ def FM_to_p2p(FM, eigvects1, eigvects2, use_ANN=False):
     return matches  # (n2,)
 
 
-def FM_to_p2p_aux(FM, eigvects1, eigvects2, use_ANN=False):
+def FM_to_p2p_adj(FM, eigvects1, eigvects2, use_ANN=False):
     """
-    Obtain a point to point map from a functional map with another method.
-    For each row in Phi2 @ C, looks for the nearest row in Phi1
+    Obtain a point to point map from the adjoint functional map.
+    Compares ebeddings of dirac functions on the second mesh transported using the **adjoint**
+    functional map C.T@Phi_2.T with embeddings of dirac functions of the first mesh Phi_1.T
 
     Parameters
     --------------------------
@@ -150,3 +159,36 @@ def FM_to_p2p_aux(FM, eigvects1, eigvects2, use_ANN=False):
         matches = tree.query(eigvects2[:, :k2] @ FM, k=1, return_distance=False).flatten()  # (n2,)
 
     return matches  # (n2,)
+
+
+def mesh_FM_to_p2p(FM, mesh1, mesh2, use_ANN=False, use_adj=False, subsample=False):
+    """
+    Obtain a point to point map from a functional map C.
+    Uses either the functional map or its adjoint for computation.
+    The functional map goes from mesh1 to mesh2, and the pointwise map the other way.
+
+    Parameters
+    --------------------------
+    FM        : (k2,k1) functional map in reduced basis
+    mesh1     : TriMesh - source mesh for the functional map
+    mesh2     : TriMesh - target mesh for the functional map
+    use_ANN   : bool - whether to use approximate nearest neighbors
+    use_adj   : bool - whether to use the adjoint map.
+    subsample : None or size 2 iterable ((n1',), (n2',)).
+                Subsample of vertices for both mesh.
+                If specified the p2p map is between the two subsamples.
+
+    Outputs:
+    --------------------------
+    p2p       : (n2,) match vertex i on shape 2 to vertex p2p[i] on shape 1
+    """
+    k2,k1 = FM.shape
+    if subsample is None:
+        if use_adj:
+            return FM_to_p2p_adj(FM, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2], use_ANN=use_ANN)
+        return FM_to_p2p(FM, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2], use_ANN=use_ANN)
+
+    sub1, sub2 = subsample
+    if use_adj:
+        return FM_to_p2p_adj(FM, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], use_ANN=use_ANN)
+    return FM_to_p2p(FM, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], use_ANN=use_ANN)

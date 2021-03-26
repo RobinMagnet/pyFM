@@ -1,15 +1,8 @@
 import numpy as np
 from tqdm import tqdm
+import scipy.sparse
 
 import pyFM.spectral as spectral
-
-try:
-    import pynndescent
-    index = pynndescent.NNDescent(np.random.random((100,3)),n_jobs=2)
-    del index
-    ANN = True
-except ImportError:
-    ANN = False
 
 
 def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, return_p2p=False, use_ANN=False):
@@ -35,7 +28,12 @@ def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, return_p2p=Fals
     p2p   : If return_p2p is True, (n2',) vertex to vertex mapping.
     """
     k2, k1 = FM.shape
-    new_k1, new_k2 = k1 + step, k2 + step
+    try:
+        step1, step2 = step
+    except TypeError:
+        step1 = step
+        step2 = step
+    new_k1, new_k2 = k1 + step1, k2 + step2
 
     p2p = spectral.FM_to_p2p(FM, eigvects1, eigvects2, use_ANN=use_ANN)  # (n2,)
     FM_zo = spectral.p2p_to_FM(p2p, eigvects1[:, :new_k1], eigvects2[:, :new_k2], A2=A2)  # (k2+step, k1+step)
@@ -70,17 +68,27 @@ def zoomout_refine(eigvects1, eigvects2, FM, nit, step=1, A2=None, subsample=Non
     FM_zo : zoomout-refined functional map
     """
     k2_0,k1_0 = FM.shape
-    assert k1_0 + nit*step <= eigvects1.shape[1], \
+    try:
+        step1, step2 = step
+    except TypeError:
+        step1 = step
+        step2 = step
+
+    assert k1_0 + nit*step1 <= eigvects1.shape[1], \
         f"Not enough eigenvectors on source : \
-        {k1_0 + nit*step} are needed when {eigvects1.shape[1]} are provided"
-    assert k2_0 + nit*step <= eigvects2.shape[1], \
+        {k1_0 + nit*step1} are needed when {eigvects1.shape[1]} are provided"
+    assert k2_0 + nit*step2 <= eigvects2.shape[1], \
         f"Not enough eigenvectors on target : \
-        {k2_0 + nit*step} are needed when {eigvects2.shape[1]} are provided"
+        {k2_0 + nit*step2} are needed when {eigvects2.shape[1]} are provided"
 
     use_subsample = False
     if subsample is not None:
         use_subsample = True
         sub1, sub2 = subsample
+        if A2 is not None and type(A2) == scipy.sparse.dia.dia_matrix:
+            A2_sub = np.array(A2.sum(1)).flatten()[sub2]
+        else:
+            A2_sub = None
 
     FM_zo = FM.copy()
 
@@ -90,7 +98,7 @@ def zoomout_refine(eigvects1, eigvects2, FM, nit, step=1, A2=None, subsample=Non
         ANN_adventage = use_ANN and (FM_zo.shape[0] > 90) and (FM_zo.shape[1] > 90)
 
         if use_subsample:
-            FM_zo = zoomout_iteration(eigvects1[sub1], eigvects2[sub2], FM_zo,
+            FM_zo = zoomout_iteration(eigvects1[sub1], eigvects2[sub2], FM_zo, A2=A2_sub,
                                       step=step, use_ANN=ANN_adventage)
 
         else:
@@ -116,7 +124,7 @@ def mesh_zoomout_refine(mesh1, mesh2, FM, nit, step=1, subsample=None, use_ANN=F
     nit        : int - number of iteration of zoomout
     step       : increase in dimension at each Zoomout Iteration
     A2         : (n2,n2) sparse area matrix on target mesh.
-    subsample  : tuple or iterable of size 2. Each gives indices of vertices so sample
+    subsample  : int or tuple or iterable of size 2. Each gives indices of vertices so sample
                  for faster optimization. If not specified, no subsampling is done.
     use_ANN    : bool - whether to use approximate nearest neighbor.
                  Only trigger once dimension 90 is reached.
@@ -126,8 +134,16 @@ def mesh_zoomout_refine(mesh1, mesh2, FM, nit, step=1, subsample=None, use_ANN=F
     --------------------
     FM_zo : zoomout-refined functional map
     """
+
+    if type(subsample) is int:
+        if verbose:
+            print(f'Computing farthest point sampling of size {subsample}')
+        sub1 = mesh1.extract_fps(subsample)
+        sub2 = mesh2.extract_fps(subsample)
+        subsample = (sub1,sub2)
+
     result = zoomout_refine(mesh1.eigenvectors, mesh2.eigenvectors, FM, nit,
-                            step=step, subsample=subsample,
+                            step=step, A2=mesh2.A, subsample=subsample,
                             use_ANN=use_ANN, return_p2p=return_p2p, verbose=verbose)
 
     return result

@@ -72,7 +72,6 @@ def compute_SD(mesh1, mesh2, k1=None, k2=None, p2p=None, SD_type='spectral'):
 
     if SD_type == 'spectral':
         FM = convert.mesh_p2p_to_FM(p2p, mesh1, mesh2, dims=(k1, k2))  # (K2,K1)
-        # FM = mesh2.eigenvectors[:,:k2].T @ mesh2.A @ mesh1.eigenvectors[p2p,:k1]  # (K2,K1)
         SD_a = area_SD(FM)  # (K1,K1)
         SD_c = conformal_SD(FM, mesh1.eigenvalues, mesh2.eigenvalues)  # (K1,K1)
 
