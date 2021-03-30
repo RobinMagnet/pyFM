@@ -85,10 +85,6 @@ def zoomout_refine(eigvects1, eigvects2, FM, nit, step=1, A2=None, subsample=Non
     if subsample is not None:
         use_subsample = True
         sub1, sub2 = subsample
-        if A2 is not None and type(A2) == scipy.sparse.dia.dia_matrix:
-            A2_sub = np.array(A2.sum(1)).flatten()[sub2]
-        else:
-            A2_sub = None
 
     FM_zo = FM.copy()
 
@@ -98,7 +94,7 @@ def zoomout_refine(eigvects1, eigvects2, FM, nit, step=1, A2=None, subsample=Non
         ANN_adventage = use_ANN and (FM_zo.shape[0] > 90) and (FM_zo.shape[1] > 90)
 
         if use_subsample:
-            FM_zo = zoomout_iteration(eigvects1[sub1], eigvects2[sub2], FM_zo, A2=A2_sub,
+            FM_zo = zoomout_iteration(eigvects1[sub1], eigvects2[sub2], FM_zo, A2=None,
                                       step=step, use_ANN=ANN_adventage)
 
         else:
