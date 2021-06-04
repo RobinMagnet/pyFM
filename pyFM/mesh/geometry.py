@@ -79,6 +79,86 @@ def compute_vertex_areas(vertices, faces, faces_areas=None):
     return vertex_areas
 
 
+def neigh_faces(faces):
+    """
+    Return the indices of neighbor faces for each vertex. This supposed all vertices appear in
+    the face list.
+
+    Parameters
+    --------------------
+    faces : (m,3) list of faces
+
+    Output
+    --------------------
+    neighbors : (n,) list of indices of neighbor faces for each vertex
+    """
+    n_vertices = 1+faces.max()
+
+    neighbors = [[] for i in range(n_vertices)]
+
+    for face_ind, (i,j,k) in enumerate(faces):
+        neighbors[i].append(face_ind)
+        neighbors[j].append(face_ind)
+        neighbors[k].append(face_ind)
+
+    neighbors = [np.unique(x) for x in neighbors]
+
+    return neighbors
+
+
+def per_vertex_normal(vertices, faces, face_normals=None):
+    """
+    Computes per-vertex normals as an average of adjacent face normals.
+
+    Parameters
+    --------------------
+    vertices : (n,3) coordinates of vertices
+    faces : (m,3) faces defined as indices of vertices
+    face_normals : (m,3) per-face normals (optional)
+
+    Output
+    --------------------
+    vert_normals : (n,3) array of per-vertex normals
+    """
+    if face_normals is None:
+        face_normals = compute_normals(vertices, faces)  # (m,3)
+    vert2faces = neigh_faces(faces)  # (n, p_i)
+
+    vert_normals = np.array([face_normals[vert2faces[i]].mean(0) for i in range(vertices.shape[0])])
+    vert_normals /= np.linalg.norm(vert_normals, axis=1, keepdims=True)
+
+    return vert_normals
+
+
+def edges_from_faces(faces):
+    """
+    Compute all edges in the mesh
+
+    Parameters
+    --------------------------------
+    faces : (m,3) array defining faces with vertex indices
+
+    Output
+    --------------------------
+    edges : (p,2) array of all edges defined by vertex indices
+            with no particular order
+    """
+    # Number of verties
+    N = 1 + np.max(faces)
+
+    # Use a sparse matrix and find non-zero elements
+    I = np.concatenate([faces[:,0], faces[:,1], faces[:,2]])
+    J = np.concatenate([faces[:,1], faces[:,2], faces[:,0]])
+    V = np.ones_like(I)
+    M = sparse.coo_matrix((V, (I, J)), shape=(N, N))
+
+    inds1,inds2 = M.nonzero()  # (p,), (p,)
+    edges = np.hstack([inds1[:,None], inds2[:,None]])
+
+    edges = np.sort(edges, axis=1)
+    return np.unique(edges, axis=0)
+
+
 def _get_grad_dir(vertices, faces, normals, face_areas=None):
     """
     Compute the gradient directions for each faces for the hat basis
@@ -446,36 +526,6 @@ def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_a
                                               solver_heat=solver_heat, solver_lap=solver_lap)
 
     return distmat
-
-
-def edges_from_faces(faces):
-    """
-    Compute all edges in the mesh
-
-    Parameters
-    --------------------------------
-    faces : (m,3) array defining faces with vertex indices
-
-    Output
-    --------------------------
-    edges : (p,2) array of all edges defined by vertex indices
-            with no particular order
-    """
-    # Number of verties
-    N = 1 + np.max(faces)
-
-    # Use a sparse matrix and find non-zero elements
-    I = np.concatenate([faces[:,0], faces[:,1], faces[:,2]])
-    J = np.concatenate([faces[:,1], faces[:,2], faces[:,0]])
-    V = np.ones_like(I)
-    M = sparse.coo_matrix((V, (I, J)), shape=(N, N))
-
-    inds1,inds2 = M.nonzero()  # (p,), (p,)
-    edges = np.hstack([inds1[:,None], inds2[:,None]])
-
-    edges = np.sort(edges, axis=1)
-    return np.unique(edges, axis=0)
-
 
 
 def farthest_point_sampling(d, k, random_init=True, n_points=None):
