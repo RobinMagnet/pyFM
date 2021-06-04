@@ -6,6 +6,7 @@ import numpy as np
 from . import file_utils
 from . import geometry as geom
 from . import laplacian
+import scipy.linalg
 import scipy.sparse as sparse
 
 
@@ -44,7 +45,8 @@ class TriMesh:
     n_faces      : int - number of faces
     edges        : (p,2) edges defined by vertex indices
     """
-    def __init__(self, path=None, vertices=None, faces=None, area_normalize=False):
+    def __init__(self, path=None, vertices=None, faces=None, area_normalize=False,
+                 rotation=None, translation=None):
         """
         Read the mesh. Give either the path to a .off file or a list of vertices
         and corrresponding triangles
@@ -60,6 +62,8 @@ class TriMesh:
         self._vertlist = None
         self._facelist = None
 
+        self._normals = None
+
         self.path = None
         self.meshname = None
 
@@ -67,14 +71,22 @@ class TriMesh:
             if path is None:
                 raise ValueError("You should provide either a path to an .off file or \
                                   a list of vertices (and faces)")
+            if os.path.splitext(path)[1] == '.off':
+                self.vertlist, self.facelist = file_utils.read_off(path)
+            elif os.path.splitext(path)[1] == '.obj':
+                self.vertlist, self.facelist = file_utils.read_obj(path)
 
-            self.vertlist, self.facelist = file_utils.read_off(path)
             self.path = path
             self.meshname = os.path.splitext(os.path.basename(path))[0]
 
         else:
             self.vertlist = np.asarray(vertices, dtype=float)
             self.facelist = np.asarray(faces, dtype=int) if faces is not None else None
+
+        if rotation is not None:
+            self.rotate(rotation)
+        if translation is not None:
+            self.translate(translation)
 
         self.normals = None
         self.W = None
@@ -113,8 +125,9 @@ class TriMesh:
         elif vertlist.shape[1] != 3:
             raise ValueError('Vertex list requires 3D coordinates')
 
+        self._reset_vertex_attributes()
         self.path = None
-        self._vertlist = np.asarray(vertlist,dtype=float)
+        self._vertlist = np.asarray(vertlist, dtype=float)
 
     @property
     def facelist(self):
@@ -169,6 +182,62 @@ class TriMesh:
         return a (p,2) array of edges defined by vertex indices.
         """
         return geom.edges_from_faces(self.facelist)
+
+    @property
+    def normals(self):
+        if self._normals is None:
+            self.compute_normals()
+        return self._normals
+
+    @normals.setter
+    def normals(self, normals):
+        self._normals = normals
+
+    @property
+    def vertex_normals(self):
+        return geom.per_vertex_normal(self.vertlist, self.facelist, self.normals)
+
+    @property
+    def vertex_areas(self):
+        if self.A is None:
+            return geom.compute_vertex_areas(self.vertlist, self.facelist)
+
+        return np.array(self.A.sum(1)).squeeze()
+
+    @property
+    def center_mass(self):
+        return np.average(self.vertlist, axis=0, weights=self.vertex_areas)
+
+    def rotate(self, R):
+        if R.shape != (3, 3) or scipy.linalg.det(R) != 1:
+            raise ValueError("Rotation should be a 3x3 matrix with unit determinant")
+
+        self._vertlist = self.vertlist @ R.T
+        if self._normals is not None:
+            self.normals = self.normals @ R.T
+        return self
+
+    def translate(self, t):
+        self._vertlist += t[None, :]
+        return self
+
+    def center(self):
+        self.translate(self, -self.center_mass)
+        return self
+
+    def _reset_vertex_attributes(self):
+        """
+        Resets attributes which depend on the vertex positions
+        in the case of nonisometric deformation
+        """
+        self._normals = None
+        self.W = None
+        self.A = None
+        self.eigenvalues = None
+        self.eigenvectors = None
+        self.t = None
+        self.solver_heat = None
+        self.solver_lap = None
 
     def _get_geod_cache(self, verbose=False):
         # Check if the mesh has a stored path
@@ -309,7 +378,8 @@ class TriMesh:
         """
         return self.decode(self.project(func, k=k))
 
-    def get_geodesic(self, dijkstra=False, save=False, force_compute=False, verbose=False):
+    def get_geodesic(self, dijkstra=False, save=False, force_compute=False, batch_size=500,
+                     verbose=False):
         """
         Compute the geodesic distance matrix using either the Dijkstra algorithm or the Heat Method.
         Loads from cache if possible.
@@ -350,7 +420,7 @@ class TriMesh:
             t = np.linalg.norm(v2-v1).mean()**2
 
             geod_dist = geom.heat_geodmat(self.vertlist, self.facelist, self.normals,
-                                          self.A, self.W, t=t, verbose=verbose)
+                                          self.A, self.W, t=t, batch_size=batch_size, verbose=verbose)
 
         # Save the geodesic distance matrix if required
         if save:
@@ -553,7 +623,7 @@ class TriMesh:
         file_utils.write_off(filename, self.vertlist, self.facelist)
         return self
 
-    def get_uv(self, ind1, ind2, mult_const):
+    def get_uv(self, ind1, ind2, mult_const, rotation=None):
         """
         Extracts UV coordinates for each vertices
 
@@ -567,7 +637,8 @@ class TriMesh:
         ------------------------------
         uv : (n,2) UV coordinates of each vertex
         """
-        return file_utils.get_uv(self.vertlist, ind1, ind2, mult_const=mult_const)
+        vert = self.vertlist if rotation is None else self.vertlist @ rotation.T
+        return file_utils.get_uv(vert, ind1, ind2, mult_const=mult_const)
 
     def export_obj(self,filename, uv, mtl_file='material.mtl', texture_im='texture_1.jpg', verbose=False):
         """
@@ -580,6 +651,8 @@ class TriMesh:
         mtl_file   : str - name of the .mtl file
         texture_im : str - name of the .jpg file definig texture
         """
+        if os.path.splitext(filename)[1] != '.obj':
+            filename += '.obj'
 
         file_utils.write_obj(filename, self.vertlist, self.facelist, uv,
                              mtl_file=mtl_file, texture_im=texture_im, verbose=verbose)
