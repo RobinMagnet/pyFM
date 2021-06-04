@@ -473,7 +473,9 @@ def edges_from_faces(faces):
     inds1,inds2 = M.nonzero()  # (p,), (p,)
     edges = np.hstack([inds1[:,None], inds2[:,None]])
 
-    return edges
+    edges = np.sort(edges, axis=1)
+    return np.unique(edges, axis=0)
+
 
 
 def farthest_point_sampling(d, k, random_init=True, n_points=None):
