@@ -307,13 +307,13 @@ def geodesic_distmat(vertices, faces):
     N = vertices.shape[0]
     edges = edges_from_faces(faces)
 
-    I = edges[:,0]  # (p,)
-    J = edges[:,1]  # (p,)
+    I = edges[:, 0]  # (p,)
+    J = edges[:, 1]  # (p,)
     V = np.linalg.norm(vertices[J] - vertices[I], axis=1)  # (p,)
 
-    In = np.concatenate([I,J])
-    Jn = np.concatenate([J,I])
-    Vn = np.concatenate([V,V])
+    In = np.concatenate([I, J])
+    Jn = np.concatenate([J, I])
+    Vn = np.concatenate([V, V])
 
     graph = sparse.coo_matrix((Vn, (In, Jn)), shape=(N, N)).tocsc()
 
@@ -322,14 +322,15 @@ def geodesic_distmat(vertices, faces):
     return geod_dist
 
 
-def heat_geodesic_from(i, vertices, faces, normals, A, W=None, t=1e-3, face_areas=None, vert_areas=None, solver_heat=None, solver_lap=None):
+def heat_geodesic_from(inds, vertices, faces, normals, A, W=None, t=1e-3, face_areas=None,
+                       vert_areas=None, grads=None, solver_heat=None, solver_lap=None):
     """
-    Computes geodesic distances between vertex i and all other vertices
+    Computes geodesic distances between vertices of index inds and all other vertices
     using the Heat Method
 
     Parameters
     -------------------------
-    i           : int of array of ints - index of the source vertex (or vertices)
+    inds        : int or (p,) array of ints - index of the source vertex (or vertices)
     vertices    : (n,3) vertices coordinates
     faces       : (m,3) triangular faces defined by 3 vertices index
     normals     : (m,3) per-face normals
@@ -344,37 +345,54 @@ def heat_geodesic_from(i, vertices, faces, normals, A, W=None, t=1e-3, face_area
 
     """
     n_vertices = vertices.shape[0]
+    n_inds = len(inds) if type(inds) in [np.ndarray, list] else 1
+
+    if face_areas is None:
+        face_areas = compute_faces_areas(vertices, faces)
+    if vert_areas is None:
+        vert_areas = compute_vertex_areas(vertices, faces)
+
+    if grads is None:
+        grads = _get_grad_dir(vertices, faces, normals, face_areas=face_areas)  # (3,m,3)
+    # grads = None
 
     # Define the dirac function  d on the given index. Not that the area normalization
     # will be simplified later on so this is actually A*d with A the area matrix
-    delta = np.zeros(n_vertices)
-    delta[i] = 1
+    delta = np.zeros((n_vertices, n_inds))  # (n,p)
+    delta[(inds,np.arange(n_inds))] = 1  # works even if inds is an int
+    delta = delta.squeeze()  # (n,) if n_inds is 1
 
     # Solve (I + tL)u = d. Actually (A + tW)u = Ad
     if solver_heat is not None:
         u = solver_heat(delta)
     else:
-        u = sparse.linalg.spsolve(A + t*W, delta)  # (n,)
+        u = sparse.linalg.spsolve(A + t*W, delta)  # (n,) or (n,p)
 
     # Compute and normalize the gradient of the solution
-    g = grad_f(u, vertices, faces, normals, face_areas=face_areas)  # (m,3)
-    h = - g / np.linalg.norm(g, axis=1, keepdims=True)  # (m,3)
+    g = grad_f(u, vertices, faces, normals, face_areas=face_areas, grads=grads)  # (m,3) or (m,p,3)
+    h = - g / np.linalg.norm(g, axis=-1, keepdims=True)  # (m,3) or (m,p,3)
 
     # Solve L*phi = div(h). Actually W*phi = A*div(h)
-    div_h = div_f(h, vertices, faces, normals, vert_areas=vert_areas)  # (n,1)
+    div_h = div_f(h, vertices, faces, normals, vert_areas=vert_areas, grads=grads)  # (n,) or (n,p)
 
     if solver_lap is not None:
-        phi = solver_lap(A@div_h)
+        phi = solver_lap(A@div_h)  # (n,) or (n,p)
     else:
-        phi = sparse.linalg.spsolve(W, A @ div_h)  # (n,1)
+        phi = sparse.linalg.spsolve(W, A @ div_h)  # (n,) or (n,p)
 
-    phi -= np.min(phi)  # phi is defined up to an additive constant. Minimum distance is 0
-    phi[i] = 0
+    # Phi is defined up to an additive constant. Minimum distance is 0
+    phi -= np.min(phi, axis=0, keepdims=True)  # (n,) or (n,p)
 
-    return phi.flatten()
+    if n_inds > 1:
+        phi[(inds, np.arange(n_inds))] = 0
+    else:
+        phi[inds] = 0
+
+    return phi.squeeze()
 
 
-def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_areas=None, verbose=False):
+def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_areas=None,
+                 batch_size=None, verbose=False):
     """
     Computes geodesic distances between all pairs of vertices using the Heat Method
 
@@ -386,8 +404,9 @@ def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_a
     A          : (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W
     W          : (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W
     t          : float - time parameter for which to solve the heat equation
-    face_area  : (m,) - Optional, array of per-face area, for faster computation
+    face_areas : (m,) - Optional, array of per-face area, for faster computation
     vert_areas : (n,) - Optional, array of per-vertex area, for faster computation
+    batch_size : int - size of batches to use for computation. None means full shape
 
     """
     n_vertices = vertices.shape[0]
@@ -397,19 +416,34 @@ def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_a
     if vert_areas is None:
         vert_areas = compute_vertex_areas(vertices, faces, face_areas)
 
+    # Prefactor linear systems
     solver_heat = sparse.linalg.factorized(A.tocsc() + t * W)
     solver_lap = sparse.linalg.factorized(W)
 
-    distmat = np.zeros((n_vertices,n_vertices))
+    # Precompute gradient directions for each shapes
+    grads = _get_grad_dir(vertices, faces, normals, face_areas=face_areas)  # (3,m,3)
+
+    batch_size = n_vertices if batch_size is None else batch_size
+    n_batches = n_vertices // batch_size + int(n_vertices % batch_size > 0)
+
+    distmat = np.zeros((n_vertices, n_vertices))
 
     if verbose:
-        ind_list = tqdm(range(n_vertices))
+        ind_list = tqdm(range(n_batches))
     else:
-        ind_list = range(n_vertices)
-    for index in ind_list:
-        distmat[index] = heat_geodesic_from(index, vertices, faces, normals, A, W=None, t=t,
-                                            face_areas=face_areas, vert_areas=vert_areas,
-                                            solver_heat=solver_heat, solver_lap=solver_lap)
+        ind_list = range(n_batches)
+
+    for batch_ind in ind_list:
+        # Handle batch size of 1 (and possibly the last batcg of size 1)
+        if batch_size > 1:
+            batch = np.arange(batch_ind*batch_size, min(n_vertices, (1 + batch_ind) * batch_size))
+        else:
+            batch = batch_ind
+        if batch_ind == n_batches - 1 and n_vertices % batch_size == 1:
+            batch = batch[0]
+        distmat[:,batch] = heat_geodesic_from(batch, vertices, faces, normals, A, W=None, t=t,
+                                              face_areas=face_areas, vert_areas=vert_areas, grads=grads,
+                                              solver_heat=solver_heat, solver_lap=solver_lap)
 
     return distmat
 
