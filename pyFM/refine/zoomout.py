@@ -1,13 +1,12 @@
 import numpy as np
 from tqdm import tqdm
-import scipy.sparse
 
 import pyFM.spectral as spectral
 
 
-def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, return_p2p=False, use_ANN=False):
+def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, use_ANN=False):
     """
-    Performs an iteration of ZoomOut.
+    Performs an iteration of ZoomOut on a functional map. That is iven a
 
     Parameters
     --------------------
@@ -16,16 +15,14 @@ def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, return_p2p=Fals
     eigvects2  : (n2,k2') eigenvectors on target shape with k2' >= k2 + step.
                  Can be a subsample of the original ones on the first dimension.
     FM         : (k2,k1) Functional map from from eigvects1[:,:k1] to eigvects2[:,:k2]
-    step       : int - step of increase of dimension.
+    step       : int or (int,int) - step of increase of dimension.
     A2         : (n2,n2) sparse area matrix on target mesh, for vertex to vertex computation.
                  If specified, the eigenvectors can't be subsampled !
-    return_p2p : bool - if True returns the vertex to vertex map.
     use_ANN    : bool - if True, uses approximate nearest neighbor
 
     Output
     --------------------
-    FM_zo : zoomout-refined functional map
-    p2p   : If return_p2p is True, (n2',) vertex to vertex mapping.
+    FM_zo : (k2+step2, k1+step1) zoomout-refined functional map
     """
     k2, k1 = FM.shape
     try:
@@ -38,13 +35,11 @@ def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, return_p2p=Fals
     p2p = spectral.FM_to_p2p(FM, eigvects1, eigvects2, use_ANN=use_ANN)  # (n2,)
     FM_zo = spectral.p2p_to_FM(p2p, eigvects1[:, :new_k1], eigvects2[:, :new_k2], A2=A2)  # (k2+step, k1+step)
 
-    if return_p2p:
-        return FM_zo, spectral.FM_to_p2p(FM_zo, eigvects1, eigvects2, use_ANN=use_ANN)
-
     return FM_zo
 
 
-def zoomout_refine(eigvects1, eigvects2, FM, nit, step=1, A2=None, subsample=None, use_ANN=False, return_p2p=False, verbose=False):
+def zoomout_refine(eigvects1, eigvects2, FM, nit=10, step=1, A2=None, subsample=None, use_ANN=False,
+                   return_p2p=False, verbose=False):
     """
     Refine a functional map with ZoomOut.
     Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
@@ -55,7 +50,7 @@ def zoomout_refine(eigvects1, eigvects2, FM, nit, step=1, A2=None, subsample=Non
     eigvects2  : (n2,k2) eigenvectors on target shape with k2 >= K + nit
     FM         : (K,K) Functional map from from L1[:,:K] to L2[:,:K]
     nit        : int - number of iteration of zoomout
-    step       : increase in dimension at each Zoomout Iteration
+    step       : int or (int,int) - increase in dimension at each Zoomout Iteration
     A2         : (n2,n2) sparse area matrix on target mesh.
     subsample  : tuple or iterable of size 2. Each gives indices of vertices to sample
                  for faster optimization. If not specified, no subsampling is done.
@@ -66,8 +61,9 @@ def zoomout_refine(eigvects1, eigvects2, FM, nit, step=1, A2=None, subsample=Non
     Output
     --------------------
     FM_zo : zoomout-refined functional map
+    p2p   : only if return_p2p is set to True - the refined pointwise map
     """
-    k2_0,k1_0 = FM.shape
+    k2_0, k1_0 = FM.shape
     try:
         step1, step2 = step
     except TypeError:
@@ -89,9 +85,9 @@ def zoomout_refine(eigvects1, eigvects2, FM, nit, step=1, A2=None, subsample=Non
     FM_zo = FM.copy()
 
     ANN_adventage = False
-    iterable = range(nit-1) if not verbose else tqdm(range(nit-1))
+    iterable = range(nit) if not verbose else tqdm(range(nit))
     for it in iterable:
-        ANN_adventage = use_ANN and (FM_zo.shape[0] > 90) and (FM_zo.shape[1] > 90)
+        ANN_adventage = use_ANN and (FM_zo.shape[0] > 90) and (FM_zo.shape[1] > 90)  # Not so sure...
 
         if use_subsample:
             FM_zo = zoomout_iteration(eigvects1[sub1], eigvects2[sub2], FM_zo, A2=None,
@@ -101,13 +97,15 @@ def zoomout_refine(eigvects1, eigvects2, FM, nit, step=1, A2=None, subsample=Non
             FM_zo = zoomout_iteration(eigvects1, eigvects2, FM_zo, A2=A2,
                                       step=step, use_ANN=ANN_adventage)
 
-    result = zoomout_iteration(eigvects1, eigvects2, FM_zo,
-                               A2=A2, step=step, use_ANN=False, return_p2p=return_p2p)
+    if return_p2p:
+        p2p_zo = spectral.FM_to_p2p(FM_zo, eigvects1, eigvects2, use_ANN=False)  # (n2,)
+        return FM_zo, p2p_zo
 
-    return result
+    return FM_zo
 
 
-def mesh_zoomout_refine(mesh1, mesh2, FM, nit, step=1, subsample=None, use_ANN=False, return_p2p=False, verbose=False):
+def mesh_zoomout_refine(mesh1, mesh2, FM, nit=10, step=1, subsample=None, use_ANN=False,
+                        return_p2p=False, verbose=False):
     """
     Refine a functional map between meshes with ZoomOut.
     Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
@@ -129,9 +127,10 @@ def mesh_zoomout_refine(mesh1, mesh2, FM, nit, step=1, subsample=None, use_ANN=F
     Output
     --------------------
     FM_zo : zoomout-refined functional map
+    p2p   : only if return_p2p is set to True - the refined pointwise map
     """
 
-    if type(subsample) is int:
+    if np.issubdtype(type(subsample), np.integer):
         if verbose:
             print(f'Computing farthest point sampling of size {subsample}')
         sub1 = mesh1.extract_fps(subsample)

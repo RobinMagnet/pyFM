@@ -73,10 +73,7 @@ def mesh_p2p_to_FM(p2p, mesh1, mesh2, dims=None, subsample=None):
         return p2p_to_FM(p2p, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2], A2=mesh2.A)
 
     sub1, sub2 = subsample
-    A2 = None
-    # if type(mesh2.A) == scipy.sparse.dia.dia_matrix:
-    #     A2 = np.array(mesh2.A.sum(1)).flatten()[sub2]
-    return p2p_to_FM(p2p, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=A2)
+    return p2p_to_FM(p2p, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=None)
 
 
 def FM_to_p2p(FM, eigvects1, eigvects2, use_ANN=False):
