@@ -30,28 +30,39 @@ def read_off(filepath):
     return np.asarray(vertices), faces
 
 
-def write_off(filepath, vertices, faces):
+def write_off(filepath, vertices, faces, precision=None, face_colors=None):
     """
     Writes a .off file
 
     Parameters
     --------------------------
-    filepath : path to file to write
-    vertices : (n,3) array of vertices coordinates
-    faces    : (m,3) array of indices of face vertices
+    filepath  : path to file to write
+    vertices  : (n,3) array of vertices coordinates
+    faces     : (m,3) array of indices of face vertices
+    precision : int - number of significant digits to write for each float
     """
     n_vertices = vertices.shape[0]
     n_faces = faces.shape[0] if faces is not None else 0
+    precision = precision if precision is not None else 16
+
+    if face_colors is not None:
+        assert face_colors.shape[0] == faces.shape[0], "PB"
+        if face_colors.max() <= 1:
+            face_colors = (256 * face_colors).astype(int)
 
     with open(filepath, 'w') as f:
         f.write('OFF\n')
         f.write(f'{n_vertices} {n_faces} 0\n')
         for i in range(n_vertices):
-            f.write(f'{" ".join([str(coord) for coord in vertices[i]])}\n')
+            f.write(f'{" ".join([f"{coord:.{precision}f}" for coord in vertices[i]])}\n')
 
         if n_faces != 0:
             for j in range(n_faces):
-                f.write(f'3 {" ".join([str(tri) for tri in faces[j]])}\n')
+                if face_colors is None:
+                    f.write(f'3 {" ".join([str(tri) for tri in faces[j]])}\n')
+                else:
+                    f.write(f'3 {" ".join([str(tri) for tri in faces[j]])} ')
+                    f.write(f'{" ".join([str(tri_c) for tri_c in face_colors[j]])}\n')
 
 
 def read_vert(filepath):
@@ -90,7 +101,7 @@ def read_tri(filepath, from_matlab=True):
     return faces - int(from_matlab)
 
 
-def write_mtl(filepath,texture_im='texture_1.jpg'):
+def write_mtl(filepath, texture_im='texture_1.jpg'):
     """
     Writes a .mtl file for a .obj mesh
 
@@ -110,7 +121,7 @@ def write_mtl(filepath,texture_im='texture_1.jpg'):
         f.write(f'map_Kd {texture_im}')
 
 
-def get_data_dir():
+def _get_data_dir():
     """
     Return the directory where texture data is savec
 
@@ -143,7 +154,8 @@ def get_uv(vertices, ind1, ind2, mult_const=1):
     return vt
 
 
-def write_obj(filepath, vertices,faces, uv, mtl_file='material.mtl', texture_im='texture_1.jpg', verbose=False):
+def write_obj(filepath, vertices, faces, uv, mtl_file='material.mtl', texture_im='texture_1.jpg',
+              precision=6, verbose=False):
     """
     Writes a .obj file with texture.
     Writes the necessary material and texture files.
@@ -153,8 +165,10 @@ def write_obj(filepath, vertices,faces, uv, mtl_file='material.mtl', texture_im=
     filepath   : str - path to the .obj file to write
     vertices   : (n,3) coordinates of vertices
     faces      : (m,3) faces defined by vertex indices
+    uv         : (n,2) uv map
     mtl_file   : str - name of the .mtl file
     texture_im : str - name of the .jpg file definig texture
+    precision : int - number of significant digits to write for each float
     """
     n_vertices = vertices.shape[0]
     n_faces = faces.shape[0]
@@ -176,7 +190,7 @@ def write_obj(filepath, vertices,faces, uv, mtl_file='material.mtl', texture_im=
     texture_path = os.path.join(dir_name, texture_file)
 
     if not os.path.isfile(texture_path):
-        data_texture = os.path.join(get_data_dir(), texture_im)
+        data_texture = os.path.join(_get_data_dir(), texture_im)
         if not os.path.isfile(data_texture):
             raise ValueError(f"Texture {texture_im} does not exist")
         copyfile(data_texture, texture_path)
@@ -193,7 +207,7 @@ def write_obj(filepath, vertices,faces, uv, mtl_file='material.mtl', texture_im=
         f.write(f'mtllib ./{mtl_name}.mtl\ng\n')
         f.write(f'# {n_vertices} vertex\n')
         for i in range(n_vertices):
-            f.write(f'v {" ".join([str(coord) for coord in vertices[i]])}\n')
+            f.write(f'v {" ".join([f"{coord:.{precision}f}" for coord in vertices[i]])}\n')
 
         f.write(f'g {mtl_name}_export\n')
         f.write('usemtl material_0\n')
