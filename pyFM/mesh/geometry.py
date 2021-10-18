@@ -573,7 +573,8 @@ def farthest_point_sampling_distmat(D, k, random_init=True):
     fps : (k,) array of indices of sampled points
     """
     if random_init:
-        inds = [np.random.randint(D.shape[0])]
+        rng = np.random.default_rng()
+        inds = [rng.integers(D.shape[0])]
     else:
         inds = [np.argmax(D.sum(1))]
 
@@ -602,6 +603,7 @@ def farthest_point_sampling_call(d_func, k, n_points=None, verbose=False):
     --------------------------
     fps : (k,) array of indices of sampled points
     """
+    rng = np.random.default_rng()
 
     if n_points is None:
         n_points = d_func(0).shape
@@ -609,11 +611,13 @@ def farthest_point_sampling_call(d_func, k, n_points=None, verbose=False):
     else:
         assert n_points > 0
 
-    inds = [np.random.randint(n_points)]
+    inds = [rng.integers(n_points)]
     dists = d_func(inds[0])
 
-    iterable = range(k-1) if not verbose else tqdm(range(k-1))
-    for _ in iterable:
+    iterable = range(k-1) if not verbose else tqdm(range(k))
+    for i in iterable:
+        if i == k-1:
+            continue
         newid = np.argmax(dists)
         inds.append(newid)
         dists = np.minimum(dists, d_func(newid))
