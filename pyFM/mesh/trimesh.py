@@ -508,10 +508,11 @@ class TriMesh:
 
         return np.einsum('np,np->p', func, self.A@func).flatten()
 
-    def extract_fps(self, size, random_init=True, verbose=False):
+    def extract_fps(self, size, random_init=True, geodesic=True, verbose=False):
         """
-        Samples points using farthest point sampling with geodesic distances. If the geodesic matrix
-        is precomputed (in the cache folder) uses it, else computes geodesic distance in real time
+        Samples points using iterative farthest point sampling with geodesic or euclidean distances.
+        If the geodesic matrix is precomputed (in the cache folder) uses it, else computes geodesic
+        distances in real time
 
         Parameters
         -------------------------
@@ -519,11 +520,21 @@ class TriMesh:
         random_init : Whether to sample the first point randomly or to take the furthest away from
                       all the other ones. This is only done if the geodesic matrix is accessible
                       from cache
+        geodesic    : bool - whether to use geodesic distance or euclidean one.
 
         Output
         --------------------------
         fps : (size,) array of indices of sampled points
         """
+        if not geodesic:
+            def dist_func(i):
+                return np.linalg.norm(self.vertlist - self.vertlist[i,None,:], axis=1)
+
+            fps = geom.farthest_point_sampling_call(dist_func, size, n_points=self.n_vertices, verbose=verbose)
+
+            return fps
+
+        # Else
         # Check if the geodesic matrix is accessible from cache
         A_geod = self._get_geod_cache()
         # A_geod = self.get_geodesic()
@@ -610,17 +621,18 @@ class TriMesh:
 
         return operator
 
-    def export(self, filename):
+    def export(self, filename, precision=6):
         """
         Write the mesh in a .off file
 
         Parameters
         -----------------------------
         filename : path to the file to write
-
+        precision : floating point precision
         """
-        assert os.path.splitext(filename)[1] == '.off', "Can only export .off files"
-        file_utils.write_off(filename, self.vertlist, self.facelist)
+        if os.path.splitext(filename)[1] != '.off':
+            filename += '.off'
+        file_utils.write_off(filename, self.vertlist, self.facelist, precision=precision)
         return self
 
     def get_uv(self, ind1, ind2, mult_const, rotation=None):
@@ -640,7 +652,8 @@ class TriMesh:
         vert = self.vertlist if rotation is None else self.vertlist @ rotation.T
         return file_utils.get_uv(vert, ind1, ind2, mult_const=mult_const)
 
-    def export_obj(self,filename, uv, mtl_file='material.mtl', texture_im='texture_1.jpg', verbose=False):
+    def export_obj(self, filename, uv, mtl_file='material.mtl', texture_im='texture_1.jpg',
+                   precision=6, verbose=False):
         """
         Write a .obj file with texture using uv coordinates
 
@@ -650,11 +663,13 @@ class TriMesh:
         uv         : (n,2) uv coordinates of each vertex
         mtl_file   : str - name of the .mtl file
         texture_im : str - name of the .jpg file definig texture
+        precision : floating point precision
         """
         if os.path.splitext(filename)[1] != '.obj':
             filename += '.obj'
 
         file_utils.write_obj(filename, self.vertlist, self.facelist, uv,
-                             mtl_file=mtl_file, texture_im=texture_im, verbose=verbose)
+                             mtl_file=mtl_file, texture_im=texture_im,
+                             precision=precision, verbose=verbose)
 
         return self
