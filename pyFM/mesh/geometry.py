@@ -255,7 +255,7 @@ def div_f(f, vertices, faces, normals, vert_areas=None, grads=None, face_areas=N
 
     Parameters
     --------------------------
-    f          : (m,3) vector field on each face
+    f          : (m,3) or (n,m,3) vector field(s) on each face
     vertices   : (n,3) coordinates of vertices
     faces      : (m,3) indices of vertices for each face
     normals    : (m,3) normals coordinate for each face
