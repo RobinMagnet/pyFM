@@ -1,5 +1,4 @@
 import scipy.linalg
-import numpy as np
 from .nn_utils import knn_query
 
 
