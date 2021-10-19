@@ -4,7 +4,7 @@ from tqdm import tqdm
 import pyFM.spectral as spectral
 
 
-def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, use_ANN=False):
+def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, use_ANN=False, n_jobs=1):
     """
     Performs an iteration of ZoomOut on a functional map. That is iven a
 
@@ -19,6 +19,7 @@ def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, use_ANN=False):
     A2         : (n2,n2) sparse area matrix on target mesh, for vertex to vertex computation.
                  If specified, the eigenvectors can't be subsampled !
     use_ANN    : bool - if True, uses approximate nearest neighbor
+    n_jobs     : number of parallel jobs. Use -1 to use all processes
 
     Output
     --------------------
@@ -32,14 +33,14 @@ def zoomout_iteration(eigvects1, eigvects2, FM, step=1, A2=None, use_ANN=False):
         step2 = step
     new_k1, new_k2 = k1 + step1, k2 + step2
 
-    p2p = spectral.FM_to_p2p(FM, eigvects1, eigvects2, use_ANN=use_ANN)  # (n2,)
+    p2p = spectral.FM_to_p2p(FM, eigvects1, eigvects2, use_ANN=use_ANN, n_jobs=n_jobs)  # (n2,)
     FM_zo = spectral.p2p_to_FM(p2p, eigvects1[:, :new_k1], eigvects2[:, :new_k2], A2=A2)  # (k2+step, k1+step)
 
     return FM_zo
 
 
 def zoomout_refine(eigvects1, eigvects2, FM, nit=10, step=1, A2=None, subsample=None, use_ANN=False,
-                   return_p2p=False, verbose=False):
+                   return_p2p=False, n_jobs=1, verbose=False):
     """
     Refine a functional map with ZoomOut.
     Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
@@ -57,6 +58,7 @@ def zoomout_refine(eigvects1, eigvects2, FM, nit=10, step=1, A2=None, subsample=
     use_ANN    : bool - whether to use approximate nearest neighbor.
                  Only trigger once dimension 90 is reached.
     return_p2p : bool - if True returns the vertex to vertex map.
+    n_jobs     : number of parallel jobs. Use -1 to use all processes
 
     Output
     --------------------
@@ -91,21 +93,21 @@ def zoomout_refine(eigvects1, eigvects2, FM, nit=10, step=1, A2=None, subsample=
 
         if use_subsample:
             FM_zo = zoomout_iteration(eigvects1[sub1], eigvects2[sub2], FM_zo, A2=None,
-                                      step=step, use_ANN=ANN_adventage)
+                                      step=step, use_ANN=ANN_adventage, n_jobs=n_jobs)
 
         else:
             FM_zo = zoomout_iteration(eigvects1, eigvects2, FM_zo, A2=A2,
-                                      step=step, use_ANN=ANN_adventage)
+                                      step=step, use_ANN=ANN_adventage, n_jobs=n_jobs)
 
     if return_p2p:
-        p2p_zo = spectral.FM_to_p2p(FM_zo, eigvects1, eigvects2, use_ANN=False)  # (n2,)
+        p2p_zo = spectral.FM_to_p2p(FM_zo, eigvects1, eigvects2, use_ANN=False, n_jobs=n_jobs)  # (n2,)
         return FM_zo, p2p_zo
 
     return FM_zo
 
 
 def mesh_zoomout_refine(mesh1, mesh2, FM, nit=10, step=1, subsample=None, use_ANN=False,
-                        return_p2p=False, verbose=False):
+                        return_p2p=False, n_jobs=1, verbose=False):
     """
     Refine a functional map between meshes with ZoomOut.
     Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
@@ -139,6 +141,7 @@ def mesh_zoomout_refine(mesh1, mesh2, FM, nit=10, step=1, subsample=None, use_AN
 
     result = zoomout_refine(mesh1.eigenvectors, mesh2.eigenvectors, FM, nit,
                             step=step, A2=mesh2.A, subsample=subsample,
-                            use_ANN=use_ANN, return_p2p=return_p2p, verbose=verbose)
+                            use_ANN=use_ANN, return_p2p=return_p2p,
+                            n_jobs=n_jobs, verbose=verbose)
 
     return result
