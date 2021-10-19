@@ -95,8 +95,6 @@ def FM_to_p2p(FM, eigvects1, eigvects2, use_adj=False, use_ANN=False, n_jobs=1):
     p2p       : (n2,) match vertex i on shape 2 to vertex p2p[i] on shape 1,
                 or equivalent result if the eigenvectors are subsampled.
     """
-    if use_ANN and not ANN:
-        raise ValueError('Please install pydescent to achieve Approximate Nearest Neighbor')
 
     k2, k1 = FM.shape
 
