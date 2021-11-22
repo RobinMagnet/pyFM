@@ -22,6 +22,11 @@ def knn_query(X, Y, k=1, return_distance=False, use_ANN=False, n_jobs=1):
     return_distance : whether to return the nearest neighbor distance
     use_ANN         : use Approximate Nearest Neighbors
     n_jobs          : number of parallel jobs. Set to -1 to use all processes
+
+    Output
+    -------------------------------
+    dists   : (n2,k) or (n2,) if k=1 - ONLY if return_distance is False. Nearest neighbor distance.
+    matches : (n2,k) or (n2,) if k=1 - nearest neighbor
     """
     if use_ANN and ANN:
         index = pynndescent.NNDescent(X, n_jobs=n_jobs)
