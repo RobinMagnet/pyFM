@@ -417,7 +417,7 @@ class TriMesh:
             edges = self.edges
             v1 = self.vertlist[edges[:, 0]]
             v2 = self.vertlist[edges[:, 1]]
-            t = np.linalg.norm(v2-v1).mean()**2
+            t = np.linalg.norm(v2-v1, axis=1).mean()**2
 
             geod_dist = geom.heat_geodmat(self.vertlist, self.facelist, self.normals,
                                           self.A, self.W, t=t, batch_size=batch_size, verbose=verbose)
@@ -461,7 +461,7 @@ class TriMesh:
             edges = self.edges
             v1 = self.vertlist[edges[:,0]]
             v2 = self.vertlist[edges[:,1]]
-            t = np.linalg.norm(v2-v1).mean()**2
+            t = np.linalg.norm(v2-v1, axis=1).mean()**2
 
         # Useless to precompute or fetch cached solver in this case
         if (self.t is None or self.t != t) and not save:
@@ -544,7 +544,7 @@ class TriMesh:
             edges = self.edges
             v1 = self.vertlist[edges[:,0]]
             v2 = self.vertlist[edges[:,1]]
-            t = np.linalg.norm(v2-v1).mean()**2
+            t = np.linalg.norm(v2-v1, axis=1).mean()**2
 
             def geod_func(i):
                 return self.geod_from(i, t=t)
