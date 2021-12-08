@@ -30,6 +30,38 @@ def read_off(filepath):
     return np.asarray(vertices), faces
 
 
+def read_obj(filepath):
+    """
+    read a standard .obj file
+
+    Parameters
+    -------------------------
+    file : path to a '.off'-format file
+
+    Output
+    -------------------------
+    vertices,faces : (n,3), (m,3) array of vertices coordinates
+                    and indices for triangular faces
+    """
+    with open(filepath, 'r') as f:
+
+        vertices = []
+        faces = []
+
+        for line in f:
+            line = line.strip()
+            if line == '' or line[0] == '#':
+                continue
+
+            line = line.split()
+            if line[0] == 'v':
+                vertices.append([float(x) for x in line[1:]])
+            elif line[0] == 'f':
+                faces.append([int(x) - 1 for x in line[1:]])
+
+    return np.asarray(vertices), np.asarray(faces)
+
+
 def write_off(filepath, vertices, faces, precision=None, face_colors=None):
     """
     Writes a .off file
