@@ -632,4 +632,3 @@ def get_orientation_op(grad_field, vertices, faces, normals, per_vert_area, rota
     inv_area = sparse.diags(1/per_vert_area, shape=(n_vertices, n_vertices), format='csc')
 
     return inv_area @ W
-s
