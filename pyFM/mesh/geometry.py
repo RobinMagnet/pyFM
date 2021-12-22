@@ -531,7 +531,7 @@ def div_f(f, vertices, faces, normals, vert_areas=None, grads=None, face_areas=N
 
     # Compute area for each face
     if vert_areas is None:
-        vert_areas = geom.compute_vertex_areas(vertices, faces, faces_areas=None)  # (n,)
+        vert_areas = compute_vertex_areas(vertices, faces, faces_areas=None)  # (n,)
 
     # Compute gradient direction not normalized by face areas (normalization would disappear later)
     if grads is None:
