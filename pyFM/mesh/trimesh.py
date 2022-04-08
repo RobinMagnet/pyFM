@@ -222,7 +222,7 @@ class TriMesh:
         return self
 
     def center(self):
-        self.translate(self, -self.center_mass)
+        self.translate(-self.center_mass)
         return self
 
     def _reset_vertex_attributes(self):
