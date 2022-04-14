@@ -57,7 +57,7 @@ def read_obj(filepath):
             if line[0] == 'v':
                 vertices.append([float(x) for x in line[1:]])
             elif line[0] == 'f':
-                faces.append([int(x) - 1 for x in line[1:]])
+                faces.append([int(x.split('/')[0]) - 1 for x in line[1:]])
 
     return np.asarray(vertices), np.asarray(faces)
 
@@ -93,7 +93,7 @@ def write_off(filepath, vertices, faces, precision=None, face_colors=None):
                 if face_colors is None:
                     f.write(f'3 {" ".join([str(tri) for tri in faces[j]])}\n')
                 else:
-                    f.write(f'3 {" ".join([str(tri) for tri in faces[j]])} ')
+                    f.write(f'4 {" ".join([str(tri) for tri in faces[j]])} ')
                     f.write(f'{" ".join([str(tri_c) for tri_c in face_colors[j]])}\n')
 
 
@@ -186,7 +186,7 @@ def get_uv(vertices, ind1, ind2, mult_const=1):
     return vt
 
 
-def write_obj(filepath, vertices, faces, uv, mtl_file='material.mtl', texture_im='texture_1.jpg',
+def write_obj(filepath, vertices, faces, uv=None, mtl_file='material.mtl', texture_im='texture_1.jpg',
               precision=6, verbose=False):
     """
     Writes a .obj file with texture.
@@ -197,57 +197,68 @@ def write_obj(filepath, vertices, faces, uv, mtl_file='material.mtl', texture_im
     filepath   : str - path to the .obj file to write
     vertices   : (n,3) coordinates of vertices
     faces      : (m,3) faces defined by vertex indices
-    uv         : (n,2) uv map
+    uv         : uv map for each vertex. If not specified no texture is used
     mtl_file   : str - name of the .mtl file
     texture_im : str - name of the .jpg file definig texture
-    precision : int - number of significant digits to write for each float
     """
+    use_texture = uv is not None
     n_vertices = vertices.shape[0]
     n_faces = faces.shape[0]
+    precision = 16 if precision is None else precision
 
     dir_name = os.path.dirname(filepath)
 
-    # Remove useless part of the path if written by mistake
-    mtl_file = os.path.basename(mtl_file)
-    texture_file = os.path.basename(texture_im)
+    if use_texture:
+        # Remove useless part of the path if written by mistake
+        mtl_file = os.path.basename(mtl_file)
+        texture_file = os.path.basename(texture_im)
 
-    # Add extensions if forgotten
-    if os.path.splitext(mtl_file)[1] != '.mtl':
-        mtl_file += '.mtl'
-    if os.path.splitext(texture_file)[1] != '.jpg':
-        texture_file += '.jpg'
+        # Add extensions if forgotten
+        if os.path.splitext(mtl_file)[1] != '.mtl':
+            mtl_file += '.mtl'
+        if os.path.splitext(texture_file)[1] != '.jpg':
+            texture_file += '.jpg'
 
-    # Write .mtl and .jpg files if necessary
-    mtl_path = os.path.join(dir_name, mtl_file)
-    texture_path = os.path.join(dir_name, texture_file)
+        # Write .mtl and .jpg files if necessary
+        mtl_path = os.path.join(dir_name, mtl_file)
+        texture_path = os.path.join(dir_name, texture_file)
 
-    if not os.path.isfile(texture_path):
-        data_texture = os.path.join(_get_data_dir(), texture_im)
-        if not os.path.isfile(data_texture):
-            raise ValueError(f"Texture {texture_im} does not exist")
-        copyfile(data_texture, texture_path)
-        print(f'Copy texture at {texture_path}')
+        if not os.path.isfile(texture_path):
+            data_texture = os.path.join(_get_data_dir(), texture_im)
+            if not os.path.isfile(data_texture):
+                raise ValueError(f"Texture {texture_im} does not exist")
+            copyfile(data_texture, texture_path)
+            print(f'Copy texture at {texture_path}')
 
-    if not os.path.isfile(mtl_path):
-        write_mtl(mtl_path,texture_im=texture_im)
-        if verbose:
-            print(f'Write material at {mtl_path}')
+        if not os.path.isfile(mtl_path):
+            write_mtl(mtl_path,texture_im=texture_im)
+            if verbose:
+                print(f'Write material at {mtl_path}')
 
-    # Write the .obj file
-    mtl_name = os.path.splitext(mtl_file)[0]
+        # Write the .obj file
+        mtl_name = os.path.splitext(mtl_file)[0]
+
     with open(filepath,'w') as f:
-        f.write(f'mtllib ./{mtl_name}.mtl\ng\n')
-        f.write(f'# {n_vertices} vertex\n')
+        if use_texture:
+            f.write(f'mtllib ./{mtl_name}.mtl\ng\n')
+
+        f.write(f'# {n_vertices} vertices - {n_faces} faces\n')
         for i in range(n_vertices):
             f.write(f'v {" ".join([f"{coord:.{precision}f}" for coord in vertices[i]])}\n')
 
-        f.write(f'g {mtl_name}_export\n')
-        f.write('usemtl material_0\n')
-        for j in range(n_faces):
-            f.write(f'f {" ".join([f"{1+tri:d}/{1+tri:d}" for tri in faces[j]])}\n')
+        if use_texture and n_faces > 0:
+            f.write(f'g {mtl_name}_export\n')
+            f.write('usemtl material_0\n')
 
-        for k in range(n_vertices):
-            f.write(f'vt {" ".join([str(coord) for coord in uv[k]])}\n')
+            for j in range(n_faces):
+                f.write(f'f {" ".join([f"{1+tri:d}/{1+tri:d}" for tri in faces[j]])}\n')
+
+            for k in range(n_vertices):
+                f.write(f'vt {" ".join([str(coord) for coord in uv[k]])}\n')
+
+        elif n_faces > 0:
+            for j in range(n_faces):
+                f.write(f'{" ".join(["f"] + [str(1+tri) for tri in faces[j]])}\n')
 
     if verbose:
         print(f'Write .obj file at {filepath}')
