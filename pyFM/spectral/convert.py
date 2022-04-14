@@ -21,7 +21,7 @@ def p2p_to_FM(p2p_21, evects1, evects2, A2=None):
 
     Outputs
     -------------------------------
-    FM          : (k2,k1) functional map corresponding to the p2p map given.
+    FM_12       : (k2,k1) functional map corresponding to the p2p map given.
                   Solved with pseudo inverse if A2 is given, else using least square.
     """
     # Pulled back eigenvectors
@@ -58,6 +58,10 @@ def mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=None, subsample=None):
     subsample : None or size 2 iterable ((n1',), (n2',)).
                 Subsample of vertices for both mesh.
                 If specified the p2p map is between the two subsamples.
+
+    Outputs
+    -------------------------------
+    FM_12       : (k2,k1) functional map corresponding to the p2p map given.
     """
     if dims is None:
         k1, k2 = len(mesh1.eigenvalues), len(mesh2.eigenvalues)
@@ -85,7 +89,7 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, use_ANN=False, n_jobs=1):
 
     Parameters
     --------------------------
-    FM        : (k2,k1) functional map in reduced basis
+    FM_12     : (k2,k1) functional map from mesh1 to mesh2 in reduced basis
     eigvects1 : (n1,k1') first k' eigenvectors of the first basis  (k1'>k1).
                 First dimension can be subsampled.
     eigvects2 : (n2,k2') first k' eigenvectors of the second basis (k2'>k2)
@@ -97,8 +101,8 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, use_ANN=False, n_jobs=1):
 
     Outputs:
     --------------------------
-    p2p       : (n2,) match vertex i on shape 2 to vertex p2p[i] on shape 1,
-                or equivalent result if the eigenvectors are subsampled.
+    p2p_21     : (n2,) match vertex i on shape 2 to vertex p2p_21[i] on shape 1,
+                 or equivalent result if the eigenvectors are subsampled.
     """
     k2, k1 = FM_12.shape
 
@@ -138,7 +142,7 @@ def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, use_ANN=F
 
     Outputs:
     --------------------------
-    p2p       : (n2,) match vertex i on shape 2 to vertex p2p[i] on shape 1
+    p2p_21     : (n2,) match vertex i on shape 2 to vertex p2p_21[i] on shape 1
     """
     k2, k1 = FM_12.shape
     if subsample is None:
