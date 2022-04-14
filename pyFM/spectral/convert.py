@@ -1,49 +1,53 @@
 import scipy.linalg
+import numpy as np
+
 from .nn_utils import knn_query
 
 
-def p2p_to_FM(p2p, eigvects1, eigvects2, A2=None):
+def p2p_to_FM(p2p_21, evects1, evects2, A2=None):
     """
     Compute a Functional Map from a vertex to vertex maps (with possible subsampling).
     Can compute with the pseudo inverse of eigenvectors (if no subsampling) or least square.
 
     Parameters
     ------------------------------
-    p2p       : (n2,) vertex to vertex map from target to source (for the functional map).
-                For each vertex on the target shape, gives the index of the corresponding vertex
-                on mesh 1.
+    p2p_21    : (n2,) vertex to vertex map from target to source.
+                For each vertex on the target shape, gives the index of the corresponding vertex on mesh 1.
+                Can also be presented as a (n2,n1) sparse matrix.
     eigvects1 : (n1,k1) eigenvectors on source mesh. Possibly subsampled on the first dimension.
     eigvects2 : (n2,k2) eigenvectors on target mesh. Possibly subsampled on the first dimension.
-    A2        : (n2,n2) area matrix of the target mesh. If specified, the eigenvectors can't be
-                subsampled
+    A2        : (n2,n2) area matrix of the target mesh. If specified, the eigenvectors can't be subsampled
 
     Outputs
     -------------------------------
     FM          : (k2,k1) functional map corresponding to the p2p map given.
                   Solved with pseudo inverse if A2 is given, else using least square.
     """
+    # Pulled back eigenvectors
+    evects1_pb = evects1[p2p_21, :] if np.asarray(p2p_21).ndim == 1 else p2p_21 @ evects1
+
     if A2 is not None:
-        if A2.shape[0] != eigvects2.shape[0]:
-            raise ValueError("Can't compute pseudo inverse with subsampled eigenvectors")
+        if A2.shape[0] != evects2.shape[0]:
+            raise ValueError("Can't compute exact pseudo inverse with subsampled eigenvectors")
 
-        if len(A2.shape) == 1:
-            return eigvects2.T @ (A2[:, None] * eigvects1[p2p, :])  # (k2,k1)
+        if A2.ndim == 1:
+            return evects2.T @ (A2[:, None] * evects1_pb)  # (k2,k1)
 
-        return eigvects2.T @ A2 @ eigvects1[p2p, :]  # (k2,k1)
+        return evects2.T @ A2 @ evects1_pb  # (k2,k1)
 
     # Solve with least square
-    return scipy.linalg.lstsq(eigvects2, eigvects1[p2p, :])[0]  # (k2,k1)
+    return scipy.linalg.lstsq(evects2, evects1_pb)[0]  # (k2,k1)
 
 
-def mesh_p2p_to_FM(p2p, mesh1, mesh2, dims=None, subsample=None):
+def mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=None, subsample=None):
     """
     Compute a Functional Map from a vertex to vertex maps (with possible subsampling).
 
     Parameters
     ------------------------------
-    p2p       : (n2,) or (n2',) vertex to vertex map from mesh2 to mesh1.
-                For each vertex on mesh2 gives the index of the corresponding vertex on mesh 1.
-                If subsample is specified, gives a index-to-index map between the subsamples.
+    p2p_21    : (n2,) vertex to vertex map from target to source.
+                For each vertex on the target shape, gives the index of the corresponding vertex on mesh 1.
+                Can also be presented as a (n2,n1) sparse matrix.
     mesh1     : source mesh for the functional map. Requires enough processed eigenvectors.
     mesh2     : target mesh for the functional map. Requires enough processed eigenvectors.
     dims      : int, or 2-uple of int. Dimension of the functional map to return.
@@ -55,21 +59,21 @@ def mesh_p2p_to_FM(p2p, mesh1, mesh2, dims=None, subsample=None):
                 If specified the p2p map is between the two subsamples.
     """
     if dims is None:
-        k1,k2 = len(mesh1.eigenvalues),len(mesh2.eigenvalues)
-    elif type(dims) is int:
+        k1, k2 = len(mesh1.eigenvalues), len(mesh2.eigenvalues)
+    elif np.issubdtype(type(dims), np.integer):
         k1 = dims
         k2 = dims
     else:
-        k1,k2 = dims
+        k1, k2 = dims
 
     if subsample is None:
-        return p2p_to_FM(p2p, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2], A2=mesh2.A)
+        return p2p_to_FM(p2p_21, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2], A2=mesh2.A)
 
     sub1, sub2 = subsample
-    return p2p_to_FM(p2p, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=None)
+    return p2p_to_FM(p2p_21, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=None)
 
 
-def FM_to_p2p(FM, eigvects1, eigvects2, use_adj=False, use_ANN=False, n_jobs=1):
+def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, use_ANN=False, n_jobs=1):
     """
     Obtain a point to point map from a functional map C.
     Compares embeddings of dirac functions on the second mesh Phi_2.T with embeddings
@@ -95,32 +99,33 @@ def FM_to_p2p(FM, eigvects1, eigvects2, use_adj=False, use_ANN=False, n_jobs=1):
     p2p       : (n2,) match vertex i on shape 2 to vertex p2p[i] on shape 1,
                 or equivalent result if the eigenvectors are subsampled.
     """
+    k2, k1 = FM_12.shape
 
-    k2, k1 = FM.shape
-
-    assert k1 <= eigvects1.shape[1], \
-        f'At least {k1} should be provided, here only {eigvects1.shape[1]} are given'
-    assert k2 <= eigvects2.shape[1], \
-        f'At least {k2} should be provided, here only {eigvects2.shape[1]} are given'
+    assert k1 <= evects1.shape[1], \
+        f'At least {k1} should be provided, here only {evects1.shape[1]} are given'
+    assert k2 <= evects2.shape[1], \
+        f'At least {k2} should be provided, here only {evects2.shape[1]} are given'
 
     if use_adj:
-        p2p = knn_query(eigvects1[:, :k1], eigvects2[:, :k2] @ FM,  k=1,
-                        use_ANN=use_ANN, n_jobs=n_jobs)
+        emb1 = evects1[:, :k1]
+        emb2 = evects2[:, :k2] @ FM_12
 
     else:
-        p2p = knn_query(eigvects1[:, :k1] @ FM.T, eigvects2[:, :k2],  k=1,
-                        use_ANN=use_ANN, n_jobs=n_jobs)
+        emb1 = evects1[:, :k1] @ FM_12.T
+        emb2 = evects2[:, :k2]
 
-    return p2p  # (n2,)
+    p2p_21 = knn_query(emb1, emb2,  k=1,
+                       use_ANN=use_ANN, n_jobs=n_jobs)
+    return p2p_21  # (n2,)
 
 
-def mesh_FM_to_p2p(FM, mesh1, mesh2, use_adj=False, subsample=None, use_ANN=False, n_jobs=1):
+def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, use_ANN=False, n_jobs=1):
     """
     Wrapper for `FM_to_p2p` using TriMesh class
 
     Parameters
     --------------------------
-    FM        : (k2,k1) functional map in reduced basis
+    FM_12     : (k2,k1) functional map in reduced basis
     mesh1     : TriMesh - source mesh for the functional map
     mesh2     : TriMesh - target mesh for the functional map
     use_ANN   : bool - whether to use approximate nearest neighbors
@@ -134,14 +139,14 @@ def mesh_FM_to_p2p(FM, mesh1, mesh2, use_adj=False, subsample=None, use_ANN=Fals
     --------------------------
     p2p       : (n2,) match vertex i on shape 2 to vertex p2p[i] on shape 1
     """
-    k2, k1 = FM.shape
+    k2, k1 = FM_12.shape
     if subsample is None:
-        p2p = FM_to_p2p(FM, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2],
-                        use_adj=use_adj, use_ANN=use_ANN, n_jobs=n_jobs)
+        p2p_21 = FM_to_p2p(FM_12, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2],
+                           use_adj=use_adj, use_ANN=use_ANN, n_jobs=n_jobs)
 
     else:
         sub1, sub2 = subsample
-        p2p = FM_to_p2p(FM, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2],
-                        use_adj=use_adj, use_ANN=use_ANN, n_jobs=n_jobs)
+        p2p_21 = FM_to_p2p(FM_12, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2],
+                           use_adj=use_adj, use_ANN=use_ANN, n_jobs=n_jobs)
 
-    return p2p
+    return p2p_21
