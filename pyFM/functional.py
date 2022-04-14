@@ -1,6 +1,8 @@
 import copy
 import time
 
+from tqdm import tqdm
+
 import numpy as np
 from scipy.optimize import fmin_l_bfgs_b
 
@@ -43,9 +45,9 @@ class FunctionalMapping:
 
         # FUNCTIONAL MAP
         self._FM_type = 'classic'
-        self.FM_base = None
-        self.FM_icp = None
-        self.FM_zo = None
+        self._FM_base = None
+        self._FM_icp = None
+        self._FM_zo = None
 
         # AREA AND CONFORMAL SHAPE DIFFERENCE OPERATORS
         self.SD_a = None
@@ -107,15 +109,15 @@ class FunctionalMapping:
         FM : (k2,k1) current FM
         """
         if self.FM_type.lower() == 'classic':
-            return self.FM_base
+            return self._FM_base
         elif self.FM_type.lower() == 'icp':
-            return self.FM_icp
+            return self._FM_icp
         elif self.FM_type.lower() == 'zoomout':
-            return self.FM_zo
+            return self._FM_zo
 
     @FM.setter
     def FM(self, FM):
-        self.FM_base = FM
+        self._FM_base = FM
 
     # BOOLEAN PROPERTIES
     @property
@@ -132,37 +134,62 @@ class FunctionalMapping:
     def fitted(self):
         return self.FM is not None
 
-    @property
-    def p2p(self):
+    def get_p2p(self, use_adj=False, n_jobs=1):
         """
-        Computes the current point to point map, going from the second mesh to the first one.
+        Computes a vertex to vertex map from mesh2 to mesh1
 
-        Output
-        --------------------
-        p2p : (n2,) point to point map associated to the current functional map
+        Parameters
+        --------------------------
+        use_adj   : bool - whether to use the adjoint map.
+        n_jobs    : number of parallel jobs. Use -1 to use all processes
+
+        Outputs:
+        --------------------------
+        p2p_21    : (n2,) match vertex i on shape 2 to vertex p2p_21[i] on shape 1
         """
-        if not self.fitted:
-            raise ValueError('Model should be fit and fit to obtain p2p map')
+        p2p_21 = spectral.mesh_FM_to_p2p(self.FM, self.mesh1, self.mesh2,
+                                         use_adj=use_adj, n_jobs=n_jobs)
 
-        return spectral.FM_to_p2p(self.FM, self.mesh1.eigenvectors, self.mesh2.eigenvectors)
+        return p2p_21
 
-    def precise_map(self, precompute=True):
+    def get_precise_map(self, precompute_dmin=True, use_adj=True, batch_size=None, n_jobs=1, verbose=False):
         """
-        Returns a precise map between the two meshes using the map deblurring paper
+        Returns a precise map from mesh2 to mesh1
+
+        See [1] for details on notations.
+
+            [1] - "Deblurring and Denoising of Maps between Shapes", by Danielle Ezuz and Mirela Ben-Chen.
 
         Paramaters
         -------------------
-        precompute : Set to precompute values for faster computation but heavier
-                     memory use.
+        precompute_dmin : Whether to precompute all the values of delta_min.
+                          Faster but heavier in memory
+        use_adj         : use the adjoint method
+        batch_size      : If precompute_dmin is False, projects batches of points on the surface
+        n_jobs          : number of parallel process for nearest neighbor precomputation
 
         Output
         -------------------
-        precise_map : (n2,n1) sparse - precise map
+        P21 : (n2,n1) sparse - precise map from mesh2 to mesh1
         """
         if not self.fitted:
             raise ValueError('Model should be fit and fit to obtain p2p map')
 
-        return spectral.precise_map.precise_map(self.mesh1, self.mesh2, self.FM, precompute_dmin=precompute)
+        P21 = spectral.mesh_FM_to_p2p_precise(self.FM, self.mesh1, self.mesh2,
+                                              precompute_dmin=precompute_dmin, use_adj=use_adj, batch_size=batch_size,
+                                              n_jobs=n_jobs, verbose=verbose)
+        return P21
+
+    def _get_lmks(self, landmarks, verbose=False):
+        if np.asarray(landmarks).squeeze().ndim == 1:
+            if verbose:
+                print('\tUsing same landmarks indices for both meshes')
+            lmks1 = np.asarray(landmarks).squeeze()
+            lmks2 = lmks1.copy()
+        else:
+            lmks1, lmks2 = landmarks[:, 0], landmarks[:, 1]
+
+        return lmks1, lmks2
 
     def preprocess(self, n_ev=(50,50), n_descr=100, descr_type='WKS', landmarks=None, subsample_step=1, verbose=False):
         """
@@ -184,21 +211,15 @@ class FunctionalMapping:
         # Compute the Laplacian spectrum
         if verbose:
             print('\nComputing Laplacian spectrum')
-        self.mesh1.process(max(self.k1, 200), verbose=verbose)
-        self.mesh2.process(max(self.k2, 200), verbose=verbose)
+        self.mesh1.process(self.k1, verbose=verbose)
+        self.mesh2.process(self.k2, verbose=verbose)
 
         if verbose:
             print('\nComputing descriptors')
 
         # Extract landmarks indices
         if use_lm:
-            if np.asarray(landmarks).squeeze().ndim == 1:
-                if verbose:
-                    print('\tUsing same landmarks indices for both meshes')
-                lm1 = np.asarray(landmarks).squeeze()
-                lm2 = lm1
-            else:
-                lm1, lm2 = landmarks[:, 0], landmarks[:, 1]
+            lmks1, lmks2 = self._get_lmks(landmarks, verbose=False)
 
         # Compute descriptors
         if descr_type == 'HKS':
@@ -206,8 +227,8 @@ class FunctionalMapping:
             self.descr2 = sg.mesh_HKS(self.mesh2, n_descr, k=self.k2)  # (N2, n_descr)
 
             if use_lm:
-                lm_descr1 = sg.mesh_HKS(self.mesh1, n_descr,landmarks=lm1, k=self.k1)  # (N1, p*n_descr)
-                lm_descr2 = sg.mesh_HKS(self.mesh2, n_descr, landmarks=lm2, k=self.k2)  # (N2, p*n_descr)
+                lm_descr1 = sg.mesh_HKS(self.mesh1, n_descr,landmarks=lmks1, k=self.k1)  # (N1, p*n_descr)
+                lm_descr2 = sg.mesh_HKS(self.mesh2, n_descr, landmarks=lmks2, k=self.k2)  # (N2, p*n_descr)
 
                 self.descr1 = np.hstack([self.descr1, lm_descr1])  # (N1, (p+1)*n_descr)
                 self.descr2 = np.hstack([self.descr2, lm_descr2])  # (N2, (p+1)*n_descr)
@@ -217,8 +238,8 @@ class FunctionalMapping:
             self.descr2 = sg.mesh_WKS(self.mesh2, n_descr, k=self.k2)  # (N2, n_descr)
 
             if use_lm:
-                lm_descr1 = sg.mesh_WKS(self.mesh1, n_descr, landmarks=lm1, k=self.k1)  # (N1, p*n_descr)
-                lm_descr2 = sg.mesh_WKS(self.mesh2, n_descr, landmarks=lm2, k=self.k2)  # (N2, p*n_descr)
+                lm_descr1 = sg.mesh_WKS(self.mesh1, n_descr, landmarks=lmks1, k=self.k1)  # (N1, p*n_descr)
+                lm_descr2 = sg.mesh_WKS(self.mesh2, n_descr, landmarks=lmks2, k=self.k2)  # (N2, p*n_descr)
 
                 self.descr1 = np.hstack([self.descr1, lm_descr1])  # (N1, (p+1)*n_descr)
                 self.descr2 = np.hstack([self.descr2, lm_descr2])  # (N2, (p+1)*n_descr)
@@ -246,7 +267,7 @@ class FunctionalMapping:
 
         return self
 
-    def fit(self, descr_mu=1e-1, lap_mu=1e-3, descr_comm_mu=1, orient_mu=0, orient_reversing=False, optinit='zeros', verbose=False):
+    def fit(self, w_descr=1e-1, w_lap=1e-3, w_dcomm=1, w_orient=0, orient_reversing=False, optinit='zeros', verbose=False):
         """
         Solves the functional map optimization problem :
 
@@ -259,10 +280,10 @@ class FunctionalMapping:
 
         Parameters
         -------------------------------
-        descr_mu         : scaling for the descriptor preservation term
-        lap_mu           : scaling of the laplacian commutativity term
-        descr_comm_mu    : scaling of the multiplicative operator commutativity
-        orient_mu        : scaling of the orientation preservation term
+        w_descr          : scaling for the descriptor preservation term
+        w_lap            : scaling of the laplacian commutativity term
+        w_dcomm          : scaling of the multiplicative operator commutativity
+        w_orient         : scaling of the orientation preservation term
                            (in addition to relative scaling with the other terms as in the original
                            code)
         orient_reversing : Whether to use the orientation reversing term instead of the orientation
@@ -283,36 +304,46 @@ class FunctionalMapping:
 
         # Compute multiplicative operators associated to each descriptor
         list_descr = []
-        if descr_comm_mu > 0:
+        if w_dcomm > 0:
             if verbose:
                 print('Computing commutativity operators')
             list_descr = self.compute_descr_op()  # (n_descr, ((k1,k1), (k2,k2)) )
 
         # Compute orientation operators associated to each descriptor
         orient_op = []
-        if orient_mu > 0:
+        if w_orient > 0:
             if verbose:
                 print('Computing orientation operators')
             orient_op = self.compute_orientation_op(reversing=orient_reversing)  # (n_descr,)
 
         # Compute the squared differences between eigenvalues for LB commutativity
         ev_sqdiff = np.square(self.mesh1.eigenvalues[None, :self.k1] - self.mesh2.eigenvalues[:self.k2, None])  # (n_ev2,n_ev1)
-        ev_sqdiff /= np.linalg.norm(ev_sqdiff)**2
+        # ev_sqdiff /= np.linalg.norm(ev_sqdiff)**2
+        if verbose:
+            print(f'\tScaling LBO commutativity weight by {1 / ev_sqdiff.sum():.1e}')
+        ev_sqdiff /= ev_sqdiff.sum()
+
+        # rescale commutativity term
+        if w_dcomm > 0:
+            comm_eval = 2 * opt_func.oplist_commutation(np.eye(self.k2, self.k1), list_descr)
+            w_dcomm /= comm_eval
+            if verbose:
+                print(f'\tScaling commutativity weight by {1 / comm_eval:.1e}')
 
         # rescale orientation term
-        if orient_mu > 0:
+        if w_orient > 0:
             args_native = (np.eye(self.k2,self.k1),
-                           descr_mu, lap_mu, descr_comm_mu, 0,
+                           w_descr, w_lap, w_dcomm, 0,
                            descr1_red, descr2_red, list_descr, orient_op, ev_sqdiff)
 
             eval_native = opt_func.energy_func_std(*args_native)
             eval_orient = opt_func.oplist_commutation(np.eye(self.k2,self.k1), orient_op)
-            orient_mu *= eval_native / eval_orient
+            w_orient *= eval_native / eval_orient
             if verbose:
                 print(f'\tScaling orientation preservation weight by {eval_native / eval_orient:.1e}')
 
         # Arguments for the optimization problem
-        args = (descr_mu, lap_mu, descr_comm_mu, orient_mu,
+        args = (w_descr, w_lap, w_dcomm, w_orient,
                 descr1_red, descr2_red, list_descr, orient_op, ev_sqdiff)
 
         # Initialization
@@ -323,10 +354,10 @@ class FunctionalMapping:
                   f'\t{self.k1} Ev on source - {self.k2} Ev on Target\n'
                   f'\tUsing {self.descr1.shape[1]} Descriptors\n'
                   f'\tHyperparameters :\n'
-                  f'\t\tDescriptors preservation :{descr_mu:.1e}\n'
-                  f'\t\tDescriptors commutativity :{descr_comm_mu:.1e}\n'
-                  f'\t\tLaplacian commutativity :{lap_mu:.1e}\n'
-                  f'\t\tOrientation preservation :{orient_mu:.1e}\n'
+                  f'\t\tDescriptors preservation :{w_descr:.1e}\n'
+                  f'\t\tDescriptors commutativity :{w_dcomm:.1e}\n'
+                  f'\t\tLaplacian commutativity :{w_lap:.1e}\n'
+                  f'\t\tOrientation preservation :{w_orient:.1e}\n'
                   )
 
         # Optimization
@@ -339,7 +370,7 @@ class FunctionalMapping:
             print("\tTask : {task}, funcall : {funcalls}, nit : {nit}, warnflag : {warnflag}".format(**res[2]))
             print(f'\tDone in {opt_time:.2f} seconds')
 
-    def icp_refine(self, nit=10, tol=None, use_adj=False, overwrite=True, verbose=False):
+    def icp_refine(self, nit=10, tol=None, use_adj=False, overwrite=True, verbose=False, n_jobs=1):
         """
         Refines the functional map using ICP and saves the result
 
@@ -354,11 +385,11 @@ class FunctionalMapping:
         if not self.fitted:
             raise ValueError("The Functional map must be fit before refining it")
 
-        self.FM_icp = pyFM.refine.mesh_icp_refine(self.mesh1, self.mesh2, self.FM,
-                                                  nit=nit, tol=tol, use_adj=use_adj, verbose=verbose)
+        self._FM_icp = pyFM.refine.mesh_icp_refine(self.FM, self.mesh1, self.mesh2, nit=nit, tol=tol,
+                                                   use_adj=use_adj, n_jobs=n_jobs, verbose=verbose)
+
         if overwrite:
             self.FM_type = 'icp'
-        return self
 
     def zoomout_refine(self, nit=10, step=1, subsample=None, use_ANN=False, overwrite=True, verbose=False):
         """
@@ -383,11 +414,10 @@ class FunctionalMapping:
             sub2 = self.mesh2.extract_fps(subsample)
             sub = (sub1,sub2)
 
-        self.FM_zo = pyFM.refine.mesh_zoomout_refine(self.mesh1, self.mesh2, self.FM, nit,
+        self.FM_zo = pyFM.refine.mesh_zoomout_refine(self.FM, self.mesh1, self.mesh2, nit,
                                                      step=step, subsample=sub, use_ANN=use_ANN, verbose=verbose)
         if overwrite:
             self.FM_type = 'zoomout'
-        return self
 
     def compute_SD(self):
         """
