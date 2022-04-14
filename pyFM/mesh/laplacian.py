@@ -144,8 +144,9 @@ def laplacian_spectrum(W, A, spectrum_size=200):
                                                         sigma=-0.01)
 
     except RuntimeError:
+        # raise ValueError('Matrices are not positive semidefinite')
         # Initial eigenvector values:
-        print('PB WITH LBO')
+        print('Problem during LBO decomposition ! Please check')
         init_eigenvecs = np.random.random((A.shape[0], spectrum_size))
         eigenvalues, eigenvectors = sparse.linalg.lobpcg(W, init_eigenvecs,
                                                          B=A, largest=False, maxiter=40)

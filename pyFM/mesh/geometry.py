@@ -1,30 +1,46 @@
 import numpy as np
 import scipy.sparse as sparse
 
-from tqdm import tqdm
+from tqdm.auto import tqdm
+
+import potpourri3d as pp3d
 
 
-def compute_normals(vertices, faces):
+def edges_from_faces(faces):
     """
-    Compute normals of a triangular mesh
+    Compute all edges in the mesh
 
     Parameters
-    -----------------------------
-    vertices : (n,3) array of vertices coordinates
-    faces    : (m,3) array of vertex indices defining faces
+    --------------------------------
+    faces : (m,3) array defining faces with vertex indices
 
     Output
-    -----------------------------
-    normals : (m,3) array of normalized per-face normals
+    --------------------------
+    edges : (p,2) array of all edges defined by vertex indices
+            with no particular order
     """
-    v1 = vertices[faces[:, 0]]
-    v2 = vertices[faces[:, 1]]
-    v3 = vertices[faces[:, 2]]
+    # Number of verties
+    N = 1 + np.max(faces)
 
-    normals = np.cross(v2-v1, v3-v1)
-    normals /= np.linalg.norm(normals, axis=1, keepdims=True)
+    # Use a sparse matrix and find non-zero elements
+    # This is way faster than a np.unique somehow
+    I = np.concatenate([faces[:,0], faces[:,1], faces[:,2]])
+    J = np.concatenate([faces[:,1], faces[:,2], faces[:,0]])
+    # V = np.ones_likeke(I)
 
-    return normals
+    In = np.concatenate([I, J])
+    Jn = np.concatenate([J, I])
+    Vn = np.ones_like(In)
+
+    M = sparse.coo_matrix((Vn, (In, Jn)), shape=(N, N))
+
+    edges0 = M.row
+    edges1 = M.col
+
+    indices = M.col > M.row
+
+    edges = np.concatenate([edges0[indices,None], edges1[indices, None]], axis=1)
+    return edges
 
 
 def compute_faces_areas(vertices, faces):
@@ -52,13 +68,13 @@ def compute_faces_areas(vertices, faces):
 def compute_vertex_areas(vertices, faces, faces_areas=None):
     """
     Compute per-vertex areas of a triangular mesh.
-    Area of a vertex, approximated as one third of the sum of the area
-    of its adjacent triangles
+    Area of a vertex, approximated as one third of the sum of the area of its adjacent triangles.
 
     Parameters
     -----------------------------
-    vertices : (n,3) array of vertices coordinates
-    faces    : (m,3) array of vertex indices defining faces
+    vertices    : (n,3) array of vertices coordinates
+    faces       : (m,3) array of vertex indices defining faces
+    faces_areas :
 
     Output
     -----------------------------
@@ -69,17 +85,146 @@ def compute_vertex_areas(vertices, faces, faces_areas=None):
     if faces_areas is None:
         faces_areas = compute_faces_areas(vertices,faces)  # (m,)
 
-
-    # This is way faster than using np.add.at for some reason...
-
     I = np.concatenate([faces[:,0], faces[:,1], faces[:,2]])
     J = np.zeros_like(I)
-    V = np.concatenate([faces_areas, faces_areas, faces_areas])/3
+
+    V = np.tile(faces_areas / 3, 3)
 
     # Get the (n,) array of vertex areas
     vertex_areas = np.array(sparse.coo_matrix((V, (I, J)), shape=(N, 1)).todense()).flatten()
 
     return vertex_areas
+
+
+def compute_normals(vertices, faces):
+    """
+    Compute face normals of a triangular mesh
+
+    Parameters
+    -----------------------------
+    vertices : (n,3) array of vertices coordinates
+    faces    : (m,3) array of vertex indices defining faces
+
+    Output
+    -----------------------------
+    normals : (m,3) array of normalized per-face normals
+    """
+    v1 = vertices[faces[:, 0]]
+    v2 = vertices[faces[:, 1]]
+    v3 = vertices[faces[:, 2]]
+
+    normals = np.cross(v2-v1, v3-v1)
+    normals /= np.linalg.norm(normals, axis=1, keepdims=True)
+
+    return normals
+
+
+def per_vertex_normal(vertices, faces, face_normals=None, weighting='uniform'):
+    """
+    Compute per-vertex normals of a triangular mesh, with a chosen weighting scheme.
+
+    Parameters
+    -----------------------------
+    vertices     : (n,3) array of vertices coordinates
+    faces        : (m,3) array of vertex indices defining faces
+    face_normals : (m,3) array of per-face normals
+    weighting    : str - 'area' or 'uniform'.
+
+    Output
+    -----------------------------
+    vert_areas : (n,) array of per-vertex areas
+    """
+    if weighting.lower() == 'uniform':
+        vert_normals = per_vertex_normal_uniform(vertices, faces, face_normals=face_normals)
+
+    elif weighting.lower() == 'area':
+        vert_normals = per_vertex_normal_area(vertices, faces)
+
+    else:
+        raise ValueError("Did not implement other weighting scheme for vertex-normals")
+
+    return vert_normals
+
+
+def per_vertex_normal_area(vertices, faces):
+    """
+    Compute per-vertex normals of a triangular mesh, weighted by the area of adjacent faces.
+
+    Parameters
+    -----------------------------
+    vertices     : (n,3) array of vertices coordinates
+    faces        : (m,3) array of vertex indices defining faces
+
+    Output
+    -----------------------------
+    vert_areas : (n,) array of per-vertex areas
+    """
+
+    n_faces = faces.shape[0]
+    n_vertices = vertices.shape[0]
+
+    v1 = vertices[faces[:, 0]]  # (m,3)
+    v2 = vertices[faces[:, 1]]  # (m,3)
+    v3 = vertices[faces[:, 2]]  # (m,3)
+
+    # That is 2* A(T) n(T) with A(T) area of face T
+    face_normals_weighted = np.cross(1e3*(v2-v1), 1e3*(v3-v1))  # (m,3)
+
+    # A simple version should be :
+    # vert_normals = np.zeros((n_vertices,3))
+    # np.add.at(vert_normals, faces.flatten(),np.repeat(face_normals_weighted,3,axis=0))
+    # But this code is way faster in practice
+
+    In = np.repeat(faces.flatten(), 3)  # (9m,)
+    Jn = np.tile(np.arange(3), 3*n_faces)  # (9m,)
+    Vn = np.tile(face_normals_weighted, (1,3)).flatten()  # (9m,)
+
+    vert_normals = sparse.coo_matrix((Vn, (In, Jn)), shape=(n_vertices, 3))
+    vert_normals = np.asarray(vert_normals.todense())
+    vert_normals /= (1e-6 + np.linalg.norm(vert_normals, axis=1, keepdims=True))
+
+    return vert_normals
+
+
+def per_vertex_normal_uniform(vertices, faces, face_normals=None):
+    """
+    Compute per-vertex normals of a triangular mesh, weighted by the area of adjacent faces.
+
+    Parameters
+    -----------------------------
+    vertices     : (n,3) array of vertices coordinates
+    faces        : (m,3) array of vertex indices defining faces
+
+    Output
+    -----------------------------
+    vert_areas : (n,) array of per-vertex areas
+    """
+
+    n_faces = faces.shape[0]
+    n_vertices = vertices.shape[0]
+
+    v1 = vertices[faces[:, 0]]  # (m,3)
+    v2 = vertices[faces[:, 1]]  # (m,3)
+    v3 = vertices[faces[:, 2]]  # (m,3)
+
+    if face_normals is None:
+        face_normals = np.cross(1e3*(v2-v1), 1e3*(v3-v1))  # (m,3)
+        face_normals /= np.linalg.norm(face_normals, axis=1, keepdims=True)
+
+    # A simple version should be :
+    # vert_normals = np.zeros((n_vertices,3))
+    # np.add.at(vert_normals, faces.flatten(),np.repeat(face_normals,3,axis=0))
+    # But this code is way faster in practice
+
+    In = np.repeat(faces.flatten(), 3)  # (9m,)
+    Jn = np.tile(np.arange(3), 3*n_faces)  # (9m,)
+    Vn = np.tile(face_normals, (1, 3)).flatten()  # (9m,)
+
+    vert_normals = sparse.coo_matrix((Vn, (In, Jn)), shape=(n_vertices, 3))
+    vert_normals = np.asarray(vert_normals.todense())
+    vert_normals /= (1e-6 + np.linalg.norm(vert_normals, axis=1, keepdims=True))
+
+    return vert_normals
 
 
 def neigh_faces(faces):
@@ -109,60 +254,7 @@ def neigh_faces(faces):
     return neighbors
 
 
-def per_vertex_normal(vertices, faces, face_normals=None):
-    """
-    Computes per-vertex normals as an average of adjacent face normals.
-
-    Parameters
-    --------------------
-    vertices : (n,3) coordinates of vertices
-    faces : (m,3) faces defined as indices of vertices
-    face_normals : (m,3) per-face normals (optional)
-
-    Output
-    --------------------
-    vert_normals : (n,3) array of per-vertex normals
-    """
-    if face_normals is None:
-        face_normals = compute_normals(vertices, faces)  # (m,3)
-    vert2faces = neigh_faces(faces)  # (n, p_i)
-
-    vert_normals = np.array([face_normals[vert2faces[i]].mean(0) for i in range(vertices.shape[0])])
-    vert_normals /= np.linalg.norm(vert_normals, axis=1, keepdims=True)
-
-    return vert_normals
-
-
-def edges_from_faces(faces):
-    """
-    Compute all edges in the mesh
-
-    Parameters
-    --------------------------------
-    faces : (m,3) array defining faces with vertex indices
-
-    Output
-    --------------------------
-    edges : (p,2) array of all edges defined by vertex indices
-            with no particular order
-    """
-    # Number of verties
-    N = 1 + np.max(faces)
-
-    # Use a sparse matrix and find non-zero elements
-    I = np.concatenate([faces[:,0], faces[:,1], faces[:,2]])
-    J = np.concatenate([faces[:,1], faces[:,2], faces[:,0]])
-    V = np.ones_like(I)
-    M = sparse.coo_matrix((V, (I, J)), shape=(N, N))
-
-    inds1,inds2 = M.nonzero()  # (p,), (p,)
-    edges = np.hstack([inds1[:,None], inds2[:,None]])
-
-    edges = np.sort(edges, axis=1)
-    return np.unique(edges, axis=0)
-
-
-def geodesic_distmat(vertices, faces):
+def geodesic_distmat_dijkstra(vertices, faces):
     """
     Compute geodesic distance matrix using Dijkstra algorithm.
     """
@@ -184,6 +276,19 @@ def geodesic_distmat(vertices, faces):
     return geod_dist
 
 
+def heat_geodmat_robust(vertices, faces, verbose=False):
+    n_vertices = vertices.shape[0]
+    distmat = np.zeros((n_vertices, n_vertices))
+
+    solver = pp3d.MeshHeatMethodDistanceSolver(vertices, faces)
+    iterable = tqdm(range(n_vertices)) if verbose else range(n_vertices)
+
+    for vertind in iterable:
+        distmat[vertind] = solver.compute_distance(vertind)
+
+    return distmat
+
+
 def heat_geodesic_from(inds, vertices, faces, normals, A, W=None, t=1e-3, face_areas=None,
                        vert_areas=None, grads=None, solver_heat=None, solver_lap=None):
     """
@@ -202,6 +307,7 @@ def heat_geodesic_from(inds, vertices, faces, normals, A, W=None, t=1e-3, face_a
     t           : float - time parameter for which to solve the heat equation
     face_area   : (m,) - Optional, array of per-face area, for faster computation
     vert_areas  : (n,) - Optional, array of per-vertex area, for faster computation
+    grads       : list of size 3, each give per-face gradient directions (output of _get_grad_dir())
     solver_heat : callable -Optional, solver for (A + tW)x = b given b
     solver_lap  : callable -Optional, solver for Wx = b given b
 
@@ -253,6 +359,59 @@ def heat_geodesic_from(inds, vertices, faces, normals, A, W=None, t=1e-3, face_a
     return phi.squeeze()
 
 
+def heat_geodesic_from_old(inds, vertices, faces, normals, A, W=None, t=1e-3, face_areas=None, vert_areas=None, solver_heat=None, solver_lap=None):
+    """
+    Computes geodesic distances between vertices of index inds and all other vertices
+    using the Heat Method
+
+    Parameters
+    -------------------------
+    inds        : int or array of ints - index of the source vertex (or vertices)
+    vertices    : (n,3) vertices coordinates
+    faces       : (m,3) triangular faces defined by 3 vertices index
+    normals     : (m,3) per-face normals
+    A           : (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W
+    W           : (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W.
+                  Optional if solvers are given !
+    t           : float - time parameter for which to solve the heat equation
+    face_area   : (m,) - Optional, array of per-face area, for faster computation
+    vert_areas  : (n,) - Optional, array of per-vertex area, for faster computation
+    solver_heat : callable -Optional, solver for (A + tW)x = b given b
+    solver_lap  : callable -Optional, solver for Wx = b given b
+
+    """
+    n_vertices = vertices.shape[0]
+    # n_inds = 1 if type(inds) is int else len(inds)
+
+    # Define the dirac function  d on the given index. Not that the area normalization
+    # will be simplified later on so this is actually A*d with A the area matrix
+    delta = np.zeros(n_vertices)
+    delta[inds] = 1
+
+    # Solve (I + tL)u = d. Actually (A + tW)u = Ad
+    if solver_heat is not None:
+        u = solver_heat(delta)
+    else:
+        u = sparse.linalg.spsolve(A + t*W, delta)  # (n,)
+
+    # Compute and normalize the gradient of the solution
+    g = grad_f(u, vertices, faces, normals, face_areas=face_areas)  # (m,3)
+    h = - g / np.linalg.norm(g, axis=1, keepdims=True)  # (m,3)
+
+    # Solve L*phi = div(h). Actually W*phi = A*div(h)
+    div_h = div_f(h, vertices, faces, normals, vert_areas=vert_areas)  # (n,1)
+
+    if solver_lap is not None:
+        phi = solver_lap(A@div_h)
+    else:
+        phi = sparse.linalg.spsolve(W, A @ div_h)  # (n,1)
+
+    phi -= np.min(phi)  # phi is defined up to an additive constant. Minimum distance is 0
+    phi[inds] = 0
+
+    return phi.flatten()
+
+
 def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_areas=None,
                  batch_size=None, verbose=False):
     """
@@ -279,8 +438,8 @@ def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_a
         vert_areas = compute_vertex_areas(vertices, faces, face_areas)
 
     # Prefactor linear systems
-    solver_heat = sparse.linalg.factorized(A.tocsc() + t * W)
-    solver_lap = sparse.linalg.factorized(W)
+    solver_heat = sparse.linalg.factorized(A.tocsc() + t * W.tocsc())
+    solver_lap = sparse.linalg.factorized(W.tocsc())
 
     # Precompute gradient directions for each shapes
     grads = _get_grad_dir(vertices, faces, normals, face_areas=face_areas)  # (3,m,3)
@@ -310,7 +469,7 @@ def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_a
     return distmat
 
 
-def farthest_point_sampling(d, k, random_init=True, n_points=None):
+def farthest_point_sampling(d, k, random_init=True, n_points=None, verbose=False):
     """
     Samples points using farthest point sampling using either a complete distance matrix
     or a function giving distances to a given index i
@@ -330,16 +489,16 @@ def farthest_point_sampling(d, k, random_init=True, n_points=None):
     """
 
     if callable(d):
-        return farthest_point_sampling_call(d, k, n_points=n_points)
+        return farthest_point_sampling_call(d, k, n_points=n_points, verbose=verbose)
 
     else:
         if d.shape[0] != d.shape[1]:
             raise ValueError(f"D should be a n x n matrix not a {d.shape[0]} x {d.shape[1]}")
 
-        return farthest_point_sampling_distmat(d, k, random_init=random_init)
+        return farthest_point_sampling_distmat(d, k, random_init=random_init, verbose=verbose)
 
 
-def farthest_point_sampling_distmat(D, k, random_init=True):
+def farthest_point_sampling_distmat(D, k, random_init=True, verbose=False):
     """
     Samples points using farthest point sampling using a complete distance matrix
 
@@ -356,13 +515,16 @@ def farthest_point_sampling_distmat(D, k, random_init=True):
     """
     if random_init:
         rng = np.random.default_rng()
-        inds = [rng.integers(D.shape[0])]
+        inds = [rng.integers(D.shape[0]).item()]
     else:
         inds = [np.argmax(D.sum(1))]
 
     dists = D[inds[0]]
 
-    for _ in range(k-1):
+    iterable = range(k-1) if not verbose else tqdm(range(k))
+    for i in iterable:
+        if i == k-1:
+            continue
         newid = np.argmax(dists)
         inds.append(newid)
         dists = np.minimum(dists, D[newid])
@@ -393,7 +555,7 @@ def farthest_point_sampling_call(d_func, k, n_points=None, verbose=False):
     else:
         assert n_points > 0
 
-    inds = [rng.integers(n_points)]
+    inds = [rng.integers(n_points).item(0)]
     dists = d_func(inds[0])
 
     iterable = range(k-1) if not verbose else tqdm(range(k))
@@ -404,14 +566,13 @@ def farthest_point_sampling_call(d_func, k, n_points=None, verbose=False):
         inds.append(newid)
         dists = np.minimum(dists, d_func(newid))
 
+    # print(inds)
     return np.asarray(inds)
-
 
 
 def _get_grad_dir(vertices, faces, normals, face_areas=None):
     """
-    Compute the gradient directions for each face using linear interpolationof the hat
-    basis on each face.
+    Compute the gradient directions for each faces for the hat basis
 
     Parameters
     --------------------------
@@ -425,18 +586,66 @@ def _get_grad_dir(vertices, faces, normals, face_areas=None):
     grads : (3,m,3) array of per-face gradients.
     """
 
-    v1 = vertices[faces[:, 0]]  # (m,3)
-    v2 = vertices[faces[:, 1]]  # (m,3)
-    v3 = vertices[faces[:, 2]]  # (m,3)
+    v1 = vertices[faces[:,0]]  # (m,3)
+    v2 = vertices[faces[:,1]]  # (m,3)
+    v3 = vertices[faces[:,2]]  # (m,3)
 
     if face_areas is None:
-        face_areas = 0.5 * np.linalg.norm(np.cross(v2-v1, v3-v1), axis=1)  # (m,)
+        face_areas = 0.5 * np.linalg.norm(np.cross(v2-v1,v3-v1),axis=1)  # (m,)
 
-    grad1 = np.cross(normals, v3-v2)/(2*face_areas[:, None])  # (m,3)
-    grad2 = np.cross(normals, v1-v3)/(2*face_areas[:, None])  # (m,3)
-    grad3 = np.cross(normals, v2-v1)/(2*face_areas[:, None])  # (m,3)
+    grad1 = np.cross(normals, v3-v2)/(2*face_areas[:,None])  # (m,3)
+    grad2 = np.cross(normals, v1-v3)/(2*face_areas[:,None])  # (m,3)
+    grad3 = np.cross(normals, v2-v1)/(2*face_areas[:,None])  # (m,3)
 
     return np.asarray([grad1, grad2, grad3])
+
+
+def grad_mat(vertices, faces, normals=None, face_areas=None, order_style='C'):
+    """
+    Returns gradient in the shape of a 3*n_faces * n_vertices matrix G.
+
+    Given a function f of shape (n,), the gradient is given by
+
+    (G@f).reshape(order=order_style)
+
+    Parameters
+    --------------------------
+    vertices    : (n,3) coordinates of vertices
+    faces       : (m,3) indices of vertices for each face
+    normals     : (m,3) normals coordinate for each face
+    face_areas  : (m,) - Optional, array of per-face area, for faster computation
+    order_style : 'C' or 'F', order style to use for reshape
+
+    Output
+    --------------------------
+    G : (3*m,n) matrix of gradient
+
+    """
+    assert order_style in ['F', 'C'], "Only C or F are implemented order styles"
+    n_faces = faces.shape[0]
+    n_vertices = vertices.shape[0]
+
+    if normals is None:
+        normals = compute_normals(vertices, faces)
+
+    grad_dir = _get_grad_dir(vertices, faces, normals, face_areas=face_areas)
+
+    I = np.repeat(np.arange(n_faces), 3)
+    J = faces.flatten()
+
+    if order_style == 'F':
+        In = np.concatenate([I, I+n_faces, I+2*n_faces])
+        Jn = np.tile(J, 3)
+        Vn = grad_dir.flatten(order='F')
+
+    else:
+        In = np.concatenate([3*I, 3*I+1, 3*I+2])
+        Jn = np.tile(J,3)
+        Vn = grad_dir.flatten(order='F')
+
+    Gmat = sparse.csr_matrix((Vn, (In, Jn)), shape=(3*n_faces, n_vertices))
+
+    return Gmat
 
 
 def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False, grads=None):
@@ -453,7 +662,7 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False, grads=No
     use_sym    : bool - If true, uses the (slower but) symmetric expression
                  of the gradient
     grads      : iterable of size 3 containing arrays of size (m,3) giving gradient directions
-                 for all faces (see function `_get_grad_dir`).
+                 for all faces (see function `_get_grad_dir`.
     Output
     --------------------------
     gradient : (m,p,3) or (n,3) gradient of f on the mesh
@@ -472,31 +681,26 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False, grads=No
 
     # Compute area for each face
     if face_areas is None:
-        face_areas = 0.5 * np.linalg.norm(np.cross(v2-v1, v3-v1), axis=1)  # (m,)
+        face_areas = 0.5 * np.linalg.norm(np.cross(v2-v1,v3-v1),axis=1)  # (m,)
 
-    # Check whether to use a symmetric computation fo the gradient (slower but more stable)
     if not use_sym:
-        # Compute gradient directions
         if grads is None:
             grad2 = np.cross(normals, v1-v3)/(2*face_areas[:,None])  # (m,3)
             grad3 = np.cross(normals, v2-v1)/(2*face_areas[:,None])  # (m,3)
 
-        # One or multiple functions
         if f.ndim == 1:
             gradient = (f2-f1)[:,None] * grad2 + (f3-f1)[:,None] * grad3  # (m,3)
         else:
             gradient = (f2-f1)[:,:,None] * grad2[:,None,:] + (f3-f1)[:,:,None] * grad3[:,None,:]  # (m,3)
 
     else:
-        # Compute gradient directions
         if grads is None:
             grad1 = np.cross(normals, v3-v2)/(2*face_areas[:,None])  # (m,3)
             grad2 = np.cross(normals, v1-v3)/(2*face_areas[:,None])  # (m,3)
             grad3 = np.cross(normals, v2-v1)/(2*face_areas[:,None])  # (m,3)
 
-        # One or multiple functions
         if f.ndim == 1:
-            gradient = f1[:,None] * grad1 + f2[:,None] * grad2 + f3[:,None] * grad3  # (m,p,3)
+            gradient = f1[:,None] * grad1 + f2[:,None] * grad2 + f3[:,None] * grad3  # (m,3)
         else:
             gradient = f1[:,:,None] * grad1[:,None,:] + f2[:,:,None] * grad2[:,None,:] + f3[:,:,None] * grad3[:,None,:]  # (m,p,3)
 
@@ -505,11 +709,11 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False, grads=No
 
 def div_f(f, vertices, faces, normals, vert_areas=None, grads=None, face_areas=None):
     """
-    Compute the vertex-wise divergence of a vector field on a mesh
+    Compute the divergence of a vector field on a mesh
 
     Parameters
     --------------------------
-    f          : (m,3) or (n,m,3) vector field(s) on each face
+    f          : (m,3) vector field on each face
     vertices   : (n,3) coordinates of vertices
     faces      : (m,3) indices of vertices for each face
     normals    : (m,3) normals coordinate for each face
@@ -533,7 +737,7 @@ def div_f(f, vertices, faces, normals, vert_areas=None, grads=None, face_areas=N
     if vert_areas is None:
         vert_areas = compute_vertex_areas(vertices, faces, faces_areas=None)  # (n,)
 
-    # Compute gradient direction not normalized by face areas (normalization would disappear later)
+    # Compute gradient direction non normalized by face areas/
     if grads is None:
         grad1_n = np.cross(normals, v3 - v2) / 2
         grad2_n = np.cross(normals, v1 - v3) / 2
@@ -545,7 +749,7 @@ def div_f(f, vertices, faces, normals, vert_areas=None, grads=None, face_areas=N
         grad2_n = face_areas[:,None] * grads[1]
         grad3_n = face_areas[:,None] * grads[2]
 
-    # Check if a single gradient field is given (ndim == 2) or multiple (ndim == 3)
+    # Check if a single gradient field is given or multiple
     if f.ndim == 2:
         grad1 = np.einsum('ij,ij->i', grad1_n, f)  # (m,)
         grad2 = np.einsum('ij,ij->i', grad2_n, f)  # (m,)

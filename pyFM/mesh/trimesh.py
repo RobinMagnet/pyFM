@@ -9,6 +9,9 @@ from . import laplacian
 import scipy.linalg
 import scipy.sparse as sparse
 
+import potpourri3d as pp3d
+import robust_laplacian
+
 
 class TriMesh:
     """
@@ -23,9 +26,11 @@ class TriMesh:
                    added at the end if the mesh was normalized.
 
     # GEOMETRY
-    vertlist     : (n,3) array of n vertices coordinates
-    facelist     : (m,3) array of m triangle indices
-    normals      : (m,3) array of normals
+    vertlist       : (n,3) array of n vertices coordinates
+    facelist       : (m,3) array of m triangle indices
+    normals        : (m,3) array of normals
+    vertex_normals : (n,3) array of vertex normals
+                     (change weighting type with self.set_vertex_normal_weighting)
 
     # SPECTRAL INFORMATION
     W            : (n,n) sparse cotangent weight matrix
@@ -33,20 +38,19 @@ class TriMesh:
     eigenvalues  : (K,) eigenvalues of the Laplace Beltrami Operator
     eigenvectors : (n,K) eigenvectors of the Laplace Beltrami Operator
 
-    # GEODESIC INFORMATION
-    t            : float - temperature parameter for geodesic computation with heat method
-    solver_heat  : callable - given b, solves for x in (A + tW)x = b
-    solver_lap   : callable - given b, solver for x in Wx = b
-
     Properties
     ------------------
     area         : float - area of the mesh
+    face_areas   : (m,) per face area
+    vertex_areas : (n,) per vertex area
+    center_mass  : (3,) center of mass
+
     n_vertices   : int - number of vertices
     n_faces      : int - number of faces
     edges        : (p,2) edges defined by vertex indices
     """
-    def __init__(self, path=None, vertices=None, faces=None, area_normalize=False,
-                 rotation=None, translation=None):
+    def __init__(self, *args, **kwargs):
+        # area_normalize=False, center=False, rotation=None, translation=None):
         """
         Read the mesh. Give either the path to a .off file or a list of vertices
         and corrresponding triangles
@@ -58,87 +62,66 @@ class TriMesh:
         faces          : (m,3) list of indices of triangles
         area_normalize : If True, normalize the mesh
         """
+        self._init_all_attributes()
+        assert 0 < len(args) < 3, "Provide a path or vertices / faces"
 
-        self._vertlist = None
-        self._facelist = None
+        rotation, translation, area_normalize, center = self._read_init_kwargs(kwargs)
 
-        self._normals = None
-
-        self.path = None
-        self.meshname = None
-
-        if vertices is None and faces is None:
-            if path is None:
-                raise ValueError("You should provide either a path to an .off file or \
-                                  a list of vertices (and faces)")
-            if os.path.splitext(path)[1] == '.off':
-                self.vertlist, self.facelist = file_utils.read_off(path)
-            elif os.path.splitext(path)[1] == '.obj':
-                self.vertlist, self.facelist = file_utils.read_obj(path)
-
-            self.path = path
-            self.meshname = os.path.splitext(os.path.basename(path))[0]
-
+        # Differnetiate between [path] or [vertex] or [vertex, faces]
+        if len(args) == 1 and type(args[0]) is str:
+            self._load_mesh(args[0])
+        elif len(args) == 1:
+            self.vertlist = args[0]
+            self.facelist = None
         else:
-            self.vertlist = np.asarray(vertices, dtype=float)
-            self.facelist = np.asarray(faces, dtype=int) if faces is not None else None
+            self.vertlist = args[0]
+            self.facelist = args[1]
 
         if rotation is not None:
             self.rotate(rotation)
         if translation is not None:
             self.translate(translation)
 
-        self.normals = None
-        self.W = None
-        self.A = None
-
-        self.eigenvalues = None
-        self.eigenvectors = None
-
-        self.t = None
-        self.solver_heat = None
-        self.solver_lap = None
-
         if area_normalize:
-            new_meshname = None
-            if self.meshname is not None:
-                new_meshname = self.meshname + '_n'
-                new_path = self.path
-            tau = np.sqrt(self.area)
-            self.vertlist /= tau
+            self.area_normalize()
 
-            if new_meshname is not None:
-                self.path, self.meshname = new_path, new_meshname
+        if center:
+            self.translate(-self.center_mass)
 
     @property
     def vertlist(self):
         """
         Get or set the vertices.
-        Checks the format when checking
+        Checks the format when setting
         """
         return self._vertlist
 
     @vertlist.setter
     def vertlist(self, vertlist):
+        vertlist = np.asarray(vertlist, dtype=float)
         if vertlist.ndim != 2:
             raise ValueError('Vertex list has to be 2D')
         elif vertlist.shape[1] != 3:
             raise ValueError('Vertex list requires 3D coordinates')
 
         self._reset_vertex_attributes()
+        if hasattr(self, "_vertlist") and self._vertlist is not None:
+            self._modified = True
+            self._normalized = False
         self.path = None
-        self._vertlist = np.asarray(vertlist, dtype=float)
+        self._vertlist = vertlist
 
     @property
     def facelist(self):
         """
         Get or set the faces.
-        Checks the format when checking
+        Checks the format when setting
         """
         return self._facelist
 
     @facelist.setter
     def facelist(self, facelist):
+        facelist = np.asarray(facelist)
         if facelist is not None:
             if facelist.ndim != 2:
                 raise ValueError('Faces list has to be 2D')
@@ -148,6 +131,16 @@ class TriMesh:
         else:
             self._facelist = None
         self.path = None
+
+    @property
+    def vertices(self):
+        "alias for vertlist"
+        return self.vertlist
+
+    @property
+    def faces(self):
+        "alias for facelist"
+        return self.facelist
 
     @property
     def n_vertices(self):
@@ -171,20 +164,34 @@ class TriMesh:
         Returns the area of the mesh
         """
         if self.A is None:
+            if self.facelist is None:
+                return None
             faces_areas = geom.compute_faces_areas(self.vertlist, self.facelist)
             return faces_areas.sum()
 
         return self.A.sum()
 
     @property
+    def sqrtarea(self):
+        """
+        square root of the area
+        """
+        return np.sqrt(self.area)
+
+    @property
     def edges(self):
         """
         return a (p,2) array of edges defined by vertex indices.
         """
-        return geom.edges_from_faces(self.facelist)
+        if self._edges is None:
+            self.compute_edges()
+        return self._edges
 
     @property
     def normals(self):
+        """
+        face normals
+        """
         if self._normals is None:
             self.compute_normals()
         return self._normals
@@ -195,92 +202,161 @@ class TriMesh:
 
     @property
     def vertex_normals(self):
-        return geom.per_vertex_normal(self.vertlist, self.facelist, self.normals)
+        """
+        per vertex_normal
+        """
+        if self._vertex_normals is None:
+            self.compute_vertex_normals()
+        return self._vertex_normals
+
+    @vertex_normals.setter
+    def vertex_normals(self, vertex_normals):
+        self._vertex_normals = vertex_normals
 
     @property
     def vertex_areas(self):
+        """
+        per vertex area
+        """
         if self.A is None:
             return geom.compute_vertex_areas(self.vertlist, self.facelist)
 
-        return np.array(self.A.sum(1)).squeeze()
+        return np.asarray(self.A.sum(1)).squeeze()
+
+    @property
+    def faces_areas(self):
+        """
+        per face area
+        """
+        if self._faces_areas is None:
+            self._faces_areas = geom.compute_faces_areas(self.vertlist, self.facelist)
+        return self._faces_areas
+
+    @faces_areas.setter
+    def face_areas(self, face_areas):
+        self._faces_areas = face_areas
 
     @property
     def center_mass(self):
+        """
+        center of mass
+        """
         return np.average(self.vertlist, axis=0, weights=self.vertex_areas)
 
+    @property
+    def is_normalized(self):
+        """
+        Whether the mash has been manually normalized using the self.area_normalize method
+        """
+        if not hasattr(self, "_normalized"):
+            self._normalized = False
+        return self._normalized
+
+    @property
+    def is_modified(self):
+        """
+        Whether the mash has been modified from path with
+        non-isometric deformations
+        """
+        if not hasattr(self, "_modified"):
+            self._modified = False
+        return self._modified
+
+    def area_normalize(self):
+        self.scale(1/self.sqrtarea)
+        self._normalized = True
+        return self
+
     def rotate(self, R):
-        if R.shape != (3, 3) or scipy.linalg.det(R) != 1:
+        """
+        Rotate mesh and normals
+        """
+        if R.shape != (3, 3) or not np.isclose(scipy.linalg.det(R), 1):
             raise ValueError("Rotation should be a 3x3 matrix with unit determinant")
 
         self._vertlist = self.vertlist @ R.T
         if self._normals is not None:
             self.normals = self.normals @ R.T
+
+        if self._per_vertex_normals is not None:
+            self.per_vertex_normals = self.per_vertex_normals @ R.T
+
         return self
 
     def translate(self, t):
-        self._vertlist += t[None, :]
+        """
+        translate mesh
+        """
+        self._vertlist += np.asarray(t).squeeze()[None, :]
+        return self
+
+    def scale(self, alpha):
+        """
+        Multiply mesh by alpha.
+        modify vertices, area, spectrum, geodesic distances
+        """
+        self._vertlist *= alpha
+
+        if self.A is not None:
+            self.A = alpha**2 * self.A
+
+        if self._faces_areas is not None:
+            self._faces_area *= alpha
+
+        if self.eigenvalues is not None:
+            self.eigenvalues = 1 / alpha**2 * self.eigenvalues
+
+        if self.eigenvectors is not None:
+            self.eigenvectors = 1 / alpha * self.eigenvectors
+
+        self._solver_heat = None
+        self._solver_lap = None
+        self._solver_geod = None
+
+        self._modified = True
+        self._normalized = False
         return self
 
     def center(self):
+        """
+        center the mesh
+        """
         self.translate(-self.center_mass)
         return self
 
-    def _reset_vertex_attributes(self):
+    def laplacian_spectrum(self, k, intrinsic=False, return_spectrum=True, robust=False, verbose=False):
         """
-        Resets attributes which depend on the vertex positions
-        in the case of nonisometric deformation
-        """
-        self._normals = None
-        self.W = None
-        self.A = None
-        self.eigenvalues = None
-        self.eigenvectors = None
-        self.t = None
-        self.solver_heat = None
-        self.solver_lap = None
-
-    def _get_geod_cache(self, verbose=False):
-        # Check if the mesh has a stored path
-        if self.path is None:
-            return None
-
-        root_dir = os.path.dirname(self.path)
-        geod_filename = os.path.join(root_dir, 'geod_cache', f'{self.meshname}.npy')
-
-        # Check if the geodesic matrix exists
-        if os.path.isfile(geod_filename):
-            if verbose:
-                print('Loading Geodesic Distances from cache')
-            return np.load(geod_filename)
-
-        return None
-
-    def compute_normals(self):
-        """
-        Compute normal vectors for each face
-        """
-        self.normals = geom.compute_normals(self.vertlist, self.facelist)
-
-    def laplacian_spectrum(self, k, fem_area=False, return_spectrum=True, verbose=False):
-        """
-        Compute the LB operator and its spectrum.
+        Compute the Laplace Beltrami Operator and its spectrum.
         Consider using the .process() function for easier use !
 
         Parameters
         -------------------------
         K               : int - number of eigenvalues to compute
-        fem_area        : bool - Whether to compute the area matrix using finite element method
-                          instead of the diagonal matrix.
+        intrinsic       : bool - Use intrinsic triangulation
+        robust          : bool - use tufted laplacian
         return_spectrum : bool - Whether to return the computed spectrum
 
         Output
         -------------------------
-        eigenvalues, eigenvectors : Only if return_spectrum is True.
+        eigenvalues, eigenvectors : (k,), (n,k) - Only if return_spectrum is True.
         """
-        self.W = laplacian.cotangent_weights(self.vertlist, self.facelist)
-        if fem_area:
-            self.A = laplacian.fem_area_mat(self.vertlist, self.facelist)
+        if self.facelist is None:
+            robust = True
+
+        if robust:
+            mollify_factor = 1e-5
+        elif intrinsic:
+            mollify_factor = 0
+
+        if robust or intrinsic:
+            self._intrinsic = intrinsic
+            if self.facelist is not None:
+                self.W, self.A = robust_laplacian.mesh_laplacian(self.vertlist, self.facelist, mollify_factor=mollify_factor)
+            else:
+                self.W, self.A = robust_laplacian.point_cloud_laplacian(self.vertlist, mollify_factor=mollify_factor)
+
         else:
+            self.W = laplacian.cotangent_weights(self.vertlist, self.facelist)
             self.A = laplacian.dia_area_mat(self.vertlist, self.facelist)
 
         # If k is 0, stop here
@@ -297,7 +373,7 @@ class TriMesh:
             if return_spectrum:
                 return self.eigenvalues, self.eigenvectors
 
-    def process(self, k=200, fem_area=False, skip_normals=False, verbose=False):
+    def process(self, k=200, skip_normals=True, intrinsic=False, robust=False, verbose=False):
         """
         Process the LB spectrum and saves it.
         Additionnaly computes per-face normals
@@ -305,11 +381,11 @@ class TriMesh:
         Parameters:
         -----------------------
         k            : int - (default = 200) Number of eigenvalues to compute
-        fem_area     : bool - Whether to compute the area matrix using finite element method instead
-                       of the diagonal matrix.
         skip_normals : bool - If set to True, skip normals computation
+        intrinsic    : bool - Use intrinsic triangulation
+        robust       : bool - use tufted laplacian
         """
-        if not skip_normals and self.normals is None:
+        if not skip_normals and self._normals is None:
             self.compute_normals()
 
         if (self.eigenvectors is not None) and (self.eigenvalues is not None)\
@@ -318,13 +394,16 @@ class TriMesh:
             self.eigenvalues = self.eigenvalues[:k]
 
         else:
-            self.laplacian_spectrum(k, return_spectrum=False, fem_area=fem_area, verbose=verbose)
+            if self.facelist is None:
+                robust = True
+            self.laplacian_spectrum(k, return_spectrum=False, intrinsic=intrinsic, robust=robust,
+                                    verbose=verbose)
 
         return self
 
     def project(self, func, k=None):
         """
-        Project one or multiple functions on the LB basis
+        Project one or multiple functions on the spectral basis
 
         Parameters
         -----------------------
@@ -336,17 +415,17 @@ class TriMesh:
         projected_func : (k,p) or (k,) projected function
         """
         if k is None:
-            return self.eigenvectors.T@self.A@func
+            return self.eigenvectors.T @ (self.A @ func)
 
         elif k <= self.eigenvectors.shape[1]:
-            return self.eigenvectors[:,:k].T@self.A@func
+            return self.eigenvectors[:,:k].T @ (self.A @ func)
 
         else:
             raise ValueError(f'At least {k} eigenvectors should be computed before projecting')
 
     def decode(self, projection):
         """
-        Decode one or multiple functions from their LB basis projection
+        Build a function from its coefficient in the spectral basis
 
         Parameters
         -----------------------
@@ -363,9 +442,16 @@ class TriMesh:
         else:
             raise ValueError(f'At least {k} eigenvectors should be computed before decoding')
 
+    def unproject(self, projection):
+        """
+        Alias for decode
+        """
+        return self.decode(projection)
+
     def reconstruct(self, func, k=None):
         """
-        Reconstruct function with the LB eigenbasis
+        Reconstruct function with the LB eigenbasis, ie project on the spectral basis
+        and rebuild values on all vertices.
 
         Parameters
         -----------------------
@@ -376,10 +462,10 @@ class TriMesh:
         -----------------------
         func : (n,p) or (n,) projected function
         """
-        return self.decode(self.project(func, k=k))
+        return self.unproject(self.project(func, k=k))
 
-    def get_geodesic(self, dijkstra=False, save=False, force_compute=False, batch_size=500,
-                     verbose=False):
+    def get_geodesic(self, dijkstra=False, robust=True, save=False,
+                     force_compute=False, sym=False, batch_size=500, verbose=False):
         """
         Compute the geodesic distance matrix using either the Dijkstra algorithm or the Heat Method.
         Loads from cache if possible.
@@ -388,10 +474,13 @@ class TriMesh:
         -----------------
         dijkstra      : bool - If True, use Dijkstra algorithm instead of the
                         heat method
+        robust        : Robust heat method
         save          : bool - If True, save the resulting distance matrix at
-                        '{path}/geod_cache/{meshname}.npy' with 'path/meshname.off' path of the
+                        '{path}/geod_cache/{meshname}.npy' with 'path/meshname.{ext}' path of the
                         current mesh.
         force_compute : bool - If True, doesn't look for a cached distance matrix.
+        sym           : Symmetrize the matrix if computed with heat method
+        batch_size    : If robust is False, compute distances by batch
 
         Output
         -----------------
@@ -405,12 +494,16 @@ class TriMesh:
 
         # Else compute the complete matrix
         if dijkstra:
-            geod_dist = geom.geodesic_distmat(self.vertlist, self.facelist)
+            geod_dist = geom.geodesic_distmat_dijkstra(self.vertlist, self.facelist)
+
+        elif robust or self._intrinsic:
+            geod_dist = geom.heat_geodmat_robust(self.vertlist, self.facelist, verbose=verbose)
+
         else:
             # Ensure LB matrices are processed.
             if self.A is None or self.W is None:
                 self.process(k=0)
-            if self.normals is None:
+            if self._normals is None:
                 self.compute_normals()
 
             # Set the time parameter as the squared mean edge length
@@ -420,7 +513,12 @@ class TriMesh:
             t = np.linalg.norm(v2-v1, axis=1).mean()**2
 
             geod_dist = geom.heat_geodmat(self.vertlist, self.facelist, self.normals,
-                                          self.A, self.W, t=t, batch_size=batch_size, verbose=verbose)
+                                          self.A, self.W, t=t, batch_size=batch_size,
+                                          verbose=verbose)
+
+        if sym and not dijkstra:
+            geod_dist *= .5
+            geod_dist += geod_dist.T
 
         # Save the geodesic distance matrix if required
         if save:
@@ -428,59 +526,54 @@ class TriMesh:
                 raise ValueError('No path specified')
 
             root_dir = os.path.dirname(self.path)
-            geod_filename = os.path.join(root_dir, 'geod_cache', f'{self.meshname}.npy')
+
+            if self.is_normalized:
+                geod_filename = os.path.join(root_dir, 'geod_cache', f'{self.meshname}_n.npy')
+            elif self.is_modified:
+                geod_filename = os.path.join(root_dir, 'geod_cache', f'{self.meshname}_mod.npy')
+            else:
+                geod_filename = os.path.join(root_dir, 'geod_cache', f'{self.meshname}.npy')
 
             os.makedirs(os.path.dirname(geod_filename), exist_ok=True)
             np.save(geod_filename, geod_dist)
 
         return geod_dist
 
-    def geod_from(self, i, t=None, save=True):
+    def geod_from(self, i, robust=True):
         """
         Compute geodesic distances from vertex i sing the Heat Method
 
         Parameters
         ----------------------
-        i    : int - index from source
-        t    : float - time parameter. If not specified, uses the squared mean edge length
-        save : bool - optional, if True, saves precfactorized linear systems for geodesic
-               distance computation with heat method
+        i      : int - index from source
+        robust : Robust heat method
 
         Output
         ----------------------
         dist : (n,) distances to vertex i
         """
+
+        if robust or self._intrinsic:
+            if self._solver_geod is None:
+                self._solver_geod = pp3d.MeshHeatMethodDistanceSolver(self.vertlist, self.facelist)
+
+            return self._solver_geod.compute_distance(i)
+
         if self.A is None or self.W is None:
             self.process(k=0)
-        if self.normals is None:
+        if self._normals is None:
             self.compute_normals()
 
-        # Compute temperature parameter
-        if t is None:
-            # Set the time parameter as the squared mean edge length
-            edges = self.edges
-            v1 = self.vertlist[edges[:,0]]
-            v2 = self.vertlist[edges[:,1]]
-            t = np.linalg.norm(v2-v1, axis=1).mean()**2
+        edges = self.edges
+        v1 = self.vertlist[edges[:,0]]
+        v2 = self.vertlist[edges[:,1]]
+        t = np.linalg.norm(v2-v1, axis=1).mean()**2
 
-        # Useless to precompute or fetch cached solver in this case
-        if (self.t is None or self.t != t) and not save:
-            dists = geom.heat_geodesic_from(i, self.vertlist, self.facelist, self.normals,
-                                            self.A, W=self.W, t=t)
-            return dists
-
-        # Load the cached solver if similar t
-        elif self.t is not None and np.isclose(self.t, t):
-            solver_heat = self.solver_heat
-            solver_lap = self.solver_lap
-
-        # Else compute and solver the solvers
-        else:
+        if self._solver_heat is None:
             solver_heat = sparse.linalg.factorized(self.A.tocsc() + t * self.W)
             solver_lap = sparse.linalg.factorized(self.W)
-            self.t = t
-            self.solver_heat = solver_heat
-            self.solver_lap = solver_lap
+            self._solver_heat = solver_heat
+            self._solver_lap = solver_lap
 
         # Compute distance with cached solvers
         dists = geom.heat_geodesic_from(i, self.vertlist, self.facelist, self.normals,
@@ -491,7 +584,7 @@ class TriMesh:
 
     def l2_sqnorm(self, func):
         """
-        Return the squared L2 norm of one or multiple functions on the mesh (area weighted).
+        Return the squared L2 norm of one or multiple functions on the mesh.
         For a single function f, this returns f.T @ A @ f with A the area matrix.
 
         Parameters
@@ -502,17 +595,92 @@ class TriMesh:
         -----------------
         sqnorm : (p,) array of squared l2 norms or a float only one function was provided.
         """
-        if len(func.shape) == 1:
-            func = func[:,None]
-            return np.einsum('np,np->p', func, self.A@func).flatten().item()
+        return self.l2_inner(func, func)
 
-        return np.einsum('np,np->p', func, self.A@func).flatten()
-
-    def extract_fps(self, size, random_init=True, geodesic=True, verbose=False):
+    def l2_inner(self, func1, func2):
         """
-        Samples points using iterative farthest point sampling with geodesic or euclidean distances.
-        If the geodesic matrix is precomputed (in the cache folder) uses it, else computes geodesic
-        distances in real time
+        Return the L2 inner product of two functions, or pairwise inner products if lists
+        of function is given.
+
+        For two functions f1 and f2, this returns f1.T @ A @ f2 with A the area matrix.
+
+        Parameters
+        -----------------
+        func1 : (n,p) or (n,) functions on the mesh
+        func2 : (n,p) or (n,) functions on the mesh
+
+        Returns
+        -----------------
+        sqnorm : (p,) array of L2 inner product or a float only one function per argument
+                  was provided.
+        """
+        assert func1.shape == func2.shape, "Shapes must be equal"
+
+        if func1.ndim == 1:
+            return func1 @ self.A @ func2
+
+        return np.einsum('np,np->p', func1, self.A@func2)
+
+    def h1_sqnorm(self, func):
+        """
+        Return the squared H^1_0 norm (L2 norm of the gradient) of one or multiple functions
+        on the mesh.
+        For a single function f, this returns f.T @ W @ f with W the stiffness matrix.
+
+        Parameters
+        -----------------
+        func : (n,p) or (n,) functions on the mesh
+
+        Returns
+        -----------------
+        sqnorm : (p,) array of squared H1 norms or a float only one function was provided.
+        """
+        return self.h1_inner(func, func)
+
+    def h1_inner(self, func1, func2):
+        """
+        Return the H1 inner product of two functions, or pairwise inner products if lists
+        of function is given.
+
+        For two functions f1 and f2, this returns f1.T @ W @ f2 with W the stiffness matrix.
+
+        Parameters
+        -----------------
+        func1 : (n,p) or (n,) functions on the mesh
+        func2 : (n,p) or (n,) functions on the mesh
+
+        Returns
+        -----------------
+        sqnorm : (p,) array of H1 inner product or a float only one function per argument
+                  was provided.
+        """
+        assert func1.shape == func2.shape, "Shapes must be equal"
+
+        if func1.ndim == 1:
+            return func1 @ self.W @ func2
+
+        return np.einsum('np,np->p', func1, self.W@func2)
+
+    def integrate(self, func):
+        """
+        Integrate a function or a set of function on the mesh
+
+        Parameters
+        -----------------
+        func : (n,p) or (n,) functions on the mesh
+
+        Returns
+        -----------------
+        integral : (p,) array of integrals or a float only one function was provided.
+        """
+        if func.ndim == 1:
+            return np.sum(self.A @ func)
+        return np.sum(self.A @ func, axis=0)
+
+    def extract_fps(self, size, random_init=True, geodesic=True, no_load=False, verbose=False):
+        """
+        Samples points using farthest point sampling with geodesic distances. If the geodesic matrix
+        is precomputed (in the cache folder) uses it, else computes geodesic distance in real time
 
         Parameters
         -------------------------
@@ -520,7 +688,8 @@ class TriMesh:
         random_init : Whether to sample the first point randomly or to take the furthest away from
                       all the other ones. This is only done if the geodesic matrix is accessible
                       from cache
-        geodesic    : bool - whether to use geodesic distance or euclidean one.
+        geodesic    : bool - If True perform geodesic fps, else eucliden.
+        no_load     : bool - if True never loads cache
 
         Output
         --------------------------
@@ -534,26 +703,19 @@ class TriMesh:
 
             return fps
 
-        # Else
         # Check if the geodesic matrix is accessible from cache
-        A_geod = self._get_geod_cache()
-        # A_geod = self.get_geodesic()
+        A_geod = self._get_geod_cache() if not no_load else None
 
         if A_geod is None:
             # Set the time parameter as the squared mean edge length
-            edges = self.edges
-            v1 = self.vertlist[edges[:,0]]
-            v2 = self.vertlist[edges[:,1]]
-            t = np.linalg.norm(v2-v1, axis=1).mean()**2
-
             def geod_func(i):
-                return self.geod_from(i, t=t)
+                return self.geod_from(i)
 
             # Use the self.geod_from function as callable
             fps = geom.farthest_point_sampling_call(geod_func, size, n_points=self.n_vertices, verbose=verbose)
 
         else:
-            fps = geom.farthest_point_sampling(A_geod, size, random_init=random_init)
+            fps = geom.farthest_point_sampling(A_geod, size, random_init=random_init, verbose=verbose)
 
         return fps
 
@@ -615,24 +777,32 @@ class TriMesh:
         if normalize:
             gradf /= np.linalg.norm(gradf, axis=1, keepdims=True)
 
-        per_vert_area = np.asarray(self.A.sum(1)).flatten()
         operator = geom.get_orientation_op(gradf, self.vertlist, self.facelist, self.normals,
-                                           per_vert_area)
+                                           self.vertex_areas)
 
         return operator
 
-    def export(self, filename, precision=6):
+    def export(self, filename, precision=None):
         """
         Write the mesh in a .off file
 
         Parameters
         -----------------------------
-        filename : path to the file to write
+        filename  : path to the file to write
         precision : floating point precision
         """
-        if os.path.splitext(filename)[1] != '.off':
+        # assert os.path.splitext(filename)[1] in ['.off',''], "Can only export .off files"
+        file_ext = os.path.splitext(filename)[1]
+        if file_ext == '':
             filename += '.off'
-        file_utils.write_off(filename, self.vertlist, self.facelist, precision=precision)
+            file_ext = '.off'
+
+        if file_ext == '.off':
+            file_utils.write_off(filename, self.vertlist, self.facelist, precision=precision)
+
+        elif file_ext == '.obj':
+            file_utils.write_obj(filename, self.vertlist, self.facelist, precision=precision)
+
         return self
 
     def get_uv(self, ind1, ind2, mult_const, rotation=None):
@@ -652,8 +822,8 @@ class TriMesh:
         vert = self.vertlist if rotation is None else self.vertlist @ rotation.T
         return file_utils.get_uv(vert, ind1, ind2, mult_const=mult_const)
 
-    def export_obj(self, filename, uv, mtl_file='material.mtl', texture_im='texture_1.jpg',
-                   precision=6, verbose=False):
+    def export_texture(self, filename, uv, mtl_file='material.mtl', texture_im='texture_1.jpg',
+                       precision=None, verbose=False):
         """
         Write a .obj file with texture using uv coordinates
 
@@ -663,13 +833,142 @@ class TriMesh:
         uv         : (n,2) uv coordinates of each vertex
         mtl_file   : str - name of the .mtl file
         texture_im : str - name of the .jpg file definig texture
-        precision : floating point precision
         """
         if os.path.splitext(filename)[1] != '.obj':
             filename += '.obj'
 
-        file_utils.write_obj(filename, self.vertlist, self.facelist, uv,
-                             mtl_file=mtl_file, texture_im=texture_im,
-                             precision=precision, verbose=verbose)
+        file_utils.write_obj(filename, self.vertlist, self.facelist, uv=uv,
+                             mtl_file=mtl_file, texture_im=texture_im, verbose=verbose)
 
         return self
+
+    def compute_normals(self):
+        """
+        Compute normal vectors for each face
+        """
+        self.normals = geom.compute_normals(self.vertlist, self.facelist)
+
+    def set_vertex_normal_weighting(self, weight_type):
+        """
+        Set weighting type for vertex normals between 'area' and 'uniform'
+        """
+        weight_type = weight_type.lower()
+        assert weight_type in ['uniform', 'area'], "Only implemented uniform and area weighting"
+
+        if weight_type != self._vertex_normals_weighting:
+            self._vertex_normals_weighting = weight_type
+            self._vertex_normals = None
+
+    def compute_vertex_normals(self):
+        """
+        computes vertex normals in self.vertex_normals
+        """
+        self.vertex_normals = geom.per_vertex_normal(self.vertlist, self.facelist,
+                                                     weighting=self._vertex_normals_weighting)
+
+    def compute_edges(self):
+        """
+        computes edges in self.edges
+        """
+        self._edges = geom.edges_from_faces(self.facelist)
+
+    def _reset_vertex_attributes(self):
+        """
+        Resets attributes which depend on the vertex positions
+        in the case of nonisometric deformation
+        """
+        self._face_areas = None
+
+        self._normals = None
+        self._vertex_normals = None
+
+        self._intrinsic = False
+
+        self.W = None
+        self.A = None
+
+        self.eigenvalues = None
+        self.eigenvectors = None
+
+        self._solver_heat = None
+        self._solver_lap = None
+        self._solver_geod = None
+
+    def _get_geod_cache(self, verbose=False):
+        # Check if the mesh has a stored path
+        if self.path is None:
+            return None
+
+        root_dir = os.path.dirname(self.path)
+        if self.is_normalized:
+            geod_filename = os.path.join(root_dir, 'geod_cache', f'{self.meshname}_n.npy')
+
+        elif self.is_modified:
+            return None
+
+        geod_filename = os.path.join(root_dir, 'geod_cache', f'{self.meshname}.npy')
+
+        # Check if the geodesic matrix exists
+        if os.path.isfile(geod_filename):
+            if verbose:
+                print('Loading Geodesic Distances from cache')
+            return np.load(geod_filename)
+
+        return None
+
+    def _load_mesh(self, meshpath):
+        """
+        Load a mesh from a file
+
+        Parameters:
+        --------------------------
+        meshpath : path to file
+        """
+
+        if os.path.splitext(meshpath)[1] == '.off':
+            self.vertlist, self.facelist = file_utils.read_off(meshpath)
+        elif os.path.splitext(meshpath)[1] == '.obj':
+            self.vertlist, self.facelist = file_utils.read_obj(meshpath)
+
+        else:
+            raise ValueError('Provide file in .off or .obj format')
+
+        self.path = meshpath
+        self.meshname = os.path.splitext(os.path.basename(meshpath))[0]
+
+    def _read_init_kwargs(self, kwargs):
+        rotation = kwargs['rotation'] if 'rotation' in kwargs.keys() else None
+        translation = kwargs['translation'] if 'translation' in kwargs.keys() else None
+        area_normalize = kwargs['area_normalize'] if 'area_normalize' in kwargs.keys() else False
+        center = kwargs['center'] if 'center' in kwargs.keys() else False
+        return rotation, translation, area_normalize, center
+
+    def _init_all_attributes(self):
+
+        self.path = None
+        self.meshname = None
+
+        self._vertlist = None
+        self._facelist = None
+
+        self._modified = False
+        self._normalized = False
+
+        self._edges = None
+        self._normals = None
+
+        self._vertex_normals_weighting = 'area'
+        self._vertex_normals = None
+
+        self.W = None
+        self.A = None
+        self._intrinsic = False
+
+        self._faces_areas = None
+
+        self.eigenvalues = None
+        self.eigenvectors = None
+
+        self._solver_geod = None
+        self._solver_heat = None
+        self._solver_lap = None
