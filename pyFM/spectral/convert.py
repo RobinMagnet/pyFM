@@ -1,6 +1,7 @@
 import scipy.linalg
 import numpy as np
 
+from . import projection_utils as pju
 from .nn_utils import knn_query
 
 
@@ -150,3 +151,42 @@ def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, use_ANN=F
                            use_adj=use_adj, use_ANN=use_ANN, n_jobs=n_jobs)
 
     return p2p_21
+
+
+def mesh_FM_to_p2p_precise(FM_12, mesh1, mesh2, precompute_dmin=True, use_adj=True, batch_size=None,
+                           n_jobs=1, verbose=False):
+    """
+    Computes a precise pointwise map between two meshes, that is for each vertex in mesh2, gives
+    barycentric coordinates of its image on mesh1.
+    See [1] for details on notations.
+
+    [1] - "Deblurring and Denoising of Maps between Shapes", by Danielle Ezuz and Mirela Ben-Chen.
+
+    Parameters
+    ----------------------------
+    FM_12           : (k2,k1) Functional map from mesh1 to mesh2
+    mesh1           : Source mesh (for the functional map) with n1 vertices
+    mesh2           : Target mesh (for the functional map) with n2 vertices
+    precompute_dmin : Whether to precompute all the values of delta_min.
+                      Faster but heavier in memory
+    use_adj         : use the adjoint method
+    batch_size      : If precompute_dmin is False, projects batches of points on the surface
+    n_jobs          : number of parallel process for nearest neighbor precomputation
+
+    Output
+    ----------------------------
+    P_21 : (n2,n1) - precise point to point map from mesh2 to mesh1
+    """
+    k2, k1 = FM_12.shape
+
+    if use_adj:
+        emb1 = mesh1.eigenvectors[:, :k1]
+        emb2 = mesh2.eigenvectors[:, :k2] @ FM_12
+    else:
+        emb1 = mesh1.eigenvectors[:, :k1] @ FM_12.T
+        emb2 = mesh2.eigenvectors[:, :k2]
+
+    P_21 = pju.project_pc_to_triangles(emb1, mesh1.facelist, emb2, precompute_dmin=precompute_dmin,
+                                       batch_size=batch_size, n_jobs=n_jobs, verbose=verbose)
+
+    return P_21
