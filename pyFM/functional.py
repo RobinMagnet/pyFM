@@ -191,7 +191,7 @@ class FunctionalMapping:
 
         return lmks1, lmks2
 
-    def preprocess(self, n_ev=(50,50), n_descr=100, descr_type='WKS', landmarks=None, subsample_step=1, verbose=False):
+    def preprocess(self, n_ev=(50,50), n_descr=100, descr_type='WKS', landmarks=None, subsample_step=1, k_process=None, verbose=False):
         """
         Saves the information about the Laplacian mesh for opt
 
@@ -206,13 +206,16 @@ class FunctionalMapping:
         """
         self.k1, self.k2 = n_ev
 
+        if k_process is None:
+            k_process = 200
+
         use_lm = landmarks is not None and len(landmarks) > 0
 
         # Compute the Laplacian spectrum
         if verbose:
             print('\nComputing Laplacian spectrum')
-        self.mesh1.process(self.k1, verbose=verbose)
-        self.mesh2.process(self.k2, verbose=verbose)
+        self.mesh1.process(max(self.k1, k_process), verbose=verbose)
+        self.mesh2.process(max(self.k2, k_process), verbose=verbose)
 
         if verbose:
             print('\nComputing descriptors')
@@ -323,13 +326,6 @@ class FunctionalMapping:
             print(f'\tScaling LBO commutativity weight by {1 / ev_sqdiff.sum():.1e}')
         ev_sqdiff /= ev_sqdiff.sum()
 
-        # rescale commutativity term
-        if w_dcomm > 0:
-            comm_eval = 2 * opt_func.oplist_commutation(np.eye(self.k2, self.k1), list_descr)
-            w_dcomm /= comm_eval
-            if verbose:
-                print(f'\tScaling commutativity weight by {1 / comm_eval:.1e}')
-
         # rescale orientation term
         if w_orient > 0:
             args_native = (np.eye(self.k2,self.k1),
@@ -414,8 +410,8 @@ class FunctionalMapping:
             sub2 = self.mesh2.extract_fps(subsample)
             sub = (sub1,sub2)
 
-        self.FM_zo = pyFM.refine.mesh_zoomout_refine(self.FM, self.mesh1, self.mesh2, nit,
-                                                     step=step, subsample=sub, use_ANN=use_ANN, verbose=verbose)
+        self._FM_zo = pyFM.refine.mesh_zoomout_refine(self.FM, self.mesh1, self.mesh2, nit,
+                                                      step=step, subsample=sub, use_ANN=use_ANN, verbose=verbose)
         if overwrite:
             self.FM_type = 'zoomout'
 
