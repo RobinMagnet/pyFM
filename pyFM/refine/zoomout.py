@@ -1,5 +1,5 @@
 import numpy as np
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import scipy.sparse
 
 import pyFM.spectral as spectral
