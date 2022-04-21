@@ -28,7 +28,7 @@ In particular this codebade contains python implementations of the following pap
  * [CONSISTENT ZOOMOUT: Efficient Spectral Map Synchronization](http://www.lix.polytechnique.fr/~maks/papers/ConsistentZoomOut_SGP2020.pdf), with Matlab implementation [here](https://github.com/llorz/SGA19_zoomOut)
 
 ## Incoming features
-Python code for DiscreteOptization and Reversible Harmonic Map should be released soon.
+Python code for [Discrete Optimization](http://www.lix.polytechnique.fr/~maks/papers/SGP21_DiscMapOpt.pdf) and [Reversible Harmonic Map](https://www.cs.technion.ac.il/~mirela/publications/rhm.pdf) should be released soon.
 Don't hesitate to reach out at <rmagnet@> <lix.polytechnique.fr> for requests.
 
 ## Dependencies
