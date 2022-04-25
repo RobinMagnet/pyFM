@@ -32,7 +32,8 @@ def edges_from_faces(faces):
     Jn = np.concatenate([J, I])
     Vn = np.ones_like(In)
 
-    M = sparse.coo_matrix((Vn, (In, Jn)), shape=(N, N))
+    # Sum duplicate entries
+    M = sparse.csr_matrix((Vn, (In, Jn)), shape=(N, N)).tocoo()
 
     edges0 = M.row
     edges1 = M.col
