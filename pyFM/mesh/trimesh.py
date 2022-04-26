@@ -906,7 +906,8 @@ class TriMesh:
         elif self.is_modified:
             return None
 
-        geod_filename = os.path.join(root_dir, 'geod_cache', f'{self.meshname}.npy')
+        else:
+            geod_filename = os.path.join(root_dir, 'geod_cache', f'{self.meshname}.npy')
 
         # Check if the geodesic matrix exists
         if os.path.isfile(geod_filename):
