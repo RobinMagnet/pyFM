@@ -121,7 +121,7 @@ class TriMesh:
 
     @facelist.setter
     def facelist(self, facelist):
-        facelist = np.asarray(facelist)
+        facelist = np.asarray(facelist) if facelist is not None else None
         if facelist is not None:
             if facelist.ndim != 2:
                 raise ValueError('Faces list has to be 2D')
