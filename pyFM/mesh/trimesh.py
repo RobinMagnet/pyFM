@@ -278,8 +278,8 @@ class TriMesh:
         if self._normals is not None:
             self.normals = self.normals @ R.T
 
-        if self._per_vertex_normals is not None:
-            self.per_vertex_normals = self.per_vertex_normals @ R.T
+        if self._vertex_normals is not None:
+            self._vertex_normals = self._vertex_normals @ R.T
 
         return self
 
