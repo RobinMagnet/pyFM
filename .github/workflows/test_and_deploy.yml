@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install setuptools tox tox-gh-actions pytest-qt
+          python -m pip install setuptools pytest-cov
 
       # this runs the platform-specific tests
       - name: Run tests
