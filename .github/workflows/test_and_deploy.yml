@@ -37,6 +37,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install setuptools pytest-cov
+          pip install .
 
       # this runs the platform-specific tests
       - name: Run tests
