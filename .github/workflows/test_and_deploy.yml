@@ -18,7 +18,7 @@ jobs:
     runs-on: ${{ matrix.platform }}
     strategy:
       matrix:
-        platform: [windows-latest, macos-latest] # ubuntu-latest is failing anyway
+        platform: [windows-latest, ubuntu-latest, macos-latest] # ubuntu-latest is failing anyway
         python-version: ['3.8', '3.9', '3.10']
 
     steps:
@@ -47,7 +47,7 @@ jobs:
           PLATFORM: ${{ matrix.platform }}
 
       - name: Coverage
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
 
   deploy:
     # this will run when you have tagged a commit, starting with "v*"
