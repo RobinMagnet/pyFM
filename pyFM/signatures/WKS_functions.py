@@ -27,9 +27,7 @@ def WKS(evals, evects, energy_list, sigma, scaled=False):
     e_list = np.asarray(energy_list)
     coefs = np.exp(-np.square(e_list[:,None] - np.log(np.abs(evals))[None,:])/(2*sigma**2))  # (num_E,K)
 
-    weighted_evects = evects[None, :, :] * coefs[:,None, :]  # (num_E,N,K)
-
-    natural_WKS = np.einsum('tnk,nk->nt', weighted_evects, evects)  # (N,num_E)
+    natural_WKS = np.einsum('tk,nk->nt', coefs, np.square(evects))  # (N,num_E)
 
     if scaled:
         inv_scaling = coefs.sum(1)  # (num_E)

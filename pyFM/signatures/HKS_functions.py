@@ -22,8 +22,7 @@ def HKS(evals, evects, time_list,scaled=False):
     t_list = np.asarray(time_list).flatten()
 
     coefs = np.exp(-np.outer(t_list, evals_s))  # (num_T,K)
-    weighted_evects = evects[None, :, :] * coefs[:, None,:]  # (num_T,N,K)
-    natural_HKS = np.einsum('tnk,nk->nt', weighted_evects, evects)
+    natural_HKS = np.einsum('tk,nk->nt', coefs, np.square(evects))
 
     if scaled:
         inv_scaling = coefs.sum(1)  # (num_T)
