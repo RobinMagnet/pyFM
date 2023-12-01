@@ -133,7 +133,7 @@ class FunctionalMapping:
     @property
     def fitted(self):
         return self.FM is not None
-
+    
     def get_p2p(self, use_adj=False, n_jobs=1):
         """
         Computes a vertex to vertex map from mesh2 to mesh1
@@ -387,7 +387,7 @@ class FunctionalMapping:
         if overwrite:
             self.FM_type = 'icp'
 
-    def zoomout_refine(self, nit=10, step=1, subsample=None, use_ANN=False, overwrite=True, verbose=False):
+    def zoomout_refine(self, nit=10, step=1, subsample=None, overwrite=True, verbose=False):
         """
         Refines the functional map using ZoomOut and saves the result
 
@@ -396,7 +396,6 @@ class FunctionalMapping:
         nit       : int - number of iterations to do
         step      : increase in dimension at each Zoomout Iteration
         subsample : int - number of points to subsample for ZoomOut. If None or 0, no subsampling is done.
-        use_ANN   : bool - If True, use approximate nearest neighbor
         overwrite : bool - If True changes FM type to 'zoomout' so that next call of self.FM
                     will be the zoomout refined FM (larger than the other 2)
         """
@@ -411,7 +410,7 @@ class FunctionalMapping:
             sub = (sub1,sub2)
 
         self._FM_zo = pyFM.refine.mesh_zoomout_refine(self.FM, self.mesh1, self.mesh2, nit,
-                                                      step=step, subsample=sub, use_ANN=use_ANN, verbose=verbose)
+                                                      step=step, subsample=sub, verbose=verbose)
         if overwrite:
             self.FM_type = 'zoomout'
 

@@ -7,19 +7,12 @@ import scipy.sparse as sparse
 import scipy.sparse.linalg
 import scipy.linalg
 from scipy.optimize import linprog
+from tqdm.auto import tqdm
 
-import pyFM.spectral as spectral
+from .. import spectral
 
-from tqdm import tqdm
-from sklearn.neighbors import KDTree, NearestNeighbors
+from sklearn.neighbors import NearestNeighbors
 
-try:
-    import pynndescent
-    index = pynndescent.NNDescent(np.random.random((100, 3)), n_jobs=2)
-    del index
-    ANN = True
-except ImportError:
-    ANN = False
 
 
 class FMN:
@@ -389,7 +382,7 @@ class FMN:
         latent_basis = self.meshlist[i].eigenvectors[:, :self.M] @ cclb  # (N_i,m)
         return latent_basis
 
-    def compute_p2p(self, complete=True, use_ANN=False, n_jobs=1):
+    def compute_p2p(self, complete=True, n_jobs=1):
         """
         Computes vertex to vertex maps for each (directed) edge using the factorization of
         functional maps CCLB. Only maps related to existing edges are computed.
@@ -400,10 +393,7 @@ class FMN:
         --------------------------
         complete : If False, uses self.subsample to obtain pointwise maps between
                    subsamples of vertices for each shape
-        use_ANN  : If True, uses pynndescent to compute approximate nearest neighbors between shapes
         """
-        if use_ANN and not ANN:
-            raise ValueError('Please install pydescent to achieve Approximate Nearest Neighbor')
 
         self.p2p = dict()
         curr_vind = -1
@@ -413,19 +403,13 @@ class FMN:
                 curr_v = i
                 LB_1 = self.get_LB(curr_v, complete=False)  # (n_1',m)
 
-                if use_ANN:
-                    index = pynndescent.NNDescent(LB_1, n_jobs=n_jobs)  # (n_2',m)
-                else:
-                    tree = NearestNeighbors(n_neighbors=1, leaf_size=40, algorithm="kd_tree", n_jobs=n_jobs)
-                    _ = tree.fit(LB_1)
+                tree = NearestNeighbors(n_neighbors=1, leaf_size=40, algorithm="kd_tree", n_jobs=n_jobs)
+                _ = tree.fit(LB_1)
 
             # LB_1 = self.get_LB(i, complete=complete)  # (n_1',m)
             LB_2 = self.get_LB(j, complete=complete)  # (n_2',m)
 
-            if use_ANN:
-                p2p,_ = index.query(LB_2, k=1)
-            else:
-                t_, p2p = tree.kneighbors(LB_2)
+            t_, p2p = tree.kneighbors(LB_2)
 
             p2p = p2p.flatten()
 
@@ -569,7 +553,7 @@ class FMN:
         return max(max(costi, costj), costk)
 
     def zoomout_iteration(self, cclb_size, M_init, M_final, isometric=True, weight_type='iscm',
-                          n_jobs=1, equals_id=False, use_ANN=True, complete=False):
+                          n_jobs=1, equals_id=False, complete=False):
         """
         Performs an iteration of Consistent Zoomout refinement
 
@@ -581,7 +565,6 @@ class FMN:
         isometric   : whether to use the reduced space strategy of ConsistentZoomout-iso
         weight_type : 'iscm' or 'adjacency', type of weights to use
         equals_id   : Whether the CLB optimization uses Id or n*Id as a constraint
-        use_ANN     : Whether to use Approximate Nearest Neighbor.
         complete    : If vertex-to-vertex and functional maps should be computed with all vertices 
                       instead of the subsampling.
         """
@@ -597,11 +580,11 @@ class FMN:
         self.compute_W(M=M_init)
         self.compute_CLB(equals_id=equals_id)
         self.compute_CCLB(cclb_size)
-        self.compute_p2p(complete=complete, use_ANN=use_ANN, n_jobs=n_jobs)
+        self.compute_p2p(complete=complete, n_jobs=n_jobs)
         self.compute_maps(M_final, complete=complete)
 
     def zoomout_refine(self, nit=10, step=1, subsample=1000, isometric=True, weight_type='iscm',
-                       M_init=None, cclb_ratio=.9, n_jobs=1, equals_id=False, use_ANN=True,
+                       M_init=None, cclb_ratio=.9, n_jobs=1, equals_id=False,
                        verbose=False):
         """
         Refines the functional maps using Consistent Zoomout refinement
@@ -616,8 +599,6 @@ class FMN:
         M_init      : original size of functional maps. If None, uses self.M
         cclb_ratio  : size of CCLB as a ratio of the current dimension M
         equals_id   : Whether the CLB optimization uses Id or n*Id as a constraint
-        use_ANN     : Whether to use Approximate Nearest Neighbor. This will only be activate once
-                      the dimension hits 80 since KDTree are faster before.
         """
         if (np.issubdtype(type(subsample), np.integer) and subsample == 0) or subsample is None:
             use_sub = False
@@ -634,23 +615,20 @@ class FMN:
         else:
             M_init = self.M
 
-        ANN_faster = False  # Whether it helps using ANN instead of NN.
         for i in tqdm(range(nit-1)):
             new_M = self.M + step
             m_cclb = int(cclb_ratio * self.M)
             # If not the last iteration
             if i < nit - 1:
-                if use_ANN and m_cclb > 80:
-                    ANN_faster = True
+
                 self.zoomout_iteration(m_cclb, self.M, new_M, weight_type=weight_type,
-                                       equals_id=equals_id, use_ANN=ANN_faster,
+                                       equals_id=equals_id,
                                        n_jobs=n_jobs, complete=not use_sub)
 
             # Last iteration
             else:
                 self.zoomout_iteration(m_cclb, self.M, new_M, weight_type=weight_type,
-                                       equals_id=equals_id, use_ANN=False,
-                                       n_jobs=n_jobs, complete=True)
+                                       equals_id=equals_id, n_jobs=n_jobs, complete=True)
 
 
 def CLB_quad_form(maps, weights, M=None):
