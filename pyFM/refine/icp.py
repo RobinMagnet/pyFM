@@ -4,7 +4,7 @@ from tqdm.auto import tqdm
 import numpy as np
 import scipy.linalg
 
-import pyFM.spectral as spectral
+from .. import spectral
 
 
 def icp_iteration(FM_12, evects1, evects2, use_adj=False, n_jobs=1):

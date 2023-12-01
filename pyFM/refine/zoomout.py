@@ -1,11 +1,10 @@
 import numpy as np
 from tqdm.auto import tqdm
-import scipy.sparse
 
-import pyFM.spectral as spectral
+from .. import spectral
 
 
-def zoomout_iteration(FM_12, evects1, evects2, step=1, A2=None, use_ANN=False, n_jobs=1):
+def zoomout_iteration(FM_12, evects1, evects2, step=1, A2=None, n_jobs=1):
     """
     Performs an iteration of ZoomOut.
 
@@ -19,7 +18,6 @@ def zoomout_iteration(FM_12, evects1, evects2, step=1, A2=None, use_ANN=False, n
     step     : int - step of increase of dimension.
     A2       : (n2,n2) sparse area matrix on target mesh, for vertex to vertex computation.
                  If specified, the eigenvectors can't be subsampled !
-    use_ANN  : bool - if True, uses approximate nearest neighbor
 
     Output
     --------------------
@@ -33,14 +31,14 @@ def zoomout_iteration(FM_12, evects1, evects2, step=1, A2=None, use_ANN=False, n
         step2 = step
     new_k1, new_k2 = k1 + step1, k2 + step2
 
-    p2p_21 = spectral.FM_to_p2p(FM_12, evects1, evects2, use_ANN=use_ANN, n_jobs=n_jobs)  # (n2,)
+    p2p_21 = spectral.FM_to_p2p(FM_12, evects1, evects2, n_jobs=n_jobs)  # (n2,)
     # Compute the (k2+step, k1+step) FM
     FM_zo = spectral.p2p_to_FM(p2p_21, evects1[:, :new_k1], evects2[:, :new_k2], A2=A2)
 
     return FM_zo
 
 
-def zoomout_refine(FM_12, evects1, evects2, nit=10, step=1, A2=None, subsample=None, use_ANN=False,
+def zoomout_refine(FM_12, evects1, evects2, nit=10, step=1, A2=None, subsample=None,
                    return_p2p=False, n_jobs=1, verbose=False):
     """
     Refine a functional map with ZoomOut.
@@ -56,8 +54,6 @@ def zoomout_refine(FM_12, evects1, evects2, nit=10, step=1, A2=None, subsample=N
     A2         : (n2,n2) sparse area matrix on target mesh.
     subsample  : tuple or iterable of size 2. Each gives indices of vertices to sample
                  for faster optimization. If not specified, no subsampling is done.
-    use_ANN    : bool - whether to use approximate nearest neighbor.
-                 Only trigger once dimension 90 is reached.
     return_p2p : bool - if True returns the vertex to vertex map.
 
     Output
@@ -86,27 +82,24 @@ def zoomout_refine(FM_12, evects1, evects2, nit=10, step=1, A2=None, subsample=N
 
     FM_12_zo = FM_12.copy()
 
-    ANN_adventage = False
     iterable = range(nit) if not verbose else tqdm(range(nit))
     for it in iterable:
-        ANN_adventage = use_ANN and (FM_12_zo.shape[0] > 90) and (FM_12_zo.shape[1] > 90)  # Not so sure...
-
         if use_subsample:
             FM_12_zo = zoomout_iteration(FM_12_zo, evects1[sub1], evects2[sub2], A2=None,
-                                         step=step, use_ANN=ANN_adventage, n_jobs=n_jobs)
+                                         step=step, n_jobs=n_jobs)
 
         else:
             FM_12_zo = zoomout_iteration(FM_12_zo, evects1, evects2, A2=A2,
-                                         step=step, use_ANN=ANN_adventage, n_jobs=n_jobs)
+                                         step=step, n_jobs=n_jobs)
 
     if return_p2p:
-        p2p_21_zo = spectral.FM_to_p2p(FM_12_zo, evects1, evects2, use_ANN=False, n_jobs=n_jobs)  # (n2,)
+        p2p_21_zo = spectral.FM_to_p2p(FM_12_zo, evects1, evects2, n_jobs=n_jobs)  # (n2,)
         return FM_12_zo, p2p_21_zo
 
     return FM_12_zo
 
 
-def mesh_zoomout_refine(FM_12, mesh1, mesh2, nit=10, step=1, subsample=None, use_ANN=False,
+def mesh_zoomout_refine(FM_12, mesh1, mesh2, nit=10, step=1, subsample=None,
                         return_p2p=False, n_jobs=1, verbose=False):
     """
     Refine a functional map between meshes with ZoomOut.
@@ -122,8 +115,6 @@ def mesh_zoomout_refine(FM_12, mesh1, mesh2, nit=10, step=1, subsample=None, use
     A2         : (n2,n2) sparse area matrix on target mesh.
     subsample  : int or tuple or iterable of size 2. Each gives indices of vertices so sample
                  for faster optimization. If not specified, no subsampling is done.
-    use_ANN    : bool - whether to use approximate nearest neighbor.
-                 Only trigger once dimension 90 is reached.
     return_p2p : bool - if True returns the vertex to vertex map.
 
     Output
@@ -140,14 +131,13 @@ def mesh_zoomout_refine(FM_12, mesh1, mesh2, nit=10, step=1, subsample=None, use
         subsample = (sub1, sub2)
 
     result = zoomout_refine(FM_12, mesh1.eigenvectors, mesh2.eigenvectors, nit,
-                            step=step, A2=mesh2.A, subsample=subsample,
-                            use_ANN=use_ANN, return_p2p=return_p2p,
+                            step=step, A2=mesh2.A, subsample=subsample, return_p2p=return_p2p,
                             n_jobs=n_jobs, verbose=verbose)
 
     return result
 
 
-def mesh_zoomout_refine_p2p(p2p_21, mesh1, mesh2, k_init, nit=10, step=1, subsample=None, use_ANN=False,
+def mesh_zoomout_refine_p2p(p2p_21, mesh1, mesh2, k_init, nit=10, step=1, subsample=None,
                             return_p2p=False, n_jobs=1, p2p_on_sub=False, verbose=False):
 
     """
@@ -164,8 +154,6 @@ def mesh_zoomout_refine_p2p(p2p_21, mesh1, mesh2, k_init, nit=10, step=1, subsam
     A2         : (n2,n2) sparse area matrix on target mesh.
     subsample  : int or tuple or iterable of size 2. Each gives indices of vertices so sample
                  for faster optimization. If not specified, no subsampling is done.
-    use_ANN    : bool - whether to use approximate nearest neighbor.
-                 Only trigger once dimension 90 is reached.
     return_p2p : bool - if True returns the vertex to vertex map.
 
     Output
@@ -189,8 +177,7 @@ def mesh_zoomout_refine_p2p(p2p_21, mesh1, mesh2, k_init, nit=10, step=1, subsam
         FM_12_init = spectral.mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=k_init, subsample=None)
 
     result = zoomout_refine(FM_12_init, mesh1.eigenvectors, mesh2.eigenvectors, nit,
-                            step=step, A2=mesh2.A, subsample=subsample,
-                            use_ANN=use_ANN, return_p2p=return_p2p,
+                            step=step, A2=mesh2.A, subsample=subsample, return_p2p=return_p2p,
                             n_jobs=n_jobs, verbose=verbose)
 
     return result

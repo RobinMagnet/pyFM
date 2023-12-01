@@ -1,8 +1,8 @@
 import scipy.linalg
 import numpy as np
 
-from . import projection_utils as pju
 from .nn_utils import knn_query
+from . import projection_utils as pju
 
 
 def p2p_to_FM(p2p_21, evects1, evects2, A2=None):
@@ -34,7 +34,7 @@ def p2p_to_FM(p2p_21, evects1, evects2, A2=None):
         if A2.ndim == 1:
             return evects2.T @ (A2[:, None] * evects1_pb)  # (k2,k1)
 
-        return evects2.T @ A2 @ evects1_pb  # (k2,k1)
+        return evects2.T @ (A2 @ evects1_pb)  # (k2,k1)
 
     # Solve with least square
     return scipy.linalg.lstsq(evects2, evects1_pb)[0]  # (k2,k1)
@@ -78,7 +78,7 @@ def mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=None, subsample=None):
     return p2p_to_FM(p2p_21, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=None)
 
 
-def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, use_ANN=False, n_jobs=1):
+def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
     """
     Obtain a point to point map from a functional map C.
     Compares embeddings of dirac functions on the second mesh Phi_2.T with embeddings
@@ -95,7 +95,6 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, use_ANN=False, n_jobs=1):
     eigvects2 : (n2,k2') first k' eigenvectors of the second basis (k2'>k2)
                 First dimension can be subsampled.
     use_adj   : use the adjoint method
-    use_ANN   : Whether to use approximate nearest neighbors
     n_jobs    : number of parallel jobs. Use -1 to use all processes
 
 
@@ -119,12 +118,11 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, use_ANN=False, n_jobs=1):
         emb1 = evects1[:, :k1] @ FM_12.T
         emb2 = evects2[:, :k2]
 
-    p2p_21 = knn_query(emb1, emb2,  k=1,
-                       use_ANN=use_ANN, n_jobs=n_jobs)
+    p2p_21 = knn_query(emb1, emb2,  k=1, n_jobs=n_jobs)
     return p2p_21  # (n2,)
 
 
-def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, use_ANN=False, n_jobs=1):
+def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, n_jobs=1):
     """
     Wrapper for `FM_to_p2p` using TriMesh class
 
@@ -133,7 +131,6 @@ def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, use_ANN=F
     FM_12     : (k2,k1) functional map in reduced basis
     mesh1     : TriMesh - source mesh for the functional map
     mesh2     : TriMesh - target mesh for the functional map
-    use_ANN   : bool - whether to use approximate nearest neighbors
     use_adj   : bool - whether to use the adjoint map.
     subsample : None or size 2 iterable ((n1',), (n2',)).
                 Subsample of vertices for both mesh.
@@ -147,12 +144,12 @@ def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, use_ANN=F
     k2, k1 = FM_12.shape
     if subsample is None:
         p2p_21 = FM_to_p2p(FM_12, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2],
-                           use_adj=use_adj, use_ANN=use_ANN, n_jobs=n_jobs)
+                           use_adj=use_adj, n_jobs=n_jobs)
 
     else:
         sub1, sub2 = subsample
         p2p_21 = FM_to_p2p(FM_12, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2],
-                           use_adj=use_adj, use_ANN=use_ANN, n_jobs=n_jobs)
+                           use_adj=use_adj, n_jobs=n_jobs)
 
     return p2p_21
 
