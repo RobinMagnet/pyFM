@@ -16,7 +16,7 @@ def dia_area_mat(vertices, faces, faces_areas=None):
 
     Output
     -----------------------------
-    A : (n,n) sparse diagonal matrix of vertex areas
+    A : (n,n) sparse diagonal matrix of vertex areas in dia format
     """
     N = vertices.shape[0]
 
@@ -53,7 +53,7 @@ def fem_area_mat(vertices, faces, faces_areas=None):
 
     Output
     -----------------------------
-    A : (n,n) sparse area matrix
+    A : (n,n) sparse area matrix in csc format
     """
     N = vertices.shape[0]
 
@@ -92,7 +92,7 @@ def cotangent_weights(vertices, faces):
 
     Output
     -----------------------------
-    A : (n,n) sparse area matrix
+    A : (n,n) sparse area matrix in csc format
     """
     N = vertices.shape[0]
 
@@ -138,6 +138,11 @@ def laplacian_spectrum(W, A, spectrum_size=200):
     W             : (n,n) - sparse matrix of cotangent weights
     A             : (n,n) - sparse matrix of area weights
     spectrum_size : int - number of eigenvalues to compute
+
+    Output
+    -----------------------------
+    eigenvalues   : (spectrum_size,) - array of eigenvalues
+    eigenvectors  : (n, spectrum_size) - array of eigenvectors
     """
     try:
         eigenvalues, eigenvectors = sparse.linalg.eigsh(W, k=spectrum_size, M=A,

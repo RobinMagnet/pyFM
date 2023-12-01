@@ -109,7 +109,7 @@ class TriMesh:
             self._modified = True
             self._normalized = False
         self.path = None
-        self._vertlist = vertlist
+        self._vertlist = vertlist.copy()
 
     @property
     def facelist(self):
@@ -127,7 +127,7 @@ class TriMesh:
                 raise ValueError('Faces list has to be 2D')
             elif facelist.shape[1] != 3:
                 raise ValueError('Each face is made of 3 points')
-            self._facelist = np.asarray(facelist)
+            self._facelist = facelist.copy()
         else:
             self._facelist = None
         self.path = None
@@ -693,7 +693,7 @@ class TriMesh:
 
         Output
         --------------------------
-        fps : (size,) array of indices of sampled points
+        fps : (size,) array of indices of sampled points (given on the complete mesh)
         """
         if not geodesic:
             def dist_func(i):
@@ -718,6 +718,51 @@ class TriMesh:
             fps = geom.farthest_point_sampling(A_geod, size, random_init=random_init, verbose=verbose)
 
         return fps
+
+    def extract_fps_sub(self, size, sub_points, return_sub_inds=False, random_init=True, geodesic=True, no_load=False, verbose=False):
+        """
+        Samples points using farthest point sampling with geodesic distances, but reduced on a set
+        of samples. If the geodesic matrix is precomputed (in the cache folder) uses it, else
+        computes geodesic distance in real time
+
+        Parameters
+        -------------------------
+        size        : int - number of points to sample
+        random_init : Whether to sample the first point randomly or to take the furthest away from
+                      all the other ones. This is only done if the geodesic matrix is accessible
+                      from cache
+        geodesic    : bool - If True perform geodesic fps, else eucliden.
+        no_load     : bool - if True never loads cache
+
+        Output
+        --------------------------
+        fps : (size,) array of indices of sampled points (given on the complete mesh)
+        fps_sub : (size,) array of indices of sampled points (given on the sub mesh)
+        """
+        if not geodesic:
+            def dist_func(i):
+                return np.linalg.norm(self.vertlist - self.vertlist[i,None,:], axis=1)
+
+            res_fps = geom.farthest_point_sampling_call_sub(dist_func, size, sub_points, return_sub_inds=return_sub_inds, random_init=random_init, verbose=verbose)
+
+            return res_fps
+
+        # Check if the geodesic matrix is accessible from cache
+        A_geod = self._get_geod_cache() if not no_load else None
+
+        if A_geod is None:
+            # Set the time parameter as the squared mean edge length
+            def geod_func(i):
+                return self.geod_from(i)
+
+            # Use the self.geod_from function as callable
+            res_fps = geom.farthest_point_sampling_call_sub(geod_func, size, sub_points, return_sub_inds=return_sub_inds, random_init=random_init, verbose=verbose)
+
+        else:
+            fps_sub = geom.farthest_point_sampling(A_geod[np.ix_(sub_points, sub_points)], size, random_init=random_init, verbose=verbose)
+            res_fps = [sub_points[fps_sub], fps_sub]
+
+        return res_fps
 
     def gradient(self, f, normalize=False):
         """
@@ -801,7 +846,7 @@ class TriMesh:
             file_utils.write_off(filename, self.vertlist, self.facelist, precision=precision)
 
         elif file_ext == '.obj':
-            file_utils.write_obj(filename, self.vertlist, self.facelist, precision=precision)
+            file_utils.write_obj(filename, self.vertlist, faces=self.facelist, precision=precision)
 
         return self
 
@@ -837,8 +882,9 @@ class TriMesh:
         if os.path.splitext(filename)[1] != '.obj':
             filename += '.obj'
 
-        file_utils.write_obj(filename, self.vertlist, self.facelist, uv=uv,
-                             mtl_file=mtl_file, texture_im=texture_im, verbose=verbose)
+        file_utils.write_obj_texture(filename, self.vertlist, self.facelist, uv=uv,
+                             mtl_file=mtl_file, texture_im=texture_im, 
+                             precision=precision, verbose=verbose)
 
         return self
 
@@ -942,6 +988,14 @@ class TriMesh:
         translation = kwargs['translation'] if 'translation' in kwargs.keys() else None
         area_normalize = kwargs['area_normalize'] if 'area_normalize' in kwargs.keys() else False
         center = kwargs['center'] if 'center' in kwargs.keys() else False
+
+        if 'normalize' in kwargs.keys():
+            if 'area_normalize' in kwargs.keys() and kwargs['area_normalize'] == False:
+                raise ValueError('Area normalization is inlcuded in normalize, can\'t set normalize to True and area_normalize to False')
+            if 'center' in kwargs.keys() and kwargs['center'] == False:
+                raise ValueError('Centering is inlcuded in normalize, can\'t set normalize to True and center to False')
+            area_normalize = True
+            center = True
         return rotation, translation, area_normalize, center
 
     def _init_all_attributes(self):
