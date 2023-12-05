@@ -40,9 +40,6 @@ Hard dependencies are `numpy`, `scipy`, `tqdm`, `scikit-learn` for its KDTree im
 
 The main non-standard (optional) dependencies are [`potpourri3d`](https://github.com/nmwsharp/potpourri3d) for its robust geodesic distance computation and [`robust_laplacian`](https://github.com/nmwsharp/robust-laplacians-py) which provide an implementation of both intrinsic delaunay and tufted Laplacian. If these functionalities are not needed one can remove the imports [here](https://github.com/RobinMagnet/pyFM/blob/master/pyFM/mesh/trimesh.py) and [here](https://github.com/RobinMagnet/pyFM/blob/master/pyFM/mesh/geometry.py).
 
-
-`pynndescent` (see [here](https://github.com/lmcinnes/pynndescent)) is an optional package which is only required if one wish to use Approximate Nearest Neighbor. Else it is not required.
-
 I did not build on the [trimesh](https://github.com/mikedh/trimesh) package which has some strange behaviour with vertex reordering.
 
 ## Remark on Code notations
