@@ -31,7 +31,6 @@ jobs:
         pip install .
 
     - name: Build HTML
-      uses: ammaraskar/sphinx-action@master
       run: |
         sphinx-build -M HTML docs/source/ docs/_build/
 
