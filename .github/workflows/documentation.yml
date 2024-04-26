@@ -1,0 +1,50 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+  release:
+
+jobs:
+  build_documentation:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+        cache: "pip"
+
+    - name: Install package (with dependencies for docs)
+      run: |
+        pip install --upgrade pip
+        pip install -r requirements_docs.txt
+        pip install .
+
+    - name: Build HTML
+      uses: ammaraskar/sphinx-action@master
+      run: |
+        sphinx-build -M HTML docs/source/ docs/_build/
+
+    - name: upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        path:
+          doc/_build/html/
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v4
+      if: github.ref == 'refs/heads/main'
+      with:
+        publish_branch: gh-pages
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/build/html
+        force_orphan: true

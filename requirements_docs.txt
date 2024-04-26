@@ -1,0 +1,13 @@
+furo
+
+myst_parser >=0.13
+
+
+# Sphinx + theme/plugins
+sphinx >=4.0
+sphinx-autodoc-typehints
+sphinx-copybutton
+sphinx-design
+sphinx-gallery
+sphinx-math-dollar
+
