@@ -44,6 +44,7 @@ extensions = ['sphinx.ext.duration',
 #   }
 # }
 
+autodoc_mock_imports = ["sklearn"]
 # autodoc_mock_imports = ["pyFM", "scipy", "numpy", "trimesh", "scipy.linalg", "scipy.sparse", 'potpourri3d', "robust_laplacian"]
 
 autodoc_default_options = {
