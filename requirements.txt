@@ -1,0 +1,5 @@
+numpy
+scipy
+potpourri3d
+robust_laplacian
+tqdm
