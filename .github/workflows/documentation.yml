@@ -41,7 +41,7 @@ jobs:
           docs/_build/html/
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v4
-      if: github.event_name == 'workflow_dispatch' || github.event_name == 'release'
+      if: github.ref == 'refs/heads/master'
       with:
         publish_branch: gh-pages
         github_token: ${{ secrets.GITHUB_TOKEN }}
