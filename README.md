@@ -1,6 +1,6 @@
 # pyFM - Python bindings for functional maps
 
-![](https://github.com/RobinMagnet/pyFM/blob/master/.github/workflows/documentation.yml/badge.svg?branch=master)
+![](https://github.com/RobinMagnet/pyFM/blob/master/.github/workflows/documentation.yml/badge.svg)
 
 **NEW** API Documentation is available [here](https://robinmagnet.github.io/pyFM/)
 
