@@ -18,21 +18,36 @@ class FunctionalMapping:
 
     Attributes
     ----------------------
-    mesh1  : TriMesh - first mesh
-    mesh2  : TriMesh - second mesh
+    mesh1  : TriMesh
+        first mesh
+    mesh2  : TriMesh
+        second mesh
 
-    descr1 : (n1,p) descriptors on the first mesh
-    descr2 : (n2,p) descriptors on the second mesh
-    D_a    : (k1,k1) area-based shape differnence operator
-    D_c    : (k1,k1) conformal-based shape differnence operator
+    descr1 :
+        (n1,p) descriptors on the first mesh
+    descr2 :
+        (n2,p) descriptors on the second mesh
+    D_a    :
+        (k1,k1) area-based shape differnence operator
+    D_c    :
+        (k1,k1) conformal-based shape differnence operator
+    FM_type :
+        'classic' | 'icp' | 'zoomout' which FM is currently used
+    k1      :
+        dimension of the first eigenspace (varies depending on the type of FM)
+    k2      :
+        dimension of the seconde eigenspace (varies depending on the type of FM)
+    FM      :
+        (k2,k1) current FM
+    p2p_21     :
+        (n2,) point to point map associated to the current functional map
 
-    Properties
+    Parameters
     ----------------------
-    FM_type : 'classic' | 'icp' | 'zoomout' which FM is currently used
-    k1      : dimension of the first eigenspace (varies depending on the type of FM)
-    k2      : dimension of the seconde eigenspace (varies depending on the type of FM)
-    FM      : (k2,k1) current FM
-    p2p     : (n2,) point to point map associated to the current functional map
+    mesh1 : TriMesh
+        first mesh
+    mesh2 : TriMesh
+        second mesh
     """
     def __init__(self, mesh1, mesh2):
 
@@ -60,6 +75,11 @@ class FunctionalMapping:
     def k1(self):
         """"
         Return the input dimension of the functional map
+
+        Returns
+        ----------------
+        k1 : int
+            dimension of the first eigenspace
         """
         if self._k1 is None and not self.preprocessed and not self.fitted:
             raise ValueError('No information known about dimensions')
@@ -74,6 +94,14 @@ class FunctionalMapping:
 
     @property
     def k2(self):
+        """
+        Return the output dimension of the functional map
+
+        Returns
+        ----------------
+        k2 : int
+            dimension of the second eigenspace
+        """
         if self._k2 is None and not self.preprocessed and not self.fitted:
             raise ValueError('No information known about dimensions')
         if self.fitted:
@@ -88,6 +116,14 @@ class FunctionalMapping:
     # FUNCTIONAL MAP SWITCHER (REFINED OR NOT)
     @property
     def FM_type(self):
+        """
+        Returns the type of functional map currently used
+
+        Returns
+        ----------------
+        FM_type : str
+            'classic' | 'icp' | 'zoomout'
+        """
         return self._FM_type
 
     @FM_type.setter
@@ -97,6 +133,14 @@ class FunctionalMapping:
         self._FM_type = FM_type
 
     def change_FM_type(self, FM_type):
+        """
+        Changes the type of functional map to use
+
+        Parameters
+        ----------------
+        FM_type : str
+            'classic' | 'icp' | 'zoomout'
+        """
         self.FM_type = FM_type
 
     @property
@@ -104,9 +148,10 @@ class FunctionalMapping:
         """
         Returns the current functional map depending on the value of FM_type
 
-        Output
+        Returns
         ----------------
-        FM : (k2,k1) current FM
+        FM :
+            (k2,k1) current FM
         """
         if self.FM_type.lower() == 'classic':
             return self._FM_base
@@ -124,6 +169,11 @@ class FunctionalMapping:
     def preprocessed(self):
         """
         check if enough information is provided to fit the model
+
+        Returns
+        ----------------
+        preprocessed : bool
+            whether the model is preprocessed
         """
         test_descr = (self.descr1 is not None) and (self.descr2 is not None)
         test_evals = (self.mesh1.eigenvalues is not None) and (self.mesh2.eigenvalues is not None)
@@ -132,20 +182,31 @@ class FunctionalMapping:
 
     @property
     def fitted(self):
+        """
+        check if the model has been fitted
+
+        Returns
+        ----------------
+        fitted : bool
+            whether the model is fitted
+        """
         return self.FM is not None
-    
+
     def get_p2p(self, use_adj=False, n_jobs=1):
         """
         Computes a vertex to vertex map from mesh2 to mesh1
 
         Parameters
         --------------------------
-        use_adj   : bool - whether to use the adjoint map.
-        n_jobs    : number of parallel jobs. Use -1 to use all processes
+        use_adj   : bool
+            whether to use the adjoint map.
+        n_jobs    :
+            number of parallel jobs. Use -1 to use all processes
 
         Outputs:
         --------------------------
-        p2p_21    : (n2,) match vertex i on shape 2 to vertex p2p_21[i] on shape 1
+        p2p_21    :
+            (n2,) match vertex i on shape 2 to vertex p2p_21[i] on shape 1
         """
         p2p_21 = spectral.mesh_FM_to_p2p(self.FM, self.mesh1, self.mesh2,
                                          use_adj=use_adj, n_jobs=n_jobs)
@@ -160,17 +221,21 @@ class FunctionalMapping:
 
             [1] - "Deblurring and Denoising of Maps between Shapes", by Danielle Ezuz and Mirela Ben-Chen.
 
-        Paramaters
+        Parameters
         -------------------
-        precompute_dmin : Whether to precompute all the values of delta_min.
-                          Faster but heavier in memory
-        use_adj         : use the adjoint method
-        batch_size      : If precompute_dmin is False, projects batches of points on the surface
-        n_jobs          : number of parallel process for nearest neighbor precomputation
+        precompute_dmin :
+             Whether to precompute all the values of delta_min. Faster but heavier in memory
+        use_adj         :
+            use the adjoint method
+        batch_size      :
+            If precompute_dmin is False, projects batches of points on the surface
+        n_jobs          :
+            number of parallel process for nearest neighbor precomputation
 
-        Output
+        Returns
         -------------------
-        P21 : (n2,n1) sparse - precise map from mesh2 to mesh1
+        P21 : scipy.sparse.csr_matrix
+            (n2,n1) sparse - precise map from mesh2 to mesh1
         """
         if not self.fitted:
             raise ValueError('Model should be fit and fit to obtain p2p map')
@@ -197,12 +262,19 @@ class FunctionalMapping:
 
         Parameters
         -----------------------------
-        n_ev           : (k1, k2) tuple - with the number of Laplacian eigenvalues to consider.
-        n_descr        : int - number of descriptors to consider
-        descr_type     : str - "HKS" | "WKS"
-        landmarks      : (p,1|2) array of indices of landmarks to match.
+        n_ev           : tuple
+            (k1, k2) tuple - with the number of Laplacian eigenvalues to consider.
+        n_descr        : int
+            number of descriptors to consider
+        descr_type     : str
+            "HKS" | "WKS"
+        landmarks      : np.ndarray, optional
+            (p,1|2) array of indices of landmarks to match.
                          If (p,1) uses the same indices for both.
-        subsample_step : int - step with which to subsample the descriptors.
+        subsample_step : int
+            step with which to subsample the descriptors.
+        k_process      : int
+            number of eigenvalues to compute for the Laplacian spectrum
         """
         self.k1, self.k2 = n_ev
 
@@ -274,8 +346,8 @@ class FunctionalMapping:
         """
         Solves the functional map optimization problem :
 
-        min_C descr_mu * ||C@A - B||^2 + descr_comm_mu * (sum_i ||C@D_Ai - D_Bi@C||^2)
-              + lap_mu * ||C@L1 - L2@C||^2 + orient_mu * (sum_i ||C@G_Ai - G_Bi@C||^2)
+        $\min_C \mu_{descr} \|C A - B\|^2 + \mu_{descr comm} \sum_i \|CD_{A_i} - D_{B_i} C \|^2 + \mu_{lap} \|C L_1 - L_2 C\|^2$
+        $+ \mu_{orient} * \sum_i \|C G_{A_i} - G_{B_i} C\|^2$
 
         with A and B descriptors, D_Ai and D_Bi multiplicative operators extracted
         from the i-th descriptors, L1 and L2 laplacian on each shape, G_Ai and G_Bi
@@ -283,17 +355,19 @@ class FunctionalMapping:
 
         Parameters
         -------------------------------
-        w_descr          : scaling for the descriptor preservation term
-        w_lap            : scaling of the laplacian commutativity term
-        w_dcomm          : scaling of the multiplicative operator commutativity
-        w_orient         : scaling of the orientation preservation term
-                           (in addition to relative scaling with the other terms as in the original
-                           code)
-        orient_reversing : Whether to use the orientation reversing term instead of the orientation
-                           preservation one
-        optinit          : 'random' | 'identity' | 'zeros' initialization.
-                           In any case, the first column of the functional map is computed by hand
-                           and not modified during optimization
+        w_descr          : float
+            scaling for the descriptor preservation term
+        w_lap            : float
+            scaling of the laplacian commutativity term
+        w_dcomm          : float
+            scaling of the multiplicative operator commutativity
+        w_orient         :
+            scaling of the orientation preservation term (in addition to relative scaling with the other terms as in the original code)
+        orient_reversing :
+            Whether to use the orientation reversing term instead of the orientation preservation one
+        optinit          :
+            'random' | 'identity' | 'zeros' initialization.  In any case, the first column of the functional map is computed by hand
+            and not modified during optimization
         """
         if optinit not in ['random', 'identity', 'zeros']:
             raise ValueError(f"optinit arg should be 'random', 'identity' or 'zeros', not {optinit}")
@@ -372,10 +446,13 @@ class FunctionalMapping:
 
         Parameters
         -------------------
-        nit       : int - number of iterations of icp to apply
-        tol       : float - threshold of change in functional map in order to stop refinement
+        nit       : int
+            number of iterations of icp to apply
+        tol       : float
+            threshold of change in functional map in order to stop refinement
                     (only applies if nit is None)
-        overwrite : bool - If True changes FM type to 'icp' so that next call of self.FM
+        overwrite : bool
+            If True changes FM type to 'icp' so that next call of self.FM
                     will be the icp refined FM
         """
         if not self.fitted:
@@ -393,11 +470,15 @@ class FunctionalMapping:
 
         Parameters
         -------------------
-        nit       : int - number of iterations to do
-        step      : increase in dimension at each Zoomout Iteration
-        subsample : int - number of points to subsample for ZoomOut. If None or 0, no subsampling is done.
-        overwrite : bool - If True changes FM type to 'zoomout' so that next call of self.FM
-                    will be the zoomout refined FM (larger than the other 2)
+        nit       : int
+            number of iterations to do
+        step      : int
+            increase in dimension at each Zoomout Iteration
+        subsample : int
+            number of points to subsample for ZoomOut. If None or 0, no subsampling is done.
+        overwrite : bool
+            If True changes FM type to 'zoomout' so that next call of self.FM
+            will be the zoomout refined FM (larger than the other 2)
         """
         if not self.fitted:
             raise ValueError("The Functional map must be fit before refining it")
@@ -430,13 +511,15 @@ class FunctionalMapping:
 
         Parameters
         ------------------------
-        optinit : 'random' | 'identity' | 'zeros' initialization.
-                  In any case, the first column of the functional map is computed by hand
-                  and not modified during optimization
+        optinit : str
+            'random' | 'identity' | 'zeros' initialization.
+            In any case, the first column of the functional map is computed by hand
+            and not modified during optimization
 
-        Output
+        Returns
         ------------------------
-        x0 : corresponding initial vector
+        x0 : np.ndarray
+            corresponding initial vector
         """
         if optinit == 'random':
             x0 = np.random.random((self.k2, self.k1))
@@ -458,9 +541,10 @@ class FunctionalMapping:
         """
         Compute the multiplication operators associated with the descriptors
 
-        Output
+        Returns
         ---------------------------
-        operators : n_descr long list of ((k1,k1),(k2,k2)) operators.
+        operators : list
+            n_descr long list of ((k1,k1),(k2,k2)) operators.
         """
         if not self.preprocessed:
             raise ValueError("Preprocessing must be done before computing the new descriptors")
@@ -483,15 +567,18 @@ class FunctionalMapping:
 
         Parameters
         ---------------------------------
-        reversing : whether to return operators associated to orientation inversion instead
+        reversing : bool
+            whether to return operators associated to orientation inversion instead
                     of orientation preservation (return the opposite of the second operator)
-        normalize : whether to normalize the gradient on each face. Might improve results
+        normalize : bool
+            whether to normalize the gradient on each face. Might improve results
                     according to the authors
 
-        Output
+        Returns
         ---------------------------------
-        list_op : (n_descr,) where term i contains (D1,D2) respectively of size (k1,k1) and
-                  (k2,k2) which represent operators supposed to commute.
+        list_op : list
+            (n_descr,) where term i contains (D1,D2) respectively of size (k1,k1) and
+            (k2,k2) which represent operators supposed to commute.
         """
         n_descr = self.descr1.shape[1]
 
@@ -524,12 +611,15 @@ class FunctionalMapping:
 
         Parameters
         -----------------------
-        func    : array - (n1|n2,p) evaluation of the function
-        mesh_in : int  1 | 2 index of the mesh on which to encode
+        func    : array
+            (n1|n2,p) evaluation of the function
+        mesh_in : int
+            1 | 2 index of the mesh on which to encode
 
-        Output
+        Returns
         -----------------------
-        encoded_func : (n1|n2,p) array of decoded f
+        encoded_func : np.ndarray
+            (n1|n2,p) array of decoded f
         """
         if k is None:
             k = self.k1 if mesh_ind == 1 else self.k2
@@ -547,12 +637,15 @@ class FunctionalMapping:
 
         Parameters
         -----------------------
-        encoded_func : array - (k1|k2,p) encoding of the functions
-        mesh_ind     : int  1 | 2 index of the mesh on which to decode
+        encoded_func : array
+            (k1|k2,p) encoding of the functions
+        mesh_ind     : int
+            1 | 2 index of the mesh on which to decode
 
-        Output
+        Returns
         -----------------------
-        func : (n1|n2,p) array of decoded f
+        func : np.ndarray
+            (n1|n2,p) array of decoded f
         """
 
         if mesh_ind == 1:
@@ -564,18 +657,21 @@ class FunctionalMapping:
 
     def transport(self, encoded_func, reverse=False):
         """
-        transport a function from LB basis 1 to LB basis 2. 
+        transport a function from LB basis 1 to LB basis 2.
         If reverse is True, then the functions are transposed the other way
         using the transpose of the functional map matrix
 
         Parameters
         -----------------------
-        encoded_func : array - (k1|k2,p) encoding of the functions
-        reverse      : bool If true, transpose from 2 to 1 using the transpose of the FM
+        encoded_func : array
+            (k1|k2,p) encoding of the functions
+        reverse      :
+            bool If true, transpose from 2 to 1 using the transpose of the FM
 
-        Output
+        Returns
         -----------------------
-        transp_func : (n2|n1,p) array of new encoding of the functions
+        transp_func : np.ndarray
+            (n2|n1,p) array of new encoding of the functions
         """
         if not self.preprocessed:
             raise ValueError("The Functional map must be fit before transporting a function")
@@ -594,11 +690,13 @@ class FunctionalMapping:
 
         Parameters
         ----------------------
-        func : (n1|n2,p) evaluation of the functons
+        func :
+            (n1|n2,p) evaluation of the functons
 
-        Output
+        Returns
         -----------------------
-        transp_func : (n2|n1,p) transfered function
+        transp_func : np.ndarray
+            (n2|n1,p) transfered function
 
         """
         if not reverse:

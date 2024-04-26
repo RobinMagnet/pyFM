@@ -7,15 +7,21 @@ def WKS(evals, evects, energy_list, sigma, scaled=False):
 
     Parameters
     ------------------------
-    evects      : (N,K) array with the K eigenvectors of the Laplace Beltrami operator
-    evals       : (K,) array of the K corresponding eigenvalues
-    energy_list : (num_E,) values of e to use
-    sigma       : (float) [positive] standard deviation to use
-    scaled      : (bool) Whether to scale each energy level
+    evects      :
+        (N,K) array with the K eigenvectors of the Laplace Beltrami operator
+    evals       :
+        (K,) array of the K corresponding eigenvalues
+    energy_list :
+        (num_E,) values of e to use
+    sigma       :
+        (float) [positive] standard deviation to use
+    scaled      :
+        (bool) Whether to scale each energy level
 
-    Output
+    Returns
     ------------------------
-    WKS : (N,num_E) array where each column is the WKS for a given e
+    WKS : np.ndarray
+        (N,num_E) array where each column is the WKS for a given e
     """
     assert sigma > 0, f"Sigma should be positive ! Given value : {sigma}"
 
@@ -44,15 +50,21 @@ def lm_WKS(evals, evects, landmarks, energy_list, sigma, scaled=False):
 
     Parameters
     ------------------------
-    evects      : (N,K) array with the K eigenvectors of the Laplace Beltrami operator
-    evals       : (K,) array of the K corresponding eigenvalues
-    landmarks   : (p,) indices of landmarks to compute
-    energy_list : (num_E,) values of e to use
-    sigma       : int - standard deviation
+    evects      :
+        (N,K) array with the K eigenvectors of the Laplace Beltrami operator
+    evals       :
+        (K,) array of the K corresponding eigenvalues
+    landmarks   :
+        (p,) indices of landmarks to compute
+    energy_list :
+        (num_E,) values of e to use
+    sigma       : int
+        standard deviation
 
-    Output
+    Returns
     ------------------------
-    landmarks_WKS : (N,num_E*p) array where each column is the WKS for a given e for some landmark
+    landmarks_WKS : np.ndarray
+        (N,num_E*p) array where each column is the WKS for a given e for some landmark
     """
     assert sigma > 0, f"Sigma should be positive ! Given value : {sigma}"
 
@@ -80,13 +92,18 @@ def auto_WKS(evals, evects, num_E, landmarks=None, scaled=True):
 
     Parameters
     ------------------------
-    evals       : (K,) array of  K eigenvalues
-    evects      : (N,K) array with K eigenvectors
-    landmarks   : (p,) If not None, indices of landmarks to compute.
-    num_E       : (int) number values of e to use
-    Output
+    evals       :
+        (K,) array of  K eigenvalues
+    evects      :
+        (N,K) array with K eigenvectors
+    landmarks   :
+        (p,) If not None, indices of landmarks to compute.
+    num_E       :
+        (int) number values of e to use
+    Returns
     ------------------------
-    WKS or lm_WKS : (N,num_E) or (N,p*num_E)  array where each column is the WKS for a given e
+    WKS or lm_WKS : np.ndarray
+        (N,num_E) or (N,p*num_E)  array where each column is the WKS for a given e
                     and possibly for some landmarks
     """
     abs_ev = sorted(np.abs(evals))
@@ -106,6 +123,25 @@ def auto_WKS(evals, evects, num_E, landmarks=None, scaled=True):
 
 
 def mesh_WKS(mesh, num_E, landmarks=None, k=None):
+    """
+    Compute the Wave Kernel Signature for a mesh
+
+    Parameters
+    ------------------------
+    mesh    : TriMesh
+        mesh on which to compute the XKS
+    num_T   : int
+        number of time values to use
+    landmarks : np.ndarray, optional
+        (p,) indices of landmarks to use
+    k       : int, optional
+        number of eigenvalues to use
+
+    Returns
+    ------------------------
+    WKS: np.ndarray
+        (N,num_T) array where each line is the HKS for a given t
+    """
     assert mesh.eigenvalues is not None, "Eigenvalues should be processed"
 
     if k is None:

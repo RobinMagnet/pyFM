@@ -17,15 +17,21 @@ def icp_iteration(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
 
     Parameters
     -------------------------
-    FM_12     : (k2,k1) functional map in reduced basis
-    evects1 : (n1,k1') first k' eigenvectors of the first basis  (k1'>k1).
-    evects2 : (n2,k2') first k' eigenvectors of the second basis (k2'>k2)
-    use_adj   : use the adjoint method
-    n_jobs    : number of parallel jobs. Use -1 to use all processes
+    FM_12     :
+        (k2,k1) functional map in reduced basis
+    evects1 :
+        (n1,k1') first k' eigenvectors of the first basis  (k1'>k1).
+    evects2 :
+        (n2,k2') first k' eigenvectors of the second basis (k2'>k2)
+    use_adj   :
+        use the adjoint method
+    n_jobs    :
+        number of parallel jobs. Use -1 to use all processes
 
-    Output
+    Returns
     --------------------------
-    FM_refined : (k2,k1) An orthogonal functional map after one step of refinement
+    FM_refined : np.ndarray
+        (k2,k1) An orthogonal functional map after one step of refinement
     """
     k2, k1 = FM_12.shape
     p2p_21 = spectral.FM_to_p2p(FM_12, evects1, evects2, use_adj=use_adj, n_jobs=n_jobs)
@@ -42,20 +48,30 @@ def icp_refine(FM_12, evects1, evects2, nit=10, tol=1e-10, use_adj=False,
 
     Parameters
     --------------------------
-    FM_12      : (k2,k1) functional map functional map from first to second basis
-    evects1    : (n1,k1') first k' eigenvectors of the first basis  (k1'>k1).
-    evects2    : (n2,k2') first k' eigenvectors of the second basis (k2'>k2)
-    nit        : int - Number of iterations to perform. If not specified, uses the tol parameter
-    tol        : float - Maximum change in a functional map to stop refinement
+    FM_12      :
+        (k2,k1) functional map functional map from first to second basis
+    evects1    :
+        (n1,k1') first k' eigenvectors of the first basis  (k1'>k1).
+    evects2    :
+        (n2,k2') first k' eigenvectors of the second basis (k2'>k2)
+    nit        : int
+        Number of iterations to perform. If not specified, uses the tol parameter
+    tol        : float
+        Maximum change in a functional map to stop refinement
                 (only used if nit is not specified)
-    use_adj    : use the adjoint method
-    n_jobs     : number of parallel jobs. Use -1 to use all processes
-    return_p2p : bool - if True returns the vertex to vertex map from 2 to 1
+    use_adj    :
+        use the adjoint method
+    n_jobs     :
+        number of parallel jobs. Use -1 to use all processes
+    return_p2p : bool
+        if True returns the vertex to vertex map from 2 to 1
 
-    Output
+    Returns
     ---------------------------
-    FM_12_icp  : ICP-refined functional map
-    p2p_21_icp : only if return_p2p is set to True - the refined pointwise map
+    FM_12_icp  : np.ndarray
+        ICP-refined functional map
+    p2p_21_icp : np.ndarray
+        only if return_p2p is set to True - the refined pointwise map
                  from basis 2 to basis 1
     """
     FM_12_curr = FM_12.copy()
@@ -99,20 +115,30 @@ def mesh_icp_refine(FM_12, mesh1, mesh2, nit=10, tol=1e-10, use_adj=False,
 
     Parameters
     --------------------------
-    FM_12      : (k2,k1) functional map from mesh1 to mesh2
-    mesh1      : TriMesh - Source mesh
-    mesh2      : TriMesh - Target mesh
-    nit        : int - Number of iterations to perform. If not specified, uses the tol parameter
-    tol        : float - Maximum change in a functional map to stop refinement
+    FM_12      :
+        (k2,k1) functional map from mesh1 to mesh2
+    mesh1      : TriMesh
+        Source mesh
+    mesh2      : TriMesh
+        Target mesh
+    nit        : int
+        Number of iterations to perform. If not specified, uses the tol parameter
+    tol        : float
+        Maximum change in a functional map to stop refinement
                  (only used if nit is not specified)
-    use_adj    : use the adjoint method
-    n_jobs     : number of parallel jobs. Use -1 to use all processes
-    return_p2p : bool - if True returns the vertex to vertex map from 2 to 1
+    use_adj    :
+        use the adjoint method
+    n_jobs     :
+        number of parallel jobs. Use -1 to use all processes
+    return_p2p : bool
+        if True returns the vertex to vertex map from 2 to 1
 
-    Output
+    Returns
     ---------------------------
-    FM_12_icp  : ICP-refined functional map
-    p2p_21_icp : only if return_p2p is set to True - the refined pointwise map
+    FM_12_icp  : np.ndarray
+        ICP-refined functional map
+    p2p_21_icp : np.ndarray
+        only if return_p2p is set to True - the refined pointwise map
                  from basis 2 to basis 1
     """
     k2, k1 = FM_12.shape

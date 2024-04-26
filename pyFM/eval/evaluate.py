@@ -8,16 +8,22 @@ def accuracy(p2p, gt_p2p, D1_geod, return_all=False, sqrt_area=None):
 
     Parameters
     ----------------------
-    p2p        : (n2,) - vertex to vertex map giving the index of the matched vertex on the source shape
+    p2p        :
+            (n2,) - vertex to vertex map giving the index of the matched vertex on the source shape
                  for each vertex on the target shape (from a functional map point of view)
-    gt_p2p     : (n2,) - ground truth mapping between the pairs
-    D1_geod    : (n1,n1) - geodesic distance between pairs of vertices on the source mesh
-    return_all : bool - whether to return all the distances or only the average geodesic distance
+    gt_p2p     :
+            (n2,) - ground truth mapping between the pairs
+    D1_geod    :
+            (n1,n1) - geodesic distance between pairs of vertices on the source mesh
+    return_all : bool
+            whether to return all the distances or only the average geodesic distance
 
-    Output
+    Returns
     -----------------------
-    acc   : float - average accuracy of the vertex to vertex map
-    dists : (n2,) - if return_all is True, returns all the pairwise distances
+    acc   : float
+            average accuracy of the vertex to vertex map
+    dists : np.ndarray
+            (n2,) - if return_all is True, returns all the pairwise distances
     """
 
     dists = D1_geod[(p2p,gt_p2p)]
@@ -37,16 +43,22 @@ def continuity(p2p, D1_geod, D2_geod, edges):
 
     Parameters
     ----------------------
-    p2p     : (n2,) - vertex to vertex map giving the index of the matched vertex on the source shape
+    p2p     :
+            (n2,) - vertex to vertex map giving the index of the matched vertex on the source shape
                  for each vertex on the target shape (from a functional map point of view)
-    gt_p2p  : (n2,) - ground truth mapping between the pairs
-    D1_geod : (n1,n1) - geodesic distance between pairs of vertices on the source mesh
-    D2_geod : (n1,n1) - geodesic distance between pairs of vertices on the target mesh
-    edges   : (n2,2) edges on the target shape
+    gt_p2p  :
+            (n2,) - ground truth mapping between the pairs
+    D1_geod :
+            (n1,n1) - geodesic distance between pairs of vertices on the source mesh
+    D2_geod :
+            (n1,n1) - geodesic distance between pairs of vertices on the target mesh
+    edges   :
+            (n2,2) edges on the target shape
 
-    Output
+    Returns
     -----------------------
-    continuity : float - average continuity of the vertex to vertex map
+    continuity : float
+            average continuity of the vertex to vertex map
     """
     source_len = D2_geod[(edges[:,0], edges[:,1])]
     target_len = D1_geod[(p2p[edges[:,0]], p2p[edges[:,1]])]
@@ -63,13 +75,16 @@ def coverage(p2p, A):
 
     Parameters
     ----------------------
-    p2p : (n2,) - vertex to vertex map giving the index of the matched vertex on the source shape
+    p2p :
+            (n2,) - vertex to vertex map giving the index of the matched vertex on the source shape
                  for each vertex on the target shape (from a functional map point of view)
-    A   : (n1,n1) or (n1,) - area matrix on the source shape or array of per-vertex areas.
+    A   :
+             (n1,n1) or (n1,) - area matrix on the source shape or array of per-vertex areas.
 
-    Output
+    Returns
     -----------------------
-    coverage : float - coverage of the vertex to vertex map
+    coverage : float
+            coverage of the vertex to vertex map
     """
     if len(A.shape) == 2:
         vert_area = np.asarray(A.sum(1)).flatten()

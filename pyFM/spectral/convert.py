@@ -12,16 +12,21 @@ def p2p_to_FM(p2p_21, evects1, evects2, A2=None):
 
     Parameters
     ------------------------------
-    p2p_21    : (n2,) vertex to vertex map from target to source.
+    p2p_21    :
+        (n2,) vertex to vertex map from target to source.
                 For each vertex on the target shape, gives the index of the corresponding vertex on mesh 1.
                 Can also be presented as a (n2,n1) sparse matrix.
-    eigvects1 : (n1,k1) eigenvectors on source mesh. Possibly subsampled on the first dimension.
-    eigvects2 : (n2,k2) eigenvectors on target mesh. Possibly subsampled on the first dimension.
-    A2        : (n2,n2) area matrix of the target mesh. If specified, the eigenvectors can't be subsampled
+    eigvects1 :
+        (n1,k1) eigenvectors on source mesh. Possibly subsampled on the first dimension.
+    eigvects2 :
+        (n2,k2) eigenvectors on target mesh. Possibly subsampled on the first dimension.
+    A2        :
+        (n2,n2) area matrix of the target mesh. If specified, the eigenvectors can't be subsampled
 
-    Outputs
+    Returns
     -------------------------------
-    FM_12       : (k2,k1) functional map corresponding to the p2p map given.
+    FM_12       : np.ndarray
+        (k2,k1) functional map corresponding to the p2p map given.
                   Solved with pseudo inverse if A2 is given, else using least square.
     """
     # Pulled back eigenvectors
@@ -46,22 +51,26 @@ def mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=None, subsample=None):
 
     Parameters
     ------------------------------
-    p2p_21    : (n2,) vertex to vertex map from target to source.
+    p2p_21    :
+        (n2,) vertex to vertex map from target to source.
                 For each vertex on the target shape, gives the index of the corresponding vertex on mesh 1.
                 Can also be presented as a (n2,n1) sparse matrix.
-    mesh1     : source mesh for the functional map. Requires enough processed eigenvectors.
-    mesh2     : target mesh for the functional map. Requires enough processed eigenvectors.
-    dims      : int, or 2-uple of int. Dimension of the functional map to return.
+    mesh1     : TriMesh
+        source mesh for the functional map. Requires enough processed eigenvectors.
+    mesh2     : TriMesh
+        target mesh for the functional map. Requires enough processed eigenvectors.
+    dims      : int, or 2-uple of int
+        Dimension of the functional map to return.
                 If None uses all the processed eigenvectors.
                 If single int k , returns a (k,k) functional map
                 If 2-uple of int (k1,k2), returns a (k2,k1) functional map
-    subsample : None or size 2 iterable ((n1',), (n2',)).
-                Subsample of vertices for both mesh.
-                If specified the p2p map is between the two subsamples.
+    subsample :
+        None or size 2 iterable ((n1',), (n2',)). Subsample of vertices for both mesh. If specified the p2p map is between the two subsamples.
 
-    Outputs
+    Returns
     -------------------------------
-    FM_12       : (k2,k1) functional map corresponding to the p2p map given.
+    FM_12       : np.ndarray
+        (k2,k1) functional map corresponding to the p2p map given.
     """
     if dims is None:
         k1, k2 = len(mesh1.eigenvalues), len(mesh2.eigenvalues)
@@ -89,18 +98,24 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
 
     Parameters
     --------------------------
-    FM_12     : (k2,k1) functional map from mesh1 to mesh2 in reduced basis
-    eigvects1 : (n1,k1') first k' eigenvectors of the first basis  (k1'>k1).
+    FM_12     :
+        (k2,k1) functional map from mesh1 to mesh2 in reduced basis
+    eigvects1 :
+        (n1,k1') first k' eigenvectors of the first basis  (k1'>k1).
                 First dimension can be subsampled.
-    eigvects2 : (n2,k2') first k' eigenvectors of the second basis (k2'>k2)
+    eigvects2 :
+        (n2,k2') first k' eigenvectors of the second basis (k2'>k2)
                 First dimension can be subsampled.
-    use_adj   : use the adjoint method
-    n_jobs    : number of parallel jobs. Use -1 to use all processes
+    use_adj   :
+        use the adjoint method
+    n_jobs    :
+        number of parallel jobs. Use -1 to use all processes
 
 
-    Outputs:
+    Returns
     --------------------------
-    p2p_21     : (n2,) match vertex i on shape 2 to vertex p2p_21[i] on shape 1,
+    p2p_21     : np.ndarray
+        (n2,) match vertex i on shape 2 to vertex p2p_21[i] on shape 1,
                  or equivalent result if the eigenvectors are subsampled.
     """
     k2, k1 = FM_12.shape
@@ -128,18 +143,24 @@ def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, n_jobs=1)
 
     Parameters
     --------------------------
-    FM_12     : (k2,k1) functional map in reduced basis
-    mesh1     : TriMesh - source mesh for the functional map
-    mesh2     : TriMesh - target mesh for the functional map
-    use_adj   : bool - whether to use the adjoint map.
-    subsample : None or size 2 iterable ((n1',), (n2',)).
-                Subsample of vertices for both mesh.
-                If specified the p2p map is between the two subsamples.
-    n_jobs    : number of parallel jobs. Use -1 to use all processes
+    FM_12     :
+        (k2,k1) functional map in reduced basis
+    mesh1     : TriMesh
+        source mesh for the functional map
+    mesh2     : TriMesh
+        target mesh for the functional map
+    use_adj   : bool
+        whether to use the adjoint map.
+    subsample :   None or size 2 iterable ((n1',), (n2',)).
+        Subsample of vertices for both mesh.
+        If specified the p2p map is between the two subsamples.
+    n_jobs    : int
+        number of parallel jobs. Use -1 to use all processes
 
-    Outputs:
+    Returns
     --------------------------
-    p2p_21     : (n2,) match vertex i on shape 2 to vertex p2p_21[i] on shape 1
+    p2p_21     : np.ndarray
+        (n2,) match vertex i on shape 2 to vertex p2p_21[i] on shape 1
     """
     k2, k1 = FM_12.shape
     if subsample is None:
@@ -165,18 +186,26 @@ def mesh_FM_to_p2p_precise(FM_12, mesh1, mesh2, precompute_dmin=True, use_adj=Tr
 
     Parameters
     ----------------------------
-    FM_12           : (k2,k1) Functional map from mesh1 to mesh2
-    mesh1           : Source mesh (for the functional map) with n1 vertices
-    mesh2           : Target mesh (for the functional map) with n2 vertices
-    precompute_dmin : Whether to precompute all the values of delta_min.
+    FM_12           :
+        (k2,k1) Functional map from mesh1 to mesh2
+    mesh1           :
+        Source mesh (for the functional map) with n1 vertices
+    mesh2           :
+        Target mesh (for the functional map) with n2 vertices
+    precompute_dmin :
+        Whether to precompute all the values of delta_min.
                       Faster but heavier in memory
-    use_adj         : use the adjoint method
-    batch_size      : If precompute_dmin is False, projects batches of points on the surface
-    n_jobs          : number of parallel process for nearest neighbor precomputation
+    use_adj         :
+        use the adjoint method
+    batch_size      :
+        If precompute_dmin is False, projects batches of points on the surface
+    n_jobs          :
+        number of parallel process for nearest neighbor precomputation
 
-    Output
+    Returns
     ----------------------------
-    P_21 : (n2,n1) - precise point to point map from mesh2 to mesh1
+    P_21 : scipy.sparse.csr_matrix
+        (n2,n1) - precise point to point map from mesh2 to mesh1
     """
     k2, k1 = FM_12.shape
 

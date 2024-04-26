@@ -9,14 +9,19 @@ def HKS(evals, evects, time_list,scaled=False):
 
     Parameters
     ------------------------
-    evals     : (K,) array of the K eigenvalues
-    evecs     : (N,K) array with the K eigenvectors
-    time_list : (num_T,) Time values to use
-    scaled    : (bool) whether to scale for each time value
+    evals     :
+        (K,) array of the K eigenvalues
+    evecs     :
+        (N,K) array with the K eigenvectors
+    time_list :
+        (num_T,) Time values to use
+    scaled    :
+        (bool) whether to scale for each time value
 
-    Output
+    Returns
     ------------------------
-    HKS : (N,num_T) array where each line is the HKS for a given t
+    HKS : np.ndarray
+        (N,num_T) array where each line is the HKS for a given t
     """
     evals_s = np.asarray(evals).flatten()
     t_list = np.asarray(time_list).flatten()
@@ -39,14 +44,19 @@ def lm_HKS(evals, evects, landmarks, time_list, scaled=False):
 
     Parameters
     ------------------------
-    evects      : (N,K) array with the K eigenvectors of the Laplace Beltrami operator
-    evals       : (K,) array of the K corresponding eigenvalues
-    landmarks   : (p,) indices of landmarks to compute
-    time_list   : (num_T,) values of t to use
+    evects      :
+        (N,K) array with the K eigenvectors of the Laplace Beltrami operator
+    evals       :
+        (K,) array of the K corresponding eigenvalues
+    landmarks   :
+        (p,) indices of landmarks to compute
+    time_list   :
+        (num_T,) values of t to use
 
-    Output
+    Returns
     ------------------------
-    landmarks_HKS : (N,num_E*p) array where each column is the HKS for a given t for some landmark
+    landmarks_HKS : np.ndarray
+        (N,num_E*p) array where each column is the HKS for a given t for some landmark
     """
 
     evals_s = np.asarray(evals).flatten()
@@ -70,13 +80,18 @@ def auto_HKS(evals, evects, num_T, landmarks=None, scaled=True):
 
     Parameters
     ------------------------
-    evals       : (K,) array of  K eigenvalues
-    evects      : (N,K) array with K eigenvectors
-    landmarks   : (p,) if not None, indices of landmarks to compute.
-    num_T       : (int) number values of t to use
-    Output
+    evals       :
+        (K,) array of  K eigenvalues
+    evects      :
+        (N,K) array with K eigenvectors
+    landmarks   :
+        (p,) if not None, indices of landmarks to compute.
+    num_T       :
+        (int) number values of t to use
+    Returns
     ------------------------
-    HKS or lm_HKS : (N,num_E) or (N,p*num_E)  array where each column is the WKS for a given e
+    HKS or lm_HKS : np.ndarray
+        (N,num_E) or (N,p*num_E)  array where each column is the WKS for a given e
                     for some landmark
     """
 
@@ -90,6 +105,26 @@ def auto_HKS(evals, evects, num_T, landmarks=None, scaled=True):
 
 
 def mesh_HKS(mesh, num_T, landmarks=None, k=None):
+    """
+    Compute the Heat Kernel Signature for a mesh
+
+    Parameters
+    ------------------------
+    mesh    : TriMesh
+        mesh on which to compute the HKS
+    num_T   : int
+        number of time values to use
+    landmarks : np.ndarray, optional
+        (p,) indices of landmarks to use
+    k       : int, optional
+        number of eigenvalues to use
+
+    Returns
+    ------------------------
+    HKS: np.ndarray
+        (N,num_T) array where each line is the HKS for a given t
+    """
+
     assert mesh.eigenvalues is not None, "Eigenvalues should be processed"
 
     if k is None:

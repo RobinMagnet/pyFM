@@ -12,12 +12,13 @@ def edges_from_faces(faces):
 
     Parameters
     --------------------------------
-    faces : (m,3) array defining faces with vertex indices
+    faces : np.ndarray
+        (m,3) array defining faces with vertex indices
 
-    Output
+    Returns
     --------------------------
-    edges : (p,2) array of all edges defined by vertex indices
-            with no particular order
+    edges : np.ndarray
+        (p,2) array of all edges defined by vertex indices with no particular order
     """
     # Number of verties
     N = 1 + np.max(faces)
@@ -50,12 +51,15 @@ def compute_faces_areas(vertices, faces):
 
     Parameters
     -----------------------------
-    vertices : (n,3) array of vertices coordinates
-    faces    : (m,3) array of vertex indices defining faces
+    vertices : np.ndarray
+        (n,3) array of vertices coordinates
+    faces    : np.ndarray
+        (m,3) array of vertex indices defining faces
 
-    Output
+    Returns
     -----------------------------
-    faces_areas : (m,) array of per-face areas
+    faces_areas : np.ndarray
+        (m,) array of per-face areas
     """
 
     v1 = vertices[faces[:,0]]  # (m,3)
@@ -73,19 +77,25 @@ def compute_vertex_areas(vertices, faces, faces_areas=None):
 
     Parameters
     -----------------------------
-    vertices    : (n,3) array of vertices coordinates
-    faces       : (m,3) array of vertex indices defining faces
-    faces_areas :
+    vertices    : np.ndarray
+        (n,3) array of vertices coordinates
+    faces       : np.ndarray
+        (m,3) array of vertex indices defining faces
+    faces_areas : np.ndarray, optional
+        (m,) array of per-face areas
 
-    Output
+    Returns
     -----------------------------
-    vert_areas : (n,) array of per-vertex areas
+    vert_areas : np.ndarray
+        (n,) array of per-vertex areas
     """
     N = vertices.shape[0]
 
     if faces_areas is None:
         faces_areas = compute_faces_areas(vertices,faces)  # (m,)
 
+
+    # THIS IS JUST A TRICK TO BE FASTER THAN NP.ADD.AT
     I = np.concatenate([faces[:,0], faces[:,1], faces[:,2]])
     J = np.zeros_like(I)
 
@@ -103,12 +113,15 @@ def compute_normals(vertices, faces):
 
     Parameters
     -----------------------------
-    vertices : (n,3) array of vertices coordinates
-    faces    : (m,3) array of vertex indices defining faces
+    vertices : np.ndarray
+        (n,3) array of vertices coordinates
+    faces    : np.ndarray
+        (m,3) array of vertex indices defining faces
 
-    Output
+    Returns
     -----------------------------
-    normals : (m,3) array of normalized per-face normals
+    normals : np.ndarray
+        (m,3) array of normalized per-face normals
     """
     v1 = vertices[faces[:, 0]]
     v2 = vertices[faces[:, 1]]
@@ -126,14 +139,19 @@ def per_vertex_normal(vertices, faces, face_normals=None, weighting='uniform'):
 
     Parameters
     -----------------------------
-    vertices     : (n,3) array of vertices coordinates
-    faces        : (m,3) array of vertex indices defining faces
-    face_normals : (m,3) array of per-face normals
-    weighting    : str - 'area' or 'uniform'.
+    vertices     :
+        (n,3) array of vertices coordinates
+    faces        :
+        m,3) array of vertex indices defining faces
+    face_normals :
+        (m,3) array of per-face normals
+    weighting    : str
+        'area' or 'uniform'.
 
-    Output
+    Returns
     -----------------------------
-    vert_areas : (n,) array of per-vertex areas
+    vert_areas : np.ndarray
+        (n,) array of per-vertex areas
     """
     if weighting.lower() == 'uniform':
         vert_normals = per_vertex_normal_uniform(vertices, faces, face_normals=face_normals)
@@ -153,12 +171,15 @@ def per_vertex_normal_area(vertices, faces):
 
     Parameters
     -----------------------------
-    vertices     : (n,3) array of vertices coordinates
-    faces        : (m,3) array of vertex indices defining faces
+    vertices     :
+        (n,3) array of vertices coordinates
+    faces        :
+        (m,3) array of vertex indices defining faces
 
-    Output
+    Returns
     -----------------------------
-    vert_areas : (n,) array of per-vertex areas
+    vert_areas : np.ndarray
+        (n,) array of per-vertex areas
     """
 
     n_faces = faces.shape[0]
@@ -193,12 +214,15 @@ def per_vertex_normal_uniform(vertices, faces, face_normals=None):
 
     Parameters
     -----------------------------
-    vertices     : (n,3) array of vertices coordinates
-    faces        : (m,3) array of vertex indices defining faces
+    vertices     :
+        (n,3) array of vertices coordinates
+    faces        :
+        (m,3) array of vertex indices defining faces
 
-    Output
+    Returns
     -----------------------------
-    vert_areas : (n,) array of per-vertex areas
+    vert_areas : np.ndarray
+        (n,) array of per-vertex areas
     """
 
     n_faces = faces.shape[0]
@@ -235,11 +259,13 @@ def neigh_faces(faces):
 
     Parameters
     --------------------
-    faces : (m,3) list of faces
+    faces :
+        (m,3) list of faces
 
-    Output
+    Returns
     --------------------
-    neighbors : (n,) list of list of indices of neighbor faces for each vertex
+    neighbors : list
+        (n,) list of list of indices of neighbor faces for each vertex
     """
     n_vertices = 1+faces.max()
 
@@ -261,14 +287,19 @@ def _get_grad_dir(vertices, faces, normals, face_areas=None):
 
     Parameters
     --------------------------
-    vertices   : (n,3) coordinates of vertices
-    faces      : (m,3) indices of vertices for each face
-    normals    : (m,3) normals coordinate for each face
-    face_areas : (m,) - Optional, array of per-face area, for faster computation
+    vertices   :
+        (n,3) coordinates of vertices
+    faces      :
+        (m,3) indices of vertices for each face
+    normals    :
+        (m,3) normals coordinate for each face
+    face_areas : optional
+        (m,) - Optional, array of per-face area, for faster computation
 
-    Output
+    Returns
     --------------------------
-    grads : (3,m,3) array of per-face gradients.
+    grads : np.ndarray
+        (3,m,3) array of per-face gradients.
     """
 
     v1 = vertices[faces[:,0]]  # (m,3)
@@ -289,21 +320,26 @@ def grad_mat(vertices, faces, normals=None, face_areas=None, order_style='C'):
     """
     Returns gradient in the shape of a 3*n_faces * n_vertices matrix G.
 
-    Given a function f of shape (n,), the gradient is given by
-
-    (G@f).reshape(order=order_style)
+    Returns a 'flatten' version of the gradient.
+    Given a function f of shape (n,), the gradient is given by (G@f).reshape(order=order_style)
 
     Parameters
     --------------------------
-    vertices    : (n,3) coordinates of vertices
-    faces       : (m,3) indices of vertices for each face
-    normals     : (m,3) normals coordinate for each face
-    face_areas  : (m,) - Optional, array of per-face area, for faster computation
-    order_style : 'C' or 'F', order style to use for reshape
+    vertices    :
+        (n,3) coordinates of vertices
+    faces       :
+        (m,3) indices of vertices for each face
+    normals     :
+        (m,3) normals coordinate for each face
+    face_areas  :
+        (m,) - Optional, array of per-face area, for faster computation
+    order_style : str, optional
+        'C' or 'F', order style to use for reshape
 
-    Output
+    Returns
     --------------------------
-    G : (3*m,n) matrix of gradient
+    G : sparse.csr_matrix
+        (3*m,n) matrix of gradient
 
     """
     assert order_style in ['F', 'C'], "Only C or F are implemented order styles"
@@ -337,20 +373,30 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False, grads=No
     """
     Compute the gradient of one or multiple functions on a mesh
 
+    Takes a function defined on each vertex and returns per-face gradient
+
     Parameters
     --------------------------
-    f          : (n,p) or (n,) functions value on each vertex
-    vertices   : (n,3) coordinates of vertices
-    faces      : (m,3) indices of vertices for each face
-    normals    : (m,3) normals coordinate for each face
-    face_areas : (m,) - Optional, array of per-face area, for faster computation
-    use_sym    : bool - If true, uses the (slower but) symmetric expression
+    f          :
+        (n,p) or (n,) functions value on each vertex
+    vertices   :
+        (n,3) coordinates of vertices
+    faces      :
+        (m,3) indices of vertices for each face
+    normals    :
+        (m,3) normals coordinate for each face
+    face_areas : Optional
+        (m,) array of per-face area, for faster computation
+    use_sym    : bool
+        If true, uses the (slower but) symmetric expression
                  of the gradient
-    grads      : iterable of size 3 containing arrays of size (m,3) giving gradient directions
+    grads      :
+        iterable of size 3 containing arrays of size (m,3) giving gradient directions
                  for all faces (see function `_get_grad_dir`.
-    Output
+    Returns
     --------------------------
-    gradient : (m,p,3) or (n,3) gradient of f on the mesh
+    gradient : np.ndarray
+        (m,p,3) or (n,3) gradient of f on the mesh
     """
 
     if grads is not None:
@@ -394,23 +440,33 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False, grads=No
 
 def div_f(f, vertices, faces, normals, vert_areas=None, grads=None, face_areas=None):
     """
-    Compute the divergence of a vector field on a mesh
+    Compute the divergence of a vector field on a mesh.
+
+    Takes a per-face vector field and returns per-vertex divergence
 
     Parameters
     --------------------------
-    f          : (m,3) vector field on each face
-    vertices   : (n,3) coordinates of vertices
-    faces      : (m,3) indices of vertices for each face
-    normals    : (m,3) normals coordinate for each face
-    vert_areas : (m,) - Optional, array of per-vertex area, for faster computation
-    grads      : iterable of size 3 containing arrays of size (m,3) giving gradient directions
+    f          :
+        (m,3) vector field on each face
+    vertices   :
+        (n,3) coordinates of vertices
+    faces      :
+        (m,3) indices of vertices for each face
+    normals    :
+        (m,3) normals coordinate for each face
+    vert_areas :
+        (m,) - Optional, array of per-vertex area, for faster computation
+    grads      :
+        iterable of size 3 containing arrays of size (m,3) giving gradient directions
                  for all faces
-    face_areas : (m,) - Optional, array of per-face area, for faster computation
+    face_areas :
+        (m,) - Optional, array of per-face area, for faster computation
                   ONLY USED IF grads is given
 
-    Output
+    Returns
     --------------------------
-    divergence : (n,) divergence of f on the mesh
+    divergence :  np.ndarray
+        (n,) divergence of f on the mesh
     """
     n_vertices = vertices.shape[0]
 
@@ -468,12 +524,15 @@ def geodesic_distmat_dijkstra(vertices, faces):
 
     Parameters
     --------------------------
-    vertices : (n,3) coordinates of vertices
-    faces    : (m,3) indices of vertices for each face
+    vertices :
+        (n,3) coordinates of vertices
+    faces    :
+        (m,3) indices of vertices for each face
 
-    Output
+    Returns
     --------------------------
-    geod_dist : (n,n) geodesic distance matrix
+    geod_dist : np.ndarray
+        (n,n) geodesic distance matrix
     """
     N = vertices.shape[0]
     edges = edges_from_faces(faces)
@@ -499,12 +558,15 @@ def heat_geodmat_robust(vertices, faces, verbose=False):
 
     Parameters
     --------------------------
-    vertices : (n,3) coordinates of vertices
-    faces    : (m,3) indices of vertices for each face
+    vertices :
+        (n,3) coordinates of vertices
+    faces    :
+        (m,3) indices of vertices for each face
 
-    Output
+    Returns
     --------------------------
-    distmat : (n,n) geodesic distance matrix
+    distmat : np.ndarray
+        (n,n) geodesic distance matrix
     """
     n_vertices = vertices.shape[0]
     distmat = np.zeros((n_vertices, n_vertices))
@@ -526,23 +588,36 @@ def heat_geodesic_from(inds, vertices, faces, normals, A, W=None, t=1e-3, face_a
 
     Parameters
     -------------------------
-    inds        : int or (p,) array of ints - index of the source vertex (or vertices)
-    vertices    : (n,3) vertices coordinates
-    faces       : (m,3) triangular faces defined by 3 vertices index
-    normals     : (m,3) per-face normals
-    A           : (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W
-    W           : (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W.
+    inds        :
+        int or (p,) array of ints - index of the source vertex (or vertices)
+    vertices    :
+        (n,3) vertices coordinates
+    faces       :
+        (m,3) triangular faces defined by 3 vertices index
+    normals     :
+        (m,3) per-face normals
+    A           :
+        (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W
+    W           :
+        (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W.
                   Optional if solvers are given !
-    t           : float - time parameter for which to solve the heat equation
-    face_area   : (m,) - Optional, array of per-face area, for faster computation
-    vert_areas  : (n,) - Optional, array of per-vertex area, for faster computation
-    grads       : list of size 3, each give per-face gradient directions (output of _get_grad_dir())
-    solver_heat : callable -Optional, solver for (A + tW)x = b given b
-    solver_lap  : callable -Optional, solver for Wx = b given b
-    
-    Output
+    t           : float
+        time parameter for which to solve the heat equation
+    face_area   : np.ndarray, optional
+        (m,) - Optional, array of per-face area, for faster computation
+    vert_areas  : np.ndarray, optional
+        (n,) - Optional, array of per-vertex area, for faster computation
+    grads       : list
+        list of size 3, each give per-face gradient directions (output of _get_grad_dir())
+    solver_heat : callable, optional
+        solver for (A + tW)x = b given b
+    solver_lap  : callable, optional
+        solver for Wx = b given b
+
+    Returns
     -------------------------
-    geod_dist : (n,) or (n,p) geodesic distance for each vertex in inds
+    geod_dist : np.ndarray
+        (n,) or (n,p) geodesic distance for each vertex in inds
     """
     n_vertices = vertices.shape[0]
     n_inds = len(inds) if type(inds) in [np.ndarray, list] else 1
@@ -598,19 +673,29 @@ def heat_geodmat(vertices, faces, normals, A, W, t=1e-3, face_areas=None, vert_a
 
     Parameters
     -------------------------
-    vertices   : (n,3) vertices coordinates
-    faces      : (m,3) triangular faces defined by 3 vertices index
-    normals    : (m,3) per-face normals
-    A          : (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W
-    W          : (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W
-    t          : float - time parameter for which to solve the heat equation
-    face_areas : (m,) - Optional, array of per-face area, for faster computation
-    vert_areas : (n,) - Optional, array of per-vertex area, for faster computation
-    batch_size : int - size of batches to use for computation. None means full shape
+    vertices   :
+        (n,3) vertices coordinates
+    faces      :
+        (m,3) triangular faces defined by 3 vertices index
+    normals    :
+        (m,3) per-face normals
+    A          :
+        (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W
+    W          :
+        (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W
+    t          : float
+        time parameter for which to solve the heat equation
+    face_areas : optional
+        (m,) - Optional, array of per-face area, for faster computation
+    vert_areas : optional
+        (n,) - Optional, array of per-vertex area, for faster computation
+    batch_size : int
+        size of batches to use for computation. None means full shape
 
-    Output
+    Returns
     --------------------------
-    distmat : (n,n) geodesic distance matrix
+    distmat : np.ndarray
+        (n,n) geodesic distance matrix
     """
     n_vertices = vertices.shape[0]
 
@@ -658,16 +743,19 @@ def farthest_point_sampling(d, k, random_init=True, n_points=None, verbose=False
 
     Parameters
     -------------------------
-    d           : (n,n) array or callable - Either a distance matrix between points or
-                  a function computing geodesic distance from a given index.
-    k           : int - number of points to sample
-    random_init : Whether to sample the first point randomly or to take the furthest away
-                  from all the other ones. Only used if d is a distance matrix
-    n_points    : In the case where d is callable, specifies the size of the output
+    d           :
+        (n,n) array or callable - Either a distance matrix between points or a function computing geodesic distance from a given index.
+    k           :
+        int - number of points to sample
+    random_init :
+        Whether to sample the first point randomly or to take the furthest away from all the other ones. Only used if d is a distance matrix
+    n_points    :
+        In the case where d is callable, specifies the size of the output
 
-    Output
+    Returns
     --------------------------
-    fps : (k,) array of indices of sampled points
+    fps : np.ndarray
+        (k,) array of indices of sampled points
     """
 
     if callable(d):
@@ -686,14 +774,18 @@ def farthest_point_sampling_distmat(D, k, random_init=True, verbose=False):
 
     Parameters
     -------------------------
-    D           : (n,n) distance matrix between points
-    k           : int - number of points to sample
-    random_init : Whether to sample the first point randomly or to
+    D           :
+        (n,n) distance matrix between points
+    k           : int
+        number of points to sample
+    random_init :
+        Whether to sample the first point randomly or to
                   take the furthest away from all the other ones
 
-    Output
+    Returns
     --------------------------
-    fps : (k,) array of indices of sampled points
+    fps : np.ndarray
+        (k,) array of indices of sampled points
     """
     if random_init:
         rng = np.random.default_rng()
@@ -720,14 +812,17 @@ def farthest_point_sampling_call(d_func, k, n_points=None, verbose=False):
 
     Parameters
     -------------------------
-    d_func   : callable - for index i, d_func(i) is a (n_points,) array of geodesic distance to
-               other points
-    k        : int - number of points to sample
-    n_points : Number of points. If not specified, checks d_func(0)
+    d_func   : callable
+        for index i, d_func(i) is a (n_points,) array of geodesic distance to other points
+    k        : int
+        number of points to sample
+    n_points : int, optional
+        Number of points. If not specified, checks d_func(0)
 
-    Output
+    Returns
     --------------------------
-    fps : (k,) array of indices of sampled points
+    fps : np.ndarray
+        (k,) array of indices of sampled points
     """
     rng = np.random.default_rng()
 
@@ -758,17 +853,24 @@ def farthest_point_sampling_call_sub(d_func, k, sub_points, return_sub_inds=Fals
 
     Parameters
     -------------------------
-    d_func          : callable - for index i, d_func(i) is a (n_points,) array of geodesic distance to
+    d_func          : callable
+        for index i, d_func(i) is a (n_points,) array of geodesic distance to
                       other points
-    k               : int - number of points to sample
-    sub_points      : (m,) - indices of vertices in the subsample
-    return_sub_inds : bool - wether to return indices of fps inside the subsample
-    random_init     : bool - whether to sample the first point randomly or to take the furthest away
+    k               : int
+        number of points to sample
+    sub_points      : (m,)
+        indices of vertices in the subsample
+    return_sub_inds : bool
+        wether to return indices of fps inside the subsample
+    random_init     : bool
+        whether to sample the first point randomly or to take the furthest away
 
-    Output
+    Returns
     --------------------------
-    fps     : (k,) array of indices of sampled points (as seen from the full set of points)
-    fps_sub : If return_sub_inds is True. (k,) array of indices of sampled points (as seen from inside sub_points)
+    fps     : np.ndarray
+        (k,) array of indices of sampled points (as seen from the full set of points)
+    fps_sub : optional
+        If return_sub_inds is True. (k,) array of indices of sampled points (as seen from inside sub_points)
     """
     rng = np.random.default_rng()
 
@@ -819,16 +921,23 @@ def get_orientation_op(grad_field, vertices, faces, normals, per_vert_area, rota
 
     Parameters
     --------------------------------
-    grad_field    : (n_f,3) gradient field on the mesh
-    vertices      : (n_v,3) coordinates of vertices
-    faces         : (n_f,3) indices of vertices for each face
-    normals       : (n_f,3) normals coordinate for each face
-    per_vert_area : (n_v,) voronoi area for each vertex
-    rotated       : bool - whether gradient field is already rotated by n x grad(f)
+    grad_field    :
+        (n_f,3) gradient field on the mesh
+    vertices      :
+        (n_v,3) coordinates of vertices
+    faces         :
+        (n_f,3) indices of vertices for each face
+    normals       :
+        (n_f,3) normals coordinate for each face
+    per_vert_area :
+        (n_v,) voronoi area for each vertex
+    rotated       : bool
+        whether gradient field is already rotated by n x grad(f)
 
-    Output
+    Returns
     --------------------------
-    operator : (n_v,n_v) orientation operator.
+    operator : sparse.csc_matrix
+        (n_v,n_v) orientation operator.
     """
     n_vertices = per_vert_area.shape[0]
     per_vert_area = np.asarray(per_vert_area)

@@ -10,18 +10,24 @@ def zoomout_iteration(FM_12, evects1, evects2, step=1, A2=None, n_jobs=1):
 
     Parameters
     --------------------
-    FM_12    : (k2,k1) Functional map from evects1[:,:k1] to evects2[:,:k2]
-    evects1  : (n1,k1') eigenvectors on source shape with k1' >= k1 + step.
+    FM_12    :
+        (k2,k1) Functional map from evects1[:,:k1] to evects2[:,:k2]
+    evects1  :
+        (n1,k1') eigenvectors on source shape with k1' >= k1 + step.
                  Can be a subsample of the original ones on the first dimension.
-    evects2  : (n2,k2') eigenvectors on target shape with k2' >= k2 + step.
+    evects2  :
+        (n2,k2') eigenvectors on target shape with k2' >= k2 + step.
                  Can be a subsample of the original ones on the first dimension.
-    step     : int - step of increase of dimension.
-    A2       : (n2,n2) sparse area matrix on target mesh, for vertex to vertex computation.
+    step     : int
+        step of increase of dimension.
+    A2       :
+        (n2,n2) sparse area matrix on target mesh, for vertex to vertex computation.
                  If specified, the eigenvectors can't be subsampled !
 
-    Output
+    Returns
     --------------------
-    FM_zo : zoomout-refined functional map
+    FM_zo : np.ndarray
+        zoomout-refined functional map
     """
     k2, k1 = FM_12.shape
     try:
@@ -46,20 +52,30 @@ def zoomout_refine(FM_12, evects1, evects2, nit=10, step=1, A2=None, subsample=N
 
     Parameters
     --------------------
-    eigvects1  : (n1,k1) eigenvectors on source shape with k1 >= K + nit
-    eigvects2  : (n2,k2) eigenvectors on target shape with k2 >= K + nit
-    FM_12      : (K,K) Functional map from from shape 1 to shape 2
-    nit        : int - number of iteration of zoomout
-    step       : increase in dimension at each Zoomout Iteration
-    A2         : (n2,n2) sparse area matrix on target mesh.
-    subsample  : tuple or iterable of size 2. Each gives indices of vertices to sample
+    eigvects1  :
+        (n1,k1) eigenvectors on source shape with k1 >= K + nit
+    eigvects2  :
+        (n2,k2) eigenvectors on target shape with k2 >= K + nit
+    FM_12      :
+        (K,K) Functional map from from shape 1 to shape 2
+    nit        : int
+        number of iteration of zoomout
+    step       :
+        increase in dimension at each Zoomout Iteration
+    A2         :
+        (n2,n2) sparse area matrix on target mesh.
+    subsample  : tuple or iterable of size 2
+        Each gives indices of vertices to sample
                  for faster optimization. If not specified, no subsampling is done.
-    return_p2p : bool - if True returns the vertex to vertex map.
+    return_p2p : bool
+        if True returns the vertex to vertex map.
 
-    Output
+    Returns
     --------------------
-    FM_12_zo  : zoomout-refined functional map from basis 1 to 2
-    p2p_21_zo : only if return_p2p is set to True - the refined pointwise map from basis 2 to basis 1
+    FM_12_zo  : np.ndarray
+        zoomout-refined functional map from basis 1 to 2
+    p2p_21_zo : np.ndarray
+        only if return_p2p is set to True - the refined pointwise map from basis 2 to basis 1
     """
     k2_0, k1_0 = FM_12.shape
     try:
@@ -107,17 +123,25 @@ def mesh_zoomout_refine(FM_12, mesh1, mesh2, nit=10, step=1, subsample=None,
 
     Parameters
     --------------------
-    mesh1      : TriMesh - Source mesh
-    mesh2      : TriMesh - Target mesh
-    FM         : (K,K) Functional map between
-    nit        : int - number of iteration of zoomout
-    step       : increase in dimension at each Zoomout Iteration
-    A2         : (n2,n2) sparse area matrix on target mesh.
-    subsample  : int or tuple or iterable of size 2. Each gives indices of vertices so sample
+    mesh1      : TriMesh
+        Source mesh
+    mesh2      : TriMesh
+        Target mesh
+    FM         :
+        (K,K) Functional map between
+    nit        : int
+        number of iteration of zoomout
+    step       :
+        increase in dimension at each Zoomout Iteration
+    A2         :
+        (n2,n2) sparse area matrix on target mesh.
+    subsample  : int or tuple or iterable of size 2
+        Each gives indices of vertices so sample
                  for faster optimization. If not specified, no subsampling is done.
-    return_p2p : bool - if True returns the vertex to vertex map.
+    return_p2p : bool
+        if True returns the vertex to vertex map.
 
-    Output
+    Returns
     --------------------
     FM_zo : zoomout-refined functional map
     p2p   : only if return_p2p is set to True - the refined pointwise map
@@ -146,20 +170,30 @@ def mesh_zoomout_refine_p2p(p2p_21, mesh1, mesh2, k_init, nit=10, step=1, subsam
 
     Parameters
     --------------------
-    mesh1      : TriMesh - Source mesh
-    mesh2      : TriMesh - Target mesh
-    FM         : (K,K) Functional map between
-    nit        : int - number of iteration of zoomout
-    step       : increase in dimension at each Zoomout Iteration
-    A2         : (n2,n2) sparse area matrix on target mesh.
-    subsample  : int or tuple or iterable of size 2. Each gives indices of vertices so sample
+    mesh1      : TriMesh
+        Source mesh
+    mesh2      : TriMesh
+        Target mesh
+    FM         :
+        (K,K) Functional map between
+    nit        : int
+        number of iteration of zoomout
+    step       :
+        increase in dimension at each Zoomout Iteration
+    A2         :
+        (n2,n2) sparse area matrix on target mesh.
+    subsample  : int or tuple or iterable of size 2
+        Each gives indices of vertices so sample
                  for faster optimization. If not specified, no subsampling is done.
-    return_p2p : bool - if True returns the vertex to vertex map.
+    return_p2p : bool
+        if True returns the vertex to vertex map.
 
-    Output
+    Returns
     --------------------
-    FM_zo : zoomout-refined functional map
-    p2p   : only if return_p2p is set to True - the refined pointwise map
+    FM_zo : np.ndarray
+        zoomout-refined functional map
+    p2p   : np.ndarray
+        only if return_p2p is set to True - the refined pointwise map
     """
 
     if np.issubdtype(type(subsample), np.integer):

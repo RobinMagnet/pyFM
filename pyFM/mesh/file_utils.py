@@ -7,21 +7,28 @@ def read_off(filepath, read_colors=False):
     """
     read a standard .off file
 
-    Parameters
-    -------------------------
-    file : path to a '.off'-format file
-    read_colors : bool - whether to read colors if present
+    Read a .off file containing vertex and face information, and possibly face colors.
 
-    Output
-    -------------------------
-    vertices : (n,3) array of vertices coordinates
-    faces    : (m,3) array of indices of face vertices
-    colors   : (m,3) Only if read_colors is True. Array of colors for each face. None if not found.
+    Parameters
+    ----------
+    file : str
+        path to a '.off'-format file
+    read_colors : bool, optional
+        bool - whether to read colors if present
+
+    Returns
+    -------
+    vertices : np.ndarray
+        (n,3) array of vertices coordinates
+    faces : np.ndarray
+        (m,3) array of indices of face vertices
+    colors : np.ndarray, optional
+        (m,3) Only if read_colors is True. Array of colors for each face. None if not found.
     """
     with open(filepath, 'r') as f:
         if f.readline().strip() != 'OFF':
             raise TypeError('Not a valid OFF header')
-        
+
         header_line = f.readline().strip().split(' ')
         while header_line[0].startswith('#'):
             header_line = f.readline().strip().split(' ')
@@ -40,7 +47,7 @@ def read_off(filepath, read_colors=False):
 
     if read_colors:
         return np.asarray(vertices), faces, colors
-    
+
     return np.asarray(vertices), faces
 
 
@@ -50,32 +57,37 @@ def read_obj(filepath, load_normals=False, load_texture=False, load_texture_norm
 
     Parameters
     -------------------------
-    filepath : path to the .obj file
-    load_normals : bool - whether to load vertex normals if present
-    load_texture : bool - whether to load texture coordinates if present.
-                   Reads both uv coordinates and face to texture vertex indices
-    load_texture_normals : bool - whether to load texture normals if present.
-                           Reads face to texture normal indices
+    filepath : str
+        path to the .obj file
+    load_normals : bool, optional
+        whether to load vertex normals if present
+    load_texture : bool, optional
+        whether to load texture coordinates if present. Reads both uv coordinates and face to texture vertex indices
+    load_texture_normals : bool, optional
+        whether to load texture normals if present. Reads face to texture normal indices
 
-    Output
-    -------------------------
-    vertices : (n,3) array of vertices coordinates
-    faces    : (m,3) array of indices of face vertices, None if not present
-    normals  : Only if load_normals is True.
-               (n,3) array of vertex normals, None if not present
-    uv       : Only if load_texture is True
-               (n,2) array of uv coordinates, None if not present
-    fvt      : Only if load_texture is True
-                (m,3) array of indices of face to vertex texture (vt) indices, None if not present
-    fnt      : Only if load_texture_normals is True
-                (m,3) array of indices of face to texture normal indices, None if not present
+    Returns
+    -------
+    vertices : np.ndarray
+        (n,3) array of vertices coordinates
+    faces    : np.ndarray
+        (m,3) array of indices of face vertices, None if not present
+    normals  : np.ndarray, optional
+        Only if load_normals is True. (n,3) array of vertex normals, None if not present
+    uv       : np.ndarray, optional
+        Only if load_texture is True (n,2) array of uv coordinates, None if not present
+    fvt      : np.ndarray, optional
+        Only if load_texture is True (m,3) array of indices of face to vertex texture (vt) indices, None if not present
+    fnt      : np.ndarray, optional
+        Only if load_texture_normals is True (m,3) array of indices of face to texture normal indices, None if not present
+
     """
 
     with open(filepath, 'r') as f:
         vertices = []
         faces = []
         normals = []
-        
+
         uv = []
         fvt = []
         fnt = []
@@ -98,7 +110,7 @@ def read_obj(filepath, load_normals=False, load_texture=False, load_texture_norm
                 if load_texture and line[1].count('/') > 0:
                     if line[1].split('/')[1] != '':
                         fvt.append([int(x.split('/')[1]) - 1 for x in line[1:]])
-                
+
                 if load_normals and line[1].count('/') == 2:
                     if line[1].split('/')[2] != '':
                         fnt.append([int(x.split('/')[2]) - 1 for x in line[1:]])
@@ -116,28 +128,35 @@ def read_obj(filepath, load_normals=False, load_texture=False, load_texture_norm
     output = [vertices, faces]
     if load_normals:
         output.append(normals)
-    
+
     if load_texture:
         output.append(uv)
         output.append(fvt)
-    
+
     if load_texture_normals:
         output.append(fnt)
 
     return output
- 
+
 
 def write_off(filepath, vertices, faces, precision=None, face_colors=None):
     """
-    Writes a .off file
+    Writes a mesh to a .off file
+
+    The number of significant digit to use can be specified for memory saving.
 
     Parameters
     --------------------------
-    filepath  : path to file to write
-    vertices  : (n,3) array of vertices coordinates
-    faces     : (m,3) array of indices of face vertices
-    face_colors : Optional - (m,3) array of colors for each face
-    precision : int - number of significant digits to write for each float
+    filepath: str
+        path to the .off file to write
+    vertices: np.ndarray
+        (n,3) array of vertices coordinates
+    faces: np.ndarray
+        (m,3) array of indices of face vertices
+    precision: int, optional
+        number of significant digits to write for each float. Defaults to 16
+    face_colors: np.ndarray, optional
+        (m,3) array of colors for each face
     """
     n_vertices = vertices.shape[0]
     n_faces = faces.shape[0] if faces is not None else 0
@@ -167,17 +186,32 @@ def write_obj(filepath, vertices, faces=None, uv=None, fvt=None, fnt=None, verte
     """
     Writes a .obj file with texture.
 
+    If material is used, the .mtl file will be copied to the same directory as the .obj file.
+
     Parameters
     -------------------------
-    filepath : str - path to the .obj file to write
-    vertices : (n,3) coordinates of vertices
-    faces    : (m,3) faces defined by vertex indices
-    vertex_normals  : (n,3) array of vertex normals or (L,3) depending on fnt
-    uv       : (n,2) or (L,2) array of uv coordinates
-    fvt      : (m,3) array of indices of face to texture vertex indices (index in uv)
-    fnt      : (m,3) array of indices of face to texture normal indices
-    precision : int - number of significant digits to write for each float
+    filepath : str
+        path to the .obj file to write
+    vertices : np.ndarray
+        (n,3) array of vertices coordinates
+    faces : np.ndarray, optional
+        (m,3) array of indices of face vertices
+    uv : np.ndarray, optional
+        (n,2) array of uv coordinates
+    fvt : np.ndarray, optional
+        (m,3) array of indices of face to vertex texture indices
+    fnt : np.ndarray, optional
+        (m,3) array of indices of face to texture normal indices
+    vertex_normals : np.ndarray, optional
+        (n,3) array of vertex normals
+    mtl_path : str, optional
+        path to the .mtl file defining the material
+    mtl_name : str, optional
+        name of the material in the .mtl file
+    precision : int, optional
+        number of significant digits to write for each float
     """
+
     n_vertices = len(vertices)
     n_faces = len(faces) if faces is not None else 0
     n_vt = len(uv) if uv is not None else 0
@@ -185,7 +219,7 @@ def write_obj(filepath, vertices, faces=None, uv=None, fvt=None, fnt=None, verte
 
     if (mtl_path is not None) and (uv is not None) and (fvt is None):
         print('WARNING: Material and uv provided, but no face texture index')
-    
+
     if mtl_path is not None and n_faces == 0:
         print('WARNING: Material provided, but no face. Ignoring material.')
 
@@ -198,7 +232,7 @@ def write_obj(filepath, vertices, faces=None, uv=None, fvt=None, fnt=None, verte
 
         for i in range(n_vertices):
             f.write(f'v {" ".join([f"{coord:.{precision}f}" for coord in vertices[i]])}\n')
-        
+
         if vertex_normals is not None:
             for i in range(len(vertex_normals)):
                 f.write(f'vn {" ".join([f"{coord:.{precision}f}" for coord in vertex_normals[i]])}\n')
@@ -215,13 +249,13 @@ def write_obj(filepath, vertices, faces=None, uv=None, fvt=None, fnt=None, verte
             for j in range(n_faces):
                 if fvt is not None and fnt is not None:
                     f.write(f'f {" ".join([f"{1+faces[j][k]:d}/{1+fvt[j][k]:d}/{1+fnt[j][k]:d}" for k in range(3)])}\n')
-                
+
                 elif fvt is not None:
                     f.write(f'f {" ".join([f"{1+faces[j][k]:d}/{1+fvt[j][k]:d}" for k in range(3)])}\n')
-                
+
                 elif fnt is not None:
                     f.write(f'f {" ".join([f"{1+faces[j][k]:d}//{1+fnt[j][k]:d}" for k in range(3)])}\n')
-                
+
                 else:
                     f.write(f'f {" ".join([str(1+tri) for tri in faces[j]])}\n')
 
@@ -232,11 +266,13 @@ def read_vert(filepath):
 
     Parameters
     ----------------------
-    filepath : path to file
+    filepath : str
+        path to file
 
-    Output
+    Returns
     ----------------------
-    vertices : (n,3) array of vertices coordinates
+        vertices : np.ndarray
+            (n,3) array of vertices coordinates
     """
     vertices = [[float(x) for x in line.strip().split()] for line in open(filepath, 'r')]
     return np.asarray(vertices)
@@ -248,12 +284,15 @@ def read_tri(filepath, from_matlab=True):
 
     Parameters
     ----------------------
-    filepath    : path to file
-    from_matlab : whether file indexing starts at 1
+    filepath    : str
+        path to file
+    from_matlab : bool, optional
+        If True, file indexing starts at 1
 
-    Output
+    Returns
     ----------------------
-    faces : (m,3) array of vertices indices to define faces
+    faces : np.ndarray
+        (m,3) array of vertices indices to define faces
     """
     faces = [[int(x) for x in line.strip().split()] for line in open(filepath,'r')]
     faces = np.asarray(faces)
@@ -264,12 +303,16 @@ def read_tri(filepath, from_matlab=True):
 
 def write_mtl(filepath, texture_im='texture_1.jpg'):
     """
-    Writes a .mtl file for a .obj mesh
+    Writes a .mtl file for a .obj mesh.
+
+    Use the name of a texture image to define the material.
 
     Parameters
     ----------------------
-    filepath   : path to file
-    texture_im : name of the image of texture
+    filepath   : str
+        path to file
+    texture_im : str, optional
+        name of the image of texture. Default to 'texture_1.jpg', included in the package
     """
     with open(filepath, 'w') as f:
         f.write('newmtl material_0\n')
@@ -284,31 +327,42 @@ def write_mtl(filepath, texture_im='texture_1.jpg'):
 
 def _get_data_dir():
     """
-    Return the directory where texture data is savec
+    Return the directory where texture data is saved.
 
-    Output
+    Looks in the package directory.
+
+    Returns
     ---------------------
-    data_dir : str - directory of texture data
+    data_dir : str
+        directory of texture data
     """
     curr_dir = os.path.dirname(__file__)
     return os.path.join(curr_dir,'data')
 
 
 def get_uv(vertices, ind1, ind2, mult_const=1):
-    """
-    Extracts UV coordinates for a mesh for a .obj file
+    """Extracts UV coordinates for a mesh for a .obj file
 
     Parameters
-    -----------------------------
-    vertices   : (n,3) coordinates of vertices
-    ind1       : int - column index to use as first coordinate
-    ind2       : int - column index to use as second coordinate
-    mult_const : float - number of time to repeat the pattern
+    ----------
+    vertices   :
+        (n,3) coordinates of vertices
+    ind1       : int
+        column index to use as first coordinate
+    ind2       : int
+        column index to use as second coordinate
+    mult_const : float
+        number of time to repeat the pattern
 
-    Output
-    ------------------------------
-    uv : (n,2) UV coordinates of each vertex
+    Returns
+    -------
+    uv : float
+        (n,2) UV coordinates of each vertex
+
     """
+
+
+
     vt = vertices[:,[ind1,ind2]]
     vt -= np.min(vt)
     vt = mult_const * vt / np.max(vt)
@@ -318,17 +372,33 @@ def get_uv(vertices, ind1, ind2, mult_const=1):
 def write_obj_texture(filepath, vertices, faces, uv=None, mtl_file='material.mtl', texture_im='texture_1.jpg',
                       mtl_name=None, precision=6, vertex_normals=None, verbose=False):
     """
-    Writes a .obj file with texture.
-    Writes the necessary material and texture files.
+    Writes a .obj file with texture, with a simpler interface than `write_obj`.
+
+    This function writes mtl files and copy textures if necessary
 
     Parameters
     -------------------------
-    filepath   : str - path to the .obj file to write
-    vertices   : (n,3) coordinates of vertices
-    faces      : (m,3) faces defined by vertex indices
-    uv         : uv map for each vertex. If not specified no texture is used
-    mtl_file   : str - name or path of the .mtl file
-    texture_im : str - name or path of the .jpg file definig texture
+    filepath   : str
+        path to the .obj file to write
+    vertices   : np.ndarray
+        (n,3) coordinates of vertices
+    faces      : np.ndarray
+        (m,3) faces defined by vertex indices
+    uv: np.ndarray, optional
+        (n,2) UV coordinates of each vertex
+    mtl_file   : str, optional
+        name or path of the .mtl file. If just a name, a default material will be created.
+    texture_im : str, optional
+        name or path of the .jpg file defining texture
+    mtl_name   : str, optional
+        name of the material in the .mtl file
+    precision  : int, optional
+        number of significant digits to write for each float
+    vertex_normals : np.ndarray, optional
+        (n,3) array of vertex normals
+    verbose    : bool, optional
+        whether to print information
+
     """
     assert filepath.endswith('.obj'), f"Filepath must end with .obj. Current filepath: {filepath}"
 
@@ -347,7 +417,7 @@ def write_obj_texture(filepath, vertices, faces, uv=None, mtl_file='material.mtl
             texture_relpath = os.path.join('./', texture_name)  # ./texture.jpg
             if not os.path.isfile(texture_abspath):
                 copyfile(texture_im, texture_abspath)
-        
+
         else:
             # texture_im is texture.jpg or just texture
             if os.path.splitext(texture_im)[1] != '.jpg':
@@ -383,23 +453,20 @@ def write_obj_texture(filepath, vertices, faces, uv=None, mtl_file='material.mtl
             mtl_relpath = os.path.join('./', os.path.basename(mtl_file))  # ./material.mtl
             if os.path.isfile(mtl_abspath):
                 os.remove(mtl_abspath)
-                time.sleep(0.1)
             write_mtl(mtl_abspath, texture_im=texture_relpath)
             mtl_name = 'material_0'
             if verbose:
                 print(f'Write material at {mtl_abspath}')
-            
+
             if mtl_name is None:
                 mtl_name = 'material_0'
-        
+
     else:
         mtl_relpath = None
         texture_relpath = None
-    
+
     write_obj(filepath, vertices=vertices, faces=faces, uv=uv, fvt=faces, mtl_path=mtl_relpath,
               mtl_name=mtl_name, precision=precision, vertex_normals=vertex_normals)
-    
+
     if verbose:
         print(f'Write .obj file at {filepath}')
-
-import time

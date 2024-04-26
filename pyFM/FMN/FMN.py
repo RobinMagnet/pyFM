@@ -16,6 +16,17 @@ from sklearn.neighbors import NearestNeighbors
 
 
 class FMN:
+    """
+    Functional Map Network Class
+
+    Parameters
+    --------------------------
+    meshlist  : list
+        list of TriMesh objects
+    maps_dict : dict, optional
+        dictionnary of functional maps between each pair of meshes.
+        Keys are (i,j) with i,j indices of the meshes in the list.
+    """
     def __init__(self, meshlist, maps_dict=None):
         # Mesh of each Node
         self.meshlist = copy.deepcopy(meshlist)  # List of n TriMesh
@@ -34,12 +45,12 @@ class FMN:
         # (n,K) array of indices of K vertices per shape in the network.
         self.subsample = None
 
-        # ISCM weights attributes
+        # icsm weights attributes
         self.cycles = None  # List of 3-cycles (i,j,k)
         self.A = None  # (n_cycle, n_edges) binary matrix (1 if edge j in cycle i)
         self.A_sub = None  # (n_edge_in_cycle,) indices of edges contained in a 3-cycle
 
-        self.use_iscm = False  # Whether ISCM or adjacency weights are used.
+        self.use_icsm = False  # Whether icsm or adjacency weights are used.
         self.cycle_weight = None  # Weights of each 3-cycle (map-dependant)
         self.edge_weights = None  # Weight of each edge (map-dependant)
 
@@ -67,6 +78,11 @@ class FMN:
         (which are square matrices).
 
         If not specified, returns the sized of the first found map.
+
+        Returns
+        -------------------
+        M : int
+            size of the functional maps
         """
         if self._M is not None:
             return self._M
@@ -81,6 +97,11 @@ class FMN:
     def m_cclb(self):
         """
         Return the dimension of the Canonical Consistent Latent Basis
+
+        Returns
+        -------------------
+        m : int
+            size of the CCLB
         """
         return self.CCLB.shape[2]
 
@@ -88,9 +109,9 @@ class FMN:
         """
         Resets all attributes depending on the Functional Maps
         """
-        # Resets ISCM weights variables
-        if self.use_iscm:
-            self.use_iscm = False  # Whether ISCM or adjacency weights are used.
+        # Resets icsm weights variables
+        if self.use_icsm:
+            self.use_icsm = False  # Whether icsm or adjacency weights are used.
             self.cycle_weight = None  # Weights of each 3-cycle (map-dependant)
             self.edge_weights = None  # Weight of each edge (map-dependant)
             self.weights = None  # (n,n) sparse matrix of weights
@@ -109,9 +130,9 @@ class FMN:
 
         Parameters
         --------------------------
-        maps_dict : dict - dictionnary, key (i,j) gives functional map FM
-                    between mesh i and j.
-                    FM can be of different size depending on the edge
+        maps_dict : dict
+            dictionnary, key (i,j) gives functional map FM between mesh i and j.
+            FM can be of different size depending on the edge
         """
         self.maps = copy.deepcopy(maps_dict)
 
@@ -133,7 +154,8 @@ class FMN:
 
         Parameters
         -----------------------------------
-        subsample : (n, size)
+        subsample :
+            (n, size) array of indices of vertices to subsample on each shape
         """
         self.subsample = subsample
 
@@ -146,7 +168,8 @@ class FMN:
 
         Parameters
         ---------------------------------
-        size : int - number of vertices to subsample on each shape
+        size : int
+            number of vertices to subsample on each shape
         """
         if verbose:
             print(f'Computing a {size}-sized subsample for each mesh')
@@ -154,24 +177,25 @@ class FMN:
         for i in range(self.n_meshes):
             self.subsample[i] = self.meshlist[i].extract_fps(size, geodesic=geodesic, random_init=False)
 
-    def set_weights(self, weights=None, weight_type='iscm', verbose=False):
+    def set_weights(self, weights=None, weight_type='icsm', verbose=False):
         """
         Set weights for each edge in the graph
 
         Parameters
         -------------------------
-        weights     : sparse (n,n) matrix.
-                      If not specified, sets weights according to 'weight_type' argument
-        weight_type : 'iscm' | 'adjacency' : if 'weights' is not specified, computes weights
-                      according to the Consistent Zoomout adaptation of iscm or using the adjacency
-                      matrix of the graph.
+        weights     : sparse
+                    (n,n) matrix. If not specified, sets weights according to 'weight_type' argument
+        weight_type :
+            'icsm' | 'adjacency' : if 'weights' is not specified, computes weights
+            according to the Consistent Zoomout adaptation of icsm or using the adjacency
+            matrix of the graph.
         """
         if weights is not None:
-            self.use_iscm = False
+            self.use_icsm = False
             self.weights = copy.deepcopy(weights)
 
-        elif weight_type == 'iscm':
-            self.use_iscm = True
+        elif weight_type == 'icsm':
+            self.use_icsm = True
 
             # Process cycles if necessary
             if self.cycles is None:
@@ -180,10 +204,10 @@ class FMN:
                 self.extract_3_cycles()
                 self.compute_Amat()
 
-            # Compute original ISCM weights d_ij for each edge (i,j)
+            # Compute original icsm weights d_ij for each edge (i,j)
             # Final weight is set to exp(-d_ij^2/(2*sigma^2))
             # With sigma = median(d_ij)
-            weight_arr = self.optimize_iscm(verbose=verbose)  # (n_edges,)
+            weight_arr = self.optimize_icsm(verbose=verbose)  # (n_edges,)
             median_val = np.median(weight_arr[self.A_sub])
             if np.isclose(median_val, 0, atol=1e-4):
                 weight_arr /= np.mean(weight_arr[self.A_sub])
@@ -196,14 +220,14 @@ class FMN:
             self.weights = sparse.csr_matrix((new_w, (I, J)), shape=(self.n_meshes, self.n_meshes))
 
         elif weight_type == 'adjacency':
-            self.use_iscm = False
+            self.use_icsm = False
             I = [x[0] for x in self.edges]
             J = [x[1] for x in self.edges]
             V = [1 for x in range(len(self.edges))]
             self.weights = sparse.csr_matrix((V, (I, J)),shape=(self.n_meshes, self.n_meshes))
 
         else:
-            raise ValueError(f'"weight_type" should be "iscm" or "adjacency, not {weight_type}')
+            raise ValueError(f'"weight_type" should be "icsm" or "adjacency, not {weight_type}')
 
         return self
 
@@ -213,11 +237,12 @@ class FMN:
         the corresponding functional maps are set as transpose of each other
         chosing the closest to orthogonal of both.
 
-        Since this modifies the maps, ISCM weights are deleted
+        Since this modifies the maps, icsm weights are deleted
 
         Parameters
         -----------------------
-        M : int - dimension with wich to compare the functional maps.
+        M : int
+            dimension with wich to compare the functional maps.
             If None, uses the current self.M
         """
         # Dictionnary with False as a default value for any key
@@ -250,8 +275,8 @@ class FMN:
 
         Parameters
         ---------------------------
-        M : int - (optional) size of the functional maps to use,
-            uses projection of FM on this dimension.
+        M : int, optional
+            size of the functional maps to use, uses projection of FM on this dimension.
             If not specified, used the size of the first found functional map
         """
         if self.maps is None:
@@ -273,8 +298,9 @@ class FMN:
 
         Parameters
         --------------------------
-        equals_id : If False, the sum of Y.T@Y are expected to give n*Id.
-                    If True,  the sum of Y.T@Y are expected to give Id.
+        equals_id : bool
+            If False, the sum of Y.T@Y are expected to give n*Id.
+            If True,  the sum of Y.T@Y are expected to give Id.
         """
         if self.W is None:
             self.compute_W(verbose=verbose)
@@ -311,9 +337,10 @@ class FMN:
         """
         Compute the Canonical Consistent Latent Basis CCLB from the CLB.
 
-        Parameters:
+        Parameters
         ------------------------------
-        m : int - size of the CCLB to compute.
+        m : int
+            size of the CCLB to compute.
         """
         if self.CLB is None:
             self.compute_CLB(verbose=verbose)
@@ -347,11 +374,15 @@ class FMN:
 
         Parameters
         --------------------------
-        i : int - index of the mesh on which to returns the two CSD
+        i : int
+            index of the mesh on which to returns the two CSD
 
-        Output
+        Returns
         --------------------------
-        CSD_a,CSD_c - (m,m), (m,m) array of area and conformal CSD expressed in the Latent Space
+        CSD_a: np.ndarray
+            (m,m) array of area CSD expressed in the Latent Space
+        CSD_c: np.ndarray
+            (m,m) array of conformal CSD expressed in the Latent Space
         """
         # Functional map from the Limit Shape to shape i
         FM = self.CCLB[i]
@@ -367,12 +398,15 @@ class FMN:
 
         Parameters
         --------------------------
-        i        : int - index of the mesh on which to returns the LB
-        complete : bool - If False, only computes values on the self.subsample[i] vertices
+        i        : int
+            index of the mesh on which to returns the LB
+        complete : bool
+            If False, only computes values on the self.subsample[i] vertices
 
-        Output
+        Returns
         --------------------------
-        latent_basis - (n_i,m) latent basis on mesh i
+        latent_basis: np.ndarray
+            (n_i,m) latent basis on mesh i
         """
         cclb = self.CCLB[i]  # / np.linalg.norm(self.CCLB[i],axis=0,keepdims=True)  # (M,m)
         if not complete and self.subsample is not None:
@@ -391,8 +425,9 @@ class FMN:
 
         Parameters
         --------------------------
-        complete : If False, uses self.subsample to obtain pointwise maps between
-                   subsamples of vertices for each shape
+        complete : bool
+            If False, uses self.subsample to obtain pointwise maps between
+            subsamples of vertices for each shape
         """
 
         self.p2p = dict()
@@ -421,7 +456,8 @@ class FMN:
 
         Parameters
         ------------------------
-        M : int - size of the functional map to compute
+        M : int
+            size of the functional map to compute
         """
         self.M = M
         for (i, j) in self.edges:
@@ -458,7 +494,7 @@ class FMN:
 
     def compute_Amat(self):
         """
-        Compute matrix A for iscm weights optimization.  Binary matrix telling which edge
+        Compute matrix A for icsm weights optimization.  Binary matrix telling which edge
         belongs to which cycle.
         Uses the arbitraty edge ordering createede in the self.set_maps method
         """
@@ -473,13 +509,14 @@ class FMN:
 
     def compute_3cycle_weights(self, M=None):
         """
-        Compute per-cycle costs and per-edge costs for ISCM optimization.
+        Compute per-cycle costs and per-edge costs for icsm optimization.
         Cycle weights are given by the self.get_cycle_weight method (deviation from Id map)
         Edge weight is the inverse of the sum of all weights of the cycles the edge belongs to.
 
-        Parameters :
+        Parameters
         -----------------------
-        M : Dimension of functional maps to use. If None, uses self.M
+        M : int
+            Dimension of functional maps to use. If None, uses self.M
         """
         if M is None:
             M = self.M
@@ -491,17 +528,18 @@ class FMN:
         self.edge_weights = np.zeros(len(self.edges))
         self.edge_weights[self.A_sub] = 1/(self.A[:, self.A_sub]*self.cycle_weight[:, None]).sum(0)
 
-    def optimize_iscm(self, verbose=False):
-        """
-        Solves the linear problem for ISCM weights computation
-        min w.T @ x
-        s.t.  A@x >= C_gamma and x >= 0
+    def optimize_icsm(self, verbose=False):
+        r"""
+        Solves the linear problem for icsm weights computation
+        $\min w^{\top}  x$
+        s.t.  $A x \geq C_{\gamma}$ and $x \geq 0$
 
         Edges which are not part of a cycle are given 0-weigths
 
-        Output
+        Returns
         ------------------------
-        opt_weights : (n_edges,) (positive) weights for each edge.
+        opt_weights : np.ndarray
+            (n_edges,) (positive) weights for each edge.
         """
         self.compute_3cycle_weights(M=self.M)
 
@@ -526,12 +564,15 @@ class FMN:
 
         Parameters
         -----------------------
-        cycle : 3-uple with node indices creating a cycle
-        M     : Dimension of functional maps to use. If None use self.M
+        cycle :
+            3-uple with node indices creating a cycle
+        M     : int
+            Dimension of functional maps to use. If None use self.M
 
-        Output
+        Returns
         -----------------------
-        cost : cost of the cycle
+        cost : float
+            cost of the cycle
         """
         if M is None:
             M = self.M
@@ -552,26 +593,33 @@ class FMN:
 
         return max(max(costi, costj), costk)
 
-    def zoomout_iteration(self, cclb_size, M_init, M_final, isometric=True, weight_type='iscm',
+    def zoomout_iteration(self, cclb_size, M_init, M_final, isometric=True, weight_type='icsm',
                           n_jobs=1, equals_id=False, complete=False):
         """
         Performs an iteration of Consistent Zoomout refinement
 
         Parameters
         -----------------------------
-        cclb_size   : size of the CCLB to compute
-        M_init      : initial dimension of maps
-        M_final     : dimension at the end of the iteration
-        isometric   : whether to use the reduced space strategy of ConsistentZoomout-iso
-        weight_type : 'iscm' or 'adjacency', type of weights to use
-        equals_id   : Whether the CLB optimization uses Id or n*Id as a constraint
-        complete    : If vertex-to-vertex and functional maps should be computed with all vertices 
+        cclb_size   :
+            size of the CCLB to compute
+        M_init      :
+            initial dimension of maps
+        M_final     :
+            dimension at the end of the iteration
+        isometric   :
+            whether to use the reduced space strategy of ConsistentZoomout-iso
+        weight_type :
+            'icsm' or 'adjacency', type of weights to use
+        equals_id   :
+            Whether the CLB optimization uses Id or n*Id as a constraint
+        complete    :
+            If vertex-to-vertex and functional maps should be computed with all vertices
                       instead of the subsampling.
         """
         if isometric:
             self.set_isometries(M=M_init)
 
-        if weight_type == 'iscm':
+        if weight_type == 'icsm':
             self.set_weights(weight_type=weight_type)
         elif self.weights is None:
             # Only computed at first iteration
@@ -583,7 +631,7 @@ class FMN:
         self.compute_p2p(complete=complete, n_jobs=n_jobs)
         self.compute_maps(M_final, complete=complete)
 
-    def zoomout_refine(self, nit=10, step=1, subsample=1000, isometric=True, weight_type='iscm',
+    def zoomout_refine(self, nit=10, step=1, subsample=1000, isometric=True, weight_type='icsm',
                        M_init=None, cclb_ratio=.9, n_jobs=1, equals_id=False,
                        verbose=False):
         """
@@ -591,14 +639,22 @@ class FMN:
 
         Parameters
         -----------------------------
-        nit         : number of zoomout iterations
-        step        : dimension increase at each iteration
-        subsample   : size of vertices subsample. If set to 0 or None, all vertices are used.
-        isometric   : whether to use the reduced space strategy of ConsistentZoomout-iso
-        weight_type : 'iscm' or 'adjacency', type of weights to use
-        M_init      : original size of functional maps. If None, uses self.M
-        cclb_ratio  : size of CCLB as a ratio of the current dimension M
-        equals_id   : Whether the CLB optimization uses Id or n*Id as a constraint
+        nit         :
+            number of zoomout iterations
+        step        :
+            dimension increase at each iteration
+        subsample   :
+            size of vertices subsample. If set to 0 or None, all vertices are used.
+        isometric   :
+            whether to use the reduced space strategy of ConsistentZoomout-iso
+        weight_type :
+            'icsm' or 'adjacency', type of weights to use
+        M_init      :
+            original size of functional maps. If None, uses self.M
+        cclb_ratio  :
+            size of CCLB as a ratio of the current dimension M
+        equals_id   :
+            Whether the CLB optimization uses Id or n*Id as a constraint
         """
         if (np.issubdtype(type(subsample), np.integer) and subsample == 0) or subsample is None:
             use_sub = False
@@ -636,15 +692,19 @@ def CLB_quad_form(maps, weights, M=None):
     Computes the quadratic form associated to a Functional Maps Network, for Consistent Latent Basis
     computation.
 
-    Parameters:
+    Parameters
     -----------------------------
-    maps    : dict - dictionnary of functional maps associated to key (i,j) representing an edge
-    weights : (n,n) sparse matrix of weights. Entry (i,j) represent the weight of edge (i,j)
-    M       : Dimension of Functional maps to consider
+    maps    : dict
+            dictionnary of functional maps associated to key (i,j) representing an edge
+    weights :
+            (n,n) sparse matrix of weights. Entry (i,j) represent the weight of edge (i,j)
+    M       :
+            Dimension of Functional maps to consider
 
-    Output
+    Returns
     -----------------------------
-    W : (N*M,N*M) sparse matrix representing the quadratic form for CLB computation.
+    W : scipy.sparse.csr_matrix
+        (N*M,N*M) sparse matrix representing the quadratic form for CLB computation.
     """
     edges = list(maps.keys())
     N = 1 + np.max(edges)
