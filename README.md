@@ -1,4 +1,7 @@
 # pyFM - Python bindings for functional maps
+
+![](https://github.com/RobinMagnet/pyFM/blob/master/.github/workflows/documentation.yml/badge.svg?branch=main)
+
 pyFM is a pure python implementation of multiple tools used for Functional Maps computations. Namely, it implements shape signatures, functional map optimization and refinement algorithm, and above all an easy-to-use interface for using functional maps.
 
 The package is now in **v1.0.0** as it has been stable for quite a long time. It had been released on PyPI.
