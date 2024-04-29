@@ -8,13 +8,16 @@ import pathlib
 import sys
 sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
 print(pathlib.Path(__file__).parents[2].resolve().as_posix())
+
+import importlib
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'pyfmaps'
 copyright = '2024, Robin Magnet'
 author = 'Robin Magnet'
-release = '1.0.0'
+release = importlib.metadata.version("pyFM")
+
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
