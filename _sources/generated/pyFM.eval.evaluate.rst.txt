@@ -1,0 +1,31 @@
+pyFM.eval.evaluate
+==================
+
+.. automodule:: pyFM.eval.evaluate
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      accuracy
+      continuity
+      coverage
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

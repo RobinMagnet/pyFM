@@ -1,0 +1,49 @@
+pyFM.FMN.FMN
+============
+
+.. currentmodule:: pyFM.FMN
+
+.. autoclass:: FMN
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~FMN.__init__
+      ~FMN.compute_3cycle_weights
+      ~FMN.compute_Amat
+      ~FMN.compute_CCLB
+      ~FMN.compute_CLB
+      ~FMN.compute_W
+      ~FMN.compute_maps
+      ~FMN.compute_p2p
+      ~FMN.compute_subsample
+      ~FMN.extract_3_cycles
+      ~FMN.get_CSD
+      ~FMN.get_LB
+      ~FMN.get_cycle_weight
+      ~FMN.optimize_icsm
+      ~FMN.set_isometries
+      ~FMN.set_maps
+      ~FMN.set_subsample
+      ~FMN.set_weights
+      ~FMN.zoomout_iteration
+      ~FMN.zoomout_refine
+   
+   
+
+   
+   
+   .. rubric:: Attributes
+
+   .. autosummary::
+   
+      ~FMN.M
+      ~FMN.m_cclb
+      ~FMN.n_meshes
+   
+   

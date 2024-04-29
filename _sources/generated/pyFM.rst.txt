@@ -1,0 +1,38 @@
+﻿pyFM
+====
+
+.. automodule:: pyFM
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   pyFM.FMN
+   pyFM.eval
+   pyFM.functional
+   pyFM.mesh
+   pyFM.optimize
+   pyFM.refine
+   pyFM.signatures
+   pyFM.spectral
+

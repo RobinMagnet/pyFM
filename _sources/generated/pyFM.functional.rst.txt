@@ -1,0 +1,29 @@
+pyFM.functional
+===============
+
+.. automodule:: pyFM.functional
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FunctionalMapping
+   
+   
+
+   
+   
+   
+
+
+
