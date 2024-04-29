@@ -1,3 +1,9 @@
+"""
+.. note::
+    Python implementation of:
+        [1] - "Deblurring and Denoising of Maps between Shapes", by Danielle Ezuz and Mirela Ben-Chen.
+"""
+
 import time
 
 import numpy as np
@@ -244,8 +250,8 @@ def compute_dmin(vert_emb, faces, points_emb, vertind, vert_sqnorms=None, points
         (n1,) squared norm of each vertex
     points_sqnorm :
         (n2,) squared norm of each point
-    Returns
 
+    Returns
     ----------------------------
     delta_min : np.ndarray
         (m1,n2) delta_min for each face on the source shape.
@@ -289,8 +295,8 @@ def compute_all_dmin(vert_emb, faces, points_emb, vert_sqnorm=None, points_sqnor
         (n1,) squared norm of each vertex
     points_sqnorm :
         (n2,) squared norm of each point
-    Returns
 
+    Returns
     ----------------------------
     delta_min : np.ndarray
         (m1,n2) delta_min for each face on the source shape.
@@ -446,11 +452,11 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
     -------*-------*------->s
            |P0      \
      reg4  | reg5    \ reg6
-     IGNORE
+    IGNORE
 
-     Most notations come from :
-        [1] "David Eberly, 'Distance Between Point and Triangle in 3D',
-    Geometric Tools, LLC, (1999)"
+    .. note::
+        Most notations come from :
+            [1] "David Eberly, 'Distance Between Point and Triangle in 3D', Geometric Tools, LLC, (1999)"
 
     Parameters
     -------------------------------
@@ -762,8 +768,8 @@ def pointTriangleDistance(TRI, P, return_bary=False):
     r"""
     Computes distance between a point and a triangle in a p-dimensional space
 
-    Based on the implementation in (modified to return barycentric coordinates of the projection):
-    https://gist.github.com/joshuashaffer/99d58e4ccbd37ca5d96e
+    .. note::
+        Based on the implementation in (modified to return barycentric coordinates of the projection): https://gist.github.com/joshuashaffer/99d58e4ccbd37ca5d96e
 
     DESCRIPTION
       Calculate the distance of a given point P from a triangle TRI.

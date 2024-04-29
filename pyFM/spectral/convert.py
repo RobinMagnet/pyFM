@@ -1,3 +1,9 @@
+"""
+Python implementation of:
+
+[1] - "Deblurring and Denoising of Maps between Shapes", by Danielle Ezuz and Mirela Ben-Chen.
+"""
+
 import scipy.linalg
 import numpy as np
 
