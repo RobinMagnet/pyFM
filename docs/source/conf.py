@@ -16,7 +16,7 @@ import importlib
 project = 'pyfmaps'
 copyright = '2024, Robin Magnet'
 author = 'Robin Magnet'
-release = importlib.metadata.version("pyFM")
+release = '1.0.0' # importlib.metadata.version("pyFM")
 
 
 # -- General configuration ---------------------------------------------------
