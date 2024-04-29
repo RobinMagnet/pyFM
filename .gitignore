@@ -1,3 +1,8 @@
+docs/build
+docs/source/generated/*
+docs/make.bat
+docs/Makefile
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -7,7 +12,7 @@ __pycache__/
 /data
 
 # STRESS outputs
-*.pdf  
+*.pdf
 *.vtp
 *.mat
 
@@ -91,6 +96,6 @@ venv/
 # written by setuptools_scm
 **/_version.py
 
-# Dask 
+# Dask
 dask-worker-space/
 
