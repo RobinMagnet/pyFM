@@ -6,15 +6,13 @@
 Welcome to pyfmaps's documentation!
 ===================================
 
-Examples
---------
 
-Examples can be in `this directory <https://github.com/RobinMagnet/pyFM/tree/master/examples>`_
 
 
 API
 ---
 .. toctree::
 
-   install
+   install.md
+   examples.md
    api
