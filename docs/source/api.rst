@@ -1,11 +1,8 @@
 .. _api_documentation:
 
-API
-===
-
-
-Modules
--------
+API Documentation
+=================
+I can't manage to hide this part. Hopefully it will be hidden in the final documentation.
 
 .. autosummary::
     :toctree: generated
