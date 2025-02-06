@@ -25,7 +25,9 @@ def knn_query(X, Y, k=1, return_distance=False, n_jobs=1):
     matches : np.ndarray
         (n2,k) or (n2,) if k=1 - nearest neighbor
     """
-    tree = NearestNeighbors(n_neighbors=k, leaf_size=40, algorithm="kd_tree", n_jobs=n_jobs)
+    tree = NearestNeighbors(
+        n_neighbors=k, leaf_size=40, algorithm="kd_tree", n_jobs=n_jobs
+    )
     tree.fit(X)
     dists, matches = tree.kneighbors(Y)
 

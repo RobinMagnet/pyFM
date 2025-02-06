@@ -143,7 +143,7 @@ def oplist_commutation(C, op_list):
         (float) sum of operators commutativity squared norm
     """
     energy = 0
-    for (op1, op2) in op_list:
+    for op1, op2 in op_list:
         energy += op_commutation(C, op1, op2)
 
     return energy
@@ -167,12 +167,23 @@ def oplist_commutation_grad(C, op_list):
         (K2,K1) gradient of the sum of operators commutativity squared norm
     """
     gradient = 0
-    for (op1, op2) in op_list:
+    for op1, op2 in op_list:
         gradient += op_commutation_grad(C, op1, op2)
     return gradient
 
 
-def energy_func_std(C, descr_mu, lap_mu, descr_comm_mu, orient_mu, descr1_red, descr2_red, list_descr, orient_op, ev_sqdiff):
+def energy_func_std(
+    C,
+    descr_mu,
+    lap_mu,
+    descr_comm_mu,
+    orient_mu,
+    descr1_red,
+    descr2_red,
+    list_descr,
+    orient_op,
+    ev_sqdiff,
+):
     """
     Evaluation of the energy for standard FM computation
 
@@ -208,7 +219,7 @@ def energy_func_std(C, descr_mu, lap_mu, descr_comm_mu, orient_mu, descr1_red, d
     """
     k1 = descr1_red.shape[0]
     k2 = descr2_red.shape[0]
-    C = C.reshape((k2,k1))
+    C = C.reshape((k2, k1))
 
     energy = 0
 
@@ -227,7 +238,18 @@ def energy_func_std(C, descr_mu, lap_mu, descr_comm_mu, orient_mu, descr1_red, d
     return energy
 
 
-def grad_energy_std(C, descr_mu, lap_mu, descr_comm_mu, orient_mu, descr1_red, descr2_red, list_descr, orient_op, ev_sqdiff):
+def grad_energy_std(
+    C,
+    descr_mu,
+    lap_mu,
+    descr_comm_mu,
+    orient_mu,
+    descr1_red,
+    descr2_red,
+    list_descr,
+    orient_op,
+    ev_sqdiff,
+):
     """
     Evaluation of the gradient of the energy for standard FM computation
 
@@ -263,7 +285,7 @@ def grad_energy_std(C, descr_mu, lap_mu, descr_comm_mu, orient_mu, descr1_red, d
     """
     k1 = descr1_red.shape[0]
     k2 = descr2_red.shape[0]
-    C = C.reshape((k2,k1))
+    C = C.reshape((k2, k1))
 
     gradient = np.zeros_like(C)
 
@@ -279,5 +301,5 @@ def grad_energy_std(C, descr_mu, lap_mu, descr_comm_mu, orient_mu, descr1_red, d
     if orient_mu > 0:
         gradient += orient_mu * oplist_commutation_grad(C, orient_op)
 
-    gradient[:,0] = 0
+    gradient[:, 0] = 0
     return gradient.reshape(-1)

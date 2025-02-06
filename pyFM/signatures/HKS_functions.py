@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def HKS(evals, evects, time_list,scaled=False):
+def HKS(evals, evects, time_list, scaled=False):
     """
     Returns the Heat Kernel Signature for num_T different values.
     The values of the time are interpolated in logscale between the limits
@@ -27,11 +27,11 @@ def HKS(evals, evects, time_list,scaled=False):
     t_list = np.asarray(time_list).flatten()
 
     coefs = np.exp(-np.outer(t_list, evals_s))  # (num_T,K)
-    natural_HKS = np.einsum('tk,nk->nt', coefs, np.square(evects))
+    natural_HKS = np.einsum("tk,nk->nt", coefs, np.square(evects))
 
     if scaled:
         inv_scaling = coefs.sum(1)  # (num_T)
-        return (1/inv_scaling)[None,:] * natural_HKS
+        return (1 / inv_scaling)[None, :] * natural_HKS
 
     else:
         return natural_HKS
@@ -63,13 +63,13 @@ def lm_HKS(evals, evects, landmarks, time_list, scaled=False):
     t_list = np.asarray(time_list).flatten()
 
     coefs = np.exp(-np.outer(t_list, evals_s))  # (num_T,K)
-    weighted_evects = evects[None, landmarks, :] * coefs[:,None,:]  # (num_T,p,K)
+    weighted_evects = evects[None, landmarks, :] * coefs[:, None, :]  # (num_T,p,K)
 
-    landmarks_HKS = np.einsum('tpk,nk->ptn', weighted_evects, evects)  # (p,num_T,N)
+    landmarks_HKS = np.einsum("tpk,nk->ptn", weighted_evects, evects)  # (p,num_T,N)
 
     if scaled:
         inv_scaling = coefs.sum(1)  # (num_T,)
-        landmarks_HKS = (1/inv_scaling)[None,:,None] * landmarks_HKS
+        landmarks_HKS = (1 / inv_scaling)[None, :, None] * landmarks_HKS
 
     return landmarks_HKS.reshape(-1, evects.shape[0]).T  # (N,p*num_E)
 
@@ -96,7 +96,9 @@ def auto_HKS(evals, evects, num_T, landmarks=None, scaled=True):
     """
 
     abs_ev = sorted(np.abs(evals))
-    t_list = np.geomspace(4*np.log(10)/abs_ev[-1], 4*np.log(10)/abs_ev[1], num_T)
+    t_list = np.geomspace(
+        4 * np.log(10) / abs_ev[-1], 4 * np.log(10) / abs_ev[1], num_T
+    )
 
     if landmarks is None:
         return HKS(abs_ev, evects, t_list, scaled=scaled)
@@ -130,6 +132,14 @@ def mesh_HKS(mesh, num_T, landmarks=None, k=None):
     if k is None:
         k = len(mesh.eigenvalues)
     else:
-        assert len(mesh.eigenvalues >= k), f"At least ${k}$ eigenvalues should be computed, not {len(mesh.eigenvalues)}"
+        assert len(
+            mesh.eigenvalues >= k
+        ), f"At least ${k}$ eigenvalues should be computed, not {len(mesh.eigenvalues)}"
 
-    return auto_HKS(mesh.eigenvalues[:k], mesh.eigenvectors[:,:k], num_T, landmarks=landmarks, scaled=True)
+    return auto_HKS(
+        mesh.eigenvalues[:k],
+        mesh.eigenvectors[:, :k],
+        num_T,
+        landmarks=landmarks,
+        scaled=True,
+    )

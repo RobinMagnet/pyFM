@@ -39,13 +39,13 @@ def conformal_SD(FM, evals1, evals2):
     SD : np.ndarray
         (k1,k1) - Conformal shape difference operator
     """
-    k2,k1 = FM.shape
+    k2, k1 = FM.shape
 
-    SD = np.linalg.pinv(np.diag(evals1[:k1])) @ FM.T @ (evals2[:k2,None] * FM)
+    SD = np.linalg.pinv(np.diag(evals1[:k1])) @ FM.T @ (evals2[:k2, None] * FM)
     return SD
 
 
-def compute_SD(mesh1, mesh2, k1=None, k2=None, p2p=None, SD_type='spectral'):
+def compute_SD(mesh1, mesh2, k1=None, k2=None, p2p=None, SD_type="spectral"):
     """
     Computes shape difference operators from a vertex to vertex map.
 
@@ -74,25 +74,30 @@ def compute_SD(mesh1, mesh2, k1=None, k2=None, p2p=None, SD_type='spectral'):
     SD_c : np.ndarray
         (k1,k1) Conformal shape difference operator
     """
-    assert SD_type in ['spectral', 'semican'], f"Problem with type of SD type : {SD_type}"
+    assert SD_type in [
+        "spectral",
+        "semican",
+    ], f"Problem with type of SD type : {SD_type}"
 
     if k1 is None:
         k1 = len(mesh1.eigenvalues)
 
     if k2 is None:
-        k2 = 3*k1
+        k2 = 3 * k1
 
     if p2p is None:
         p2p = np.arange(mesh2.n_vertices)
 
-    if SD_type == 'spectral':
+    if SD_type == "spectral":
         FM = convert.mesh_p2p_to_FM(p2p, mesh1, mesh2, dims=(k1, k2))  # (K2,K1)
         SD_a = area_SD(FM)  # (K1,K1)
         SD_c = conformal_SD(FM, mesh1.eigenvalues, mesh2.eigenvalues)  # (K1,K1)
 
-    elif SD_type == 'semican':
-        FM = mesh1.eigenvectors[p2p,:k1]  # (n2,K1)
+    elif SD_type == "semican":
+        FM = mesh1.eigenvectors[p2p, :k1]  # (n2,K1)
         SD_a = FM.T @ mesh2.A @ FM  # (K1,K1)
-        SD_c = np.linalg.pinv(np.diag(mesh1.eigenvalues[:k1])) @ FM.T @ mesh2.W @ FM  # (K1,K1)
+        SD_c = (
+            np.linalg.pinv(np.diag(mesh1.eigenvalues[:k1])) @ FM.T @ mesh2.W @ FM
+        )  # (K1,K1)
 
     return SD_a, SD_c

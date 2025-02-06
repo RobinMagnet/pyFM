@@ -14,7 +14,6 @@ from .. import spectral
 from sklearn.neighbors import NearestNeighbors
 
 
-
 class FMN:
     """
     Functional Map Network Class
@@ -27,6 +26,7 @@ class FMN:
         dictionnary of functional maps between each pair of meshes.
         Keys are (i,j) with i,j indices of the meshes in the list.
     """
+
     def __init__(self, meshlist, maps_dict=None):
         # Mesh of each Node
         self.meshlist = copy.deepcopy(meshlist)  # List of n TriMesh
@@ -57,7 +57,9 @@ class FMN:
         # CLB and CCLB attributes
         self.W = None  # (n*M, n*M) sparse matrix. Quadratic form for CLB computation.
         self.CLB = None  # (n,M,M) array of Consistent Latent Basis for each mesh.
-        self.CCLB = None  # (n,M,m) array of Canonical Consistent Latent Basis for each mesh
+        self.CCLB = (
+            None  # (n,M,m) array of Canonical Consistent Latent Basis for each mesh
+        )
         self.cclb_eigenvalues = None  # (m,) eigenvalues of the CCLB
 
         # Extra information
@@ -118,8 +120,12 @@ class FMN:
 
         # Reset map-dependant attributes
         self.W = None  # (n*M, n*M) sparse matrix. Quadratic form for CLB computation.
-        self.CLB = None  # (n,M,M) array containing the Consistent Latent Basis for each mesh.
-        self.CCLB = None  # (n,M,m) array of Canonical Consistent Latent Basis for each mesh
+        self.CLB = (
+            None  # (n,M,M) array containing the Consistent Latent Basis for each mesh.
+        )
+        self.CCLB = (
+            None  # (n,M,m) array of Canonical Consistent Latent Basis for each mesh
+        )
         self.cclb_eigenvalues = None  # (m,) eigenvalues of the CCLB
         self.p2p = None  # Dictionnary of pointwise
 
@@ -144,7 +150,7 @@ class FMN:
             self.edge2ind[edge] = edge_ind
 
         if verbose:
-            print(f'Setting {len(self.edges)} edges on {self.n_meshes} nodes.')
+            print(f"Setting {len(self.edges)} edges on {self.n_meshes} nodes.")
 
         return self
 
@@ -172,12 +178,14 @@ class FMN:
             number of vertices to subsample on each shape
         """
         if verbose:
-            print(f'Computing a {size}-sized subsample for each mesh')
+            print(f"Computing a {size}-sized subsample for each mesh")
         self.subsample = np.zeros((self.n_meshes, size), dtype=int)
         for i in range(self.n_meshes):
-            self.subsample[i] = self.meshlist[i].extract_fps(size, geodesic=geodesic, random_init=False)
+            self.subsample[i] = self.meshlist[i].extract_fps(
+                size, geodesic=geodesic, random_init=False
+            )
 
-    def set_weights(self, weights=None, weight_type='icsm', verbose=False):
+    def set_weights(self, weights=None, weight_type="icsm", verbose=False):
         """
         Set weights for each edge in the graph
 
@@ -194,7 +202,7 @@ class FMN:
             self.use_icsm = False
             self.weights = copy.deepcopy(weights)
 
-        elif weight_type == 'icsm':
+        elif weight_type == "icsm":
             self.use_icsm = True
 
             # Process cycles if necessary
@@ -213,21 +221,27 @@ class FMN:
                 weight_arr /= np.mean(weight_arr[self.A_sub])
             else:
                 weight_arr /= median_val
-            new_w = np.exp(-np.square(weight_arr)/2)  # (n_edges,)
+            new_w = np.exp(-np.square(weight_arr) / 2)  # (n_edges,)
 
             I = [x[0] for x in self.edges]
             J = [x[1] for x in self.edges]
-            self.weights = sparse.csr_matrix((new_w, (I, J)), shape=(self.n_meshes, self.n_meshes))
+            self.weights = sparse.csr_matrix(
+                (new_w, (I, J)), shape=(self.n_meshes, self.n_meshes)
+            )
 
-        elif weight_type == 'adjacency':
+        elif weight_type == "adjacency":
             self.use_icsm = False
             I = [x[0] for x in self.edges]
             J = [x[1] for x in self.edges]
             V = [1 for x in range(len(self.edges))]
-            self.weights = sparse.csr_matrix((V, (I, J)),shape=(self.n_meshes, self.n_meshes))
+            self.weights = sparse.csr_matrix(
+                (V, (I, J)), shape=(self.n_meshes, self.n_meshes)
+            )
 
         else:
-            raise ValueError(f'"weight_type" should be "icsm" or "adjacency, not {weight_type}')
+            raise ValueError(
+                f'"weight_type" should be "icsm" or "adjacency, not {weight_type}'
+            )
 
         return self
 
@@ -251,7 +265,7 @@ class FMN:
         if M is None:
             M = self.M
 
-        for (i, j) in self.edges:
+        for i, j in self.edges:
             if not visited[(i, j)] and (j, i) in self.edges:
                 FM1 = self.maps[(i, j)][:M, :M]
                 FM2 = self.maps[(j, i)][:M, :M]
@@ -264,7 +278,7 @@ class FMN:
                 else:
                     self.maps[(i, j)] = np.transpose(self.maps[(j, i)])
 
-                visited[(j,i)] = True
+                visited[(j, i)] = True
 
         # Reset all map-dependant attributes
         self._reset_map_attributes()
@@ -280,7 +294,7 @@ class FMN:
             If not specified, used the size of the first found functional map
         """
         if self.maps is None:
-            raise ValueError('Functional maps should be set')
+            raise ValueError("Functional maps should be set")
 
         if self.weights is None:
             self.set_weights(verbose=verbose)
@@ -309,21 +323,23 @@ class FMN:
         # There is a bug in sparse eigenvalues computation where 'LM' returns the smallest
         # eigenvalues whereas 'SM' does not.
         if verbose:
-            print(f'Computing {self.M} CLB eigenvectors...')
+            print(f"Computing {self.M} CLB eigenvectors...")
             start_time = time.time()
         if equals_id:
             # Returns (n*M,), (n*M,M) array
 
-            eigenvalues, eigenvectors = scipy.sparse.linalg.eigsh(self.W, k=self.M,
-                                                                  which='LM', sigma=-1e-6)
+            eigenvalues, eigenvectors = scipy.sparse.linalg.eigsh(
+                self.W, k=self.M, which="LM", sigma=-1e-6
+            )
         else:
             # Returns (n*M,), (n*M,M) array
-            M_mat = 1/self.n_meshes * scipy.sparse.eye(self.W.shape[0])
-            eigenvalues, eigenvectors = scipy.sparse.linalg.eigsh(self.W, M=M_mat, k=self.M,
-                                                                  which='LM', sigma=-1e-6)
+            M_mat = 1 / self.n_meshes * scipy.sparse.eye(self.W.shape[0])
+            eigenvalues, eigenvectors = scipy.sparse.linalg.eigsh(
+                self.W, M=M_mat, k=self.M, which="LM", sigma=-1e-6
+            )
 
         if verbose:
-            print(f'\tDone in {time.time() - start_time:.1f}s')
+            print(f"\tDone in {time.time() - start_time:.1f}s")
         # In any case, make sure they are real and sorted.
         # eigenvalues = np.real(eigenvalues)
         # sorting = np.argsort(eigenvalues)
@@ -350,7 +366,7 @@ class FMN:
 
         for i in range(self.n_meshes):
             Y = self.CLB[i, :, :m]  # (M,m)
-            evals = self.meshlist[i].eigenvalues[:self.M]  # (M,)
+            evals = self.meshlist[i].eigenvalues[: self.M]  # (M,)
             E_mat += Y.T @ (evals[:, None] * Y)  # (m,m)
 
         # Compute the eigendecomposition of E
@@ -364,7 +380,9 @@ class FMN:
 
         # CCLB is stored as an (n,M,m) array
         self.cclb_eigenvalues = eigenvalues  # (m,)
-        self.CCLB = np.array([self.CLB[i, :, :m] @ eigenvectors for i in range(self.n_meshes)])
+        self.CCLB = np.array(
+            [self.CLB[i, :, :m] @ eigenvectors for i in range(self.n_meshes)]
+        )
 
         return self
 
@@ -387,8 +405,12 @@ class FMN:
         # Functional map from the Limit Shape to shape i
         FM = self.CCLB[i]
 
-        CSD_a = FM.T@FM
-        CSD_c = np.linalg.pinv(np.diag(self.cclb_eigenvalues)) @ FM.T @ (self.meshlist[i].eigenvalues[:self.M,None]*FM)
+        CSD_a = FM.T @ FM
+        CSD_c = (
+            np.linalg.pinv(np.diag(self.cclb_eigenvalues))
+            @ FM.T
+            @ (self.meshlist[i].eigenvalues[: self.M, None] * FM)
+        )
 
         return CSD_a, CSD_c
 
@@ -408,12 +430,16 @@ class FMN:
         latent_basis: np.ndarray
             (n_i,m) latent basis on mesh i
         """
-        cclb = self.CCLB[i]  # / np.linalg.norm(self.CCLB[i],axis=0,keepdims=True)  # (M,m)
+        cclb = self.CCLB[
+            i
+        ]  # / np.linalg.norm(self.CCLB[i],axis=0,keepdims=True)  # (M,m)
         if not complete and self.subsample is not None:
-            latent_basis = self.meshlist[i].eigenvectors[self.subsample[i], :self.M] @ cclb
+            latent_basis = (
+                self.meshlist[i].eigenvectors[self.subsample[i], : self.M] @ cclb
+            )
             return latent_basis  # (n_i',m)
 
-        latent_basis = self.meshlist[i].eigenvectors[:, :self.M] @ cclb  # (N_i,m)
+        latent_basis = self.meshlist[i].eigenvectors[:, : self.M] @ cclb  # (N_i,m)
         return latent_basis
 
     def compute_p2p(self, complete=True, n_jobs=1):
@@ -432,13 +458,15 @@ class FMN:
 
         self.p2p = dict()
         curr_vind = -1
-        for (i, j) in self.edges:
+        for i, j in self.edges:
 
             if i != curr_vind:
                 curr_v = i
                 LB_1 = self.get_LB(curr_v, complete=False)  # (n_1',m)
 
-                tree = NearestNeighbors(n_neighbors=1, leaf_size=40, algorithm="kd_tree", n_jobs=n_jobs)
+                tree = NearestNeighbors(
+                    n_neighbors=1, leaf_size=40, algorithm="kd_tree", n_jobs=n_jobs
+                )
                 _ = tree.fit(LB_1)
 
             # LB_1 = self.get_LB(i, complete=complete)  # (n_1',m)
@@ -460,14 +488,19 @@ class FMN:
             size of the functional map to compute
         """
         self.M = M
-        for (i, j) in self.edges:
+        for i, j in self.edges:
             if not complete and self.subsample is not None:
                 sub = (self.subsample[i], self.subsample[j])
             else:
                 sub = None
 
-            FM = spectral.mesh_p2p_to_FM(self.p2p[(i, j)], self.meshlist[i], self.meshlist[j],
-                                         dims=M, subsample=sub)
+            FM = spectral.mesh_p2p_to_FM(
+                self.p2p[(i, j)],
+                self.meshlist[i],
+                self.meshlist[j],
+                dims=M,
+                subsample=sub,
+            )
             self.maps[(i, j)] = FM
 
         # Reset map-dependant variables
@@ -484,12 +517,20 @@ class FMN:
         for i in range(self.n_meshes):
             for j in range(i):
                 for k in range(j):
-                    if (i, j) in self.edges and (j, k) in self.edges and (k, i) in self.edges:
+                    if (
+                        (i, j) in self.edges
+                        and (j, k) in self.edges
+                        and (k, i) in self.edges
+                    ):
                         self.cycles.append((i, j, k))
 
-            for j in range(i+1,self.n_meshes):
-                for k in range(j+1,self.n_meshes):
-                    if (i, j) in self.edges and (j, k) in self.edges and (k, i) in self.edges:
+            for j in range(i + 1, self.n_meshes):
+                for k in range(j + 1, self.n_meshes):
+                    if (
+                        (i, j) in self.edges
+                        and (j, k) in self.edges
+                        and (k, i) in self.edges
+                    ):
                         self.cycles.append(tuple((i, j, k)))
 
     def compute_Amat(self):
@@ -523,10 +564,12 @@ class FMN:
 
         self.cycle_weight = np.zeros(len(self.cycles))
         for cycle_ind, cycle in enumerate(self.cycles):
-            self.cycle_weight[cycle_ind] = self.get_cycle_weight(cycle,M=M)  # n_cycles
+            self.cycle_weight[cycle_ind] = self.get_cycle_weight(cycle, M=M)  # n_cycles
 
         self.edge_weights = np.zeros(len(self.edges))
-        self.edge_weights[self.A_sub] = 1/(self.A[:, self.A_sub]*self.cycle_weight[:, None]).sum(0)
+        self.edge_weights[self.A_sub] = 1 / (
+            self.A[:, self.A_sub] * self.cycle_weight[:, None]
+        ).sum(0)
 
     def optimize_icsm(self, verbose=False):
         r"""
@@ -544,13 +587,19 @@ class FMN:
         self.compute_3cycle_weights(M=self.M)
 
         if verbose:
-            print('Optimizing Cycle Weights...')
+            print("Optimizing Cycle Weights...")
             start_time = time.time()
         # Solve Linear Program
-        res = linprog(self.edge_weights, A_ub=-self.A, b_ub=-self.cycle_weight, bounds=(0, float("inf")), method='highs-ds')
+        res = linprog(
+            self.edge_weights,
+            A_ub=-self.A,
+            b_ub=-self.cycle_weight,
+            bounds=(0, float("inf")),
+            method="highs-ds",
+        )
 
         if verbose:
-            print(f'\tDone in {time.time() - start_time:.5f}s')
+            print(f"\tDone in {time.time() - start_time:.5f}s")
         opt_weights = np.zeros(len(self.edges))  # (n_edges,)
         opt_weights[self.A_sub] = res.x[self.A_sub]
 
@@ -583,9 +632,9 @@ class FMN:
         Cjk = self.maps[(j, k)][:M, :M]
         Cki = self.maps[(k, i)][:M, :M]
 
-        Cii = Cij@Cjk@Cki
-        Cjj = Cjk@Cki@Cij
-        Ckk = Cki@Cij@Cjk
+        Cii = Cij @ Cjk @ Cki
+        Cjj = Cjk @ Cki @ Cij
+        Ckk = Cki @ Cij @ Cjk
 
         costi = np.linalg.norm(Cii - np.eye(M))
         costj = np.linalg.norm(Cjj - np.eye(M))
@@ -593,8 +642,17 @@ class FMN:
 
         return max(max(costi, costj), costk)
 
-    def zoomout_iteration(self, cclb_size, M_init, M_final, isometric=True, weight_type='icsm',
-                          n_jobs=1, equals_id=False, complete=False):
+    def zoomout_iteration(
+        self,
+        cclb_size,
+        M_init,
+        M_final,
+        isometric=True,
+        weight_type="icsm",
+        n_jobs=1,
+        equals_id=False,
+        complete=False,
+    ):
         """
         Performs an iteration of Consistent Zoomout refinement
 
@@ -619,11 +677,11 @@ class FMN:
         if isometric:
             self.set_isometries(M=M_init)
 
-        if weight_type == 'icsm':
+        if weight_type == "icsm":
             self.set_weights(weight_type=weight_type)
         elif self.weights is None:
             # Only computed at first iteration
-            self.set_weights(weight_type='adjacency')
+            self.set_weights(weight_type="adjacency")
 
         self.compute_W(M=M_init)
         self.compute_CLB(equals_id=equals_id)
@@ -631,9 +689,19 @@ class FMN:
         self.compute_p2p(complete=complete, n_jobs=n_jobs)
         self.compute_maps(M_final, complete=complete)
 
-    def zoomout_refine(self, nit=10, step=1, subsample=1000, isometric=True, weight_type='icsm',
-                       M_init=None, cclb_ratio=.9, n_jobs=1, equals_id=False,
-                       verbose=False):
+    def zoomout_refine(
+        self,
+        nit=10,
+        step=1,
+        subsample=1000,
+        isometric=True,
+        weight_type="icsm",
+        M_init=None,
+        cclb_ratio=0.9,
+        n_jobs=1,
+        equals_id=False,
+        verbose=False,
+    ):
         """
         Refines the functional maps using Consistent Zoomout refinement
 
@@ -656,7 +724,9 @@ class FMN:
         equals_id   :
             Whether the CLB optimization uses Id or n*Id as a constraint
         """
-        if (np.issubdtype(type(subsample), np.integer) and subsample == 0) or subsample is None:
+        if (
+            np.issubdtype(type(subsample), np.integer) and subsample == 0
+        ) or subsample is None:
             use_sub = False
             self.subsample = None
         else:
@@ -671,20 +741,33 @@ class FMN:
         else:
             M_init = self.M
 
-        for i in tqdm(range(nit-1)):
+        for i in tqdm(range(nit - 1)):
             new_M = self.M + step
             m_cclb = int(cclb_ratio * self.M)
             # If not the last iteration
             if i < nit - 1:
 
-                self.zoomout_iteration(m_cclb, self.M, new_M, weight_type=weight_type,
-                                       equals_id=equals_id,
-                                       n_jobs=n_jobs, complete=not use_sub)
+                self.zoomout_iteration(
+                    m_cclb,
+                    self.M,
+                    new_M,
+                    weight_type=weight_type,
+                    equals_id=equals_id,
+                    n_jobs=n_jobs,
+                    complete=not use_sub,
+                )
 
             # Last iteration
             else:
-                self.zoomout_iteration(m_cclb, self.M, new_M, weight_type=weight_type,
-                                       equals_id=equals_id, n_jobs=n_jobs, complete=True)
+                self.zoomout_iteration(
+                    m_cclb,
+                    self.M,
+                    new_M,
+                    weight_type=weight_type,
+                    equals_id=equals_id,
+                    n_jobs=n_jobs,
+                    complete=True,
+                )
 
 
 def CLB_quad_form(maps, weights, M=None):
@@ -717,7 +800,7 @@ def CLB_quad_form(maps, weights, M=None):
     for i in range(N):
         grid[i][i] = sparse.csr_matrix(np.zeros((M, M)))
 
-    for (i,j) in edges:
+    for i, j in edges:
         FM = maps[(i, j)][:M, :M]
 
         grid[i][i] += sparse.csr_matrix(weights[i, j] * (FM.T @ FM))
@@ -734,5 +817,5 @@ def CLB_quad_form(maps, weights, M=None):
         grid[j][i] -= sparse.csr_matrix(weights[i, j] * FM)
 
     # Build block sparse matrix
-    W = sparse.bmat(grid,format='csr')
+    W = sparse.bmat(grid, format="csr")
     return W

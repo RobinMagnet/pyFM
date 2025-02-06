@@ -26,7 +26,7 @@ def accuracy(p2p, gt_p2p, D1_geod, return_all=False, sqrt_area=None):
             (n2,) - if return_all is True, returns all the pairwise distances
     """
 
-    dists = D1_geod[(p2p,gt_p2p)]
+    dists = D1_geod[(p2p, gt_p2p)]
     if sqrt_area is not None:
         dists /= sqrt_area
 
@@ -60,8 +60,8 @@ def continuity(p2p, D1_geod, D2_geod, edges):
     continuity : float
             average continuity of the vertex to vertex map
     """
-    source_len = D2_geod[(edges[:,0], edges[:,1])]
-    target_len = D1_geod[(p2p[edges[:,0]], p2p[edges[:,1]])]
+    source_len = D2_geod[(edges[:, 0], edges[:, 1])]
+    target_len = D1_geod[(p2p[edges[:, 0]], p2p[edges[:, 1]])]
 
     continuity = np.mean(target_len / source_len)
 

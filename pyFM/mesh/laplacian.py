@@ -26,19 +26,21 @@ def dia_area_mat(vertices, faces, faces_areas=None):
 
     # Compute face area
     if faces_areas is None:
-        v1 = vertices[faces[:,0]]  # (m,3)
-        v2 = vertices[faces[:,1]]  # (m,3)
-        v3 = vertices[faces[:,2]]  # (m,3)
-        faces_areas = 0.5 * np.linalg.norm(np.cross(v2-v1,v3-v1),axis=1)  # (m,)
+        v1 = vertices[faces[:, 0]]  # (m,3)
+        v2 = vertices[faces[:, 1]]  # (m,3)
+        v3 = vertices[faces[:, 2]]  # (m,3)
+        faces_areas = 0.5 * np.linalg.norm(np.cross(v2 - v1, v3 - v1), axis=1)  # (m,)
 
-    I = np.concatenate([faces[:,0], faces[:,1], faces[:,2]])
+    I = np.concatenate([faces[:, 0], faces[:, 1], faces[:, 2]])
     J = np.zeros_like(I)
-    V = np.concatenate([faces_areas, faces_areas, faces_areas])/3
+    V = np.concatenate([faces_areas, faces_areas, faces_areas]) / 3
 
     # Get array of vertex areas
-    vertex_areas = np.array(sparse.coo_matrix((V, (I, J)), shape=(N, 1)).todense()).flatten()
+    vertex_areas = np.array(
+        sparse.coo_matrix((V, (I, J)), shape=(N, 1)).todense()
+    ).flatten()
 
-    A = sparse.dia_matrix((vertex_areas,0), shape=(N, N))
+    A = sparse.dia_matrix((vertex_areas, 0), shape=(N, N))
     return A
 
 
@@ -67,19 +69,19 @@ def fem_area_mat(vertices, faces, faces_areas=None):
 
     # Compute face area
     if faces_areas is None:
-        v1 = vertices[faces[:,0]]  # (m,3)
-        v2 = vertices[faces[:,1]]  # (m,3)
-        v3 = vertices[faces[:,2]]  # (m,3)
-        faces_areas = 0.5 * np.linalg.norm(np.cross(v2-v1, v3-v1), axis=1)  # (m,)
+        v1 = vertices[faces[:, 0]]  # (m,3)
+        v2 = vertices[faces[:, 1]]  # (m,3)
+        v3 = vertices[faces[:, 2]]  # (m,3)
+        faces_areas = 0.5 * np.linalg.norm(np.cross(v2 - v1, v3 - v1), axis=1)  # (m,)
 
     # Use similar construction as cotangent weights
-    I = np.concatenate([faces[:,0], faces[:,1], faces[:,2]])  # (3m,)
-    J = np.concatenate([faces[:,1], faces[:,2], faces[:,0]])  # (3m,)
-    S = np.concatenate([faces_areas,faces_areas,faces_areas])  # (3m,)
+    I = np.concatenate([faces[:, 0], faces[:, 1], faces[:, 2]])  # (3m,)
+    J = np.concatenate([faces[:, 1], faces[:, 2], faces[:, 0]])  # (3m,)
+    S = np.concatenate([faces_areas, faces_areas, faces_areas])  # (3m,)
 
     In = np.concatenate([I, J, I])  # (9m,)
     Jn = np.concatenate([J, I, I])  # (9m,)
-    Sn = 1/12 * np.concatenate([S, S, 2*S])  # (9m,)
+    Sn = 1 / 12 * np.concatenate([S, S, 2 * S])  # (9m,)
 
     A = sparse.coo_matrix((Sn, (In, Jn)), shape=(N, N)).tocsc()
     return A
@@ -108,29 +110,29 @@ def cotangent_weights(vertices, faces):
     """
     N = vertices.shape[0]
 
-    v1 = vertices[faces[:,0]]  # (m,3)
-    v2 = vertices[faces[:,1]]  # (m,3)
-    v3 = vertices[faces[:,2]]  # (m,3)
+    v1 = vertices[faces[:, 0]]  # (m,3)
+    v2 = vertices[faces[:, 1]]  # (m,3)
+    v3 = vertices[faces[:, 2]]  # (m,3)
 
     # Edge lengths indexed by opposite vertex
     u1 = v3 - v2
     u2 = v1 - v3
     u3 = v2 - v1
 
-    L1 = np.linalg.norm(u1,axis=1)  # (m,)
-    L2 = np.linalg.norm(u2,axis=1)  # (m,)
-    L3 = np.linalg.norm(u3,axis=1)  # (m,)
+    L1 = np.linalg.norm(u1, axis=1)  # (m,)
+    L2 = np.linalg.norm(u2, axis=1)  # (m,)
+    L3 = np.linalg.norm(u3, axis=1)  # (m,)
 
     # Compute cosine of angles
-    A1 = np.einsum('ij,ij->i', -u2, u3) / (L2*L3)  # (m,)
-    A2 = np.einsum('ij,ij->i', u1, -u3) / (L1*L3)  # (m,)
-    A3 = np.einsum('ij,ij->i', -u1, u2) / (L1*L2)  # (m,)
+    A1 = np.einsum("ij,ij->i", -u2, u3) / (L2 * L3)  # (m,)
+    A2 = np.einsum("ij,ij->i", u1, -u3) / (L1 * L3)  # (m,)
+    A3 = np.einsum("ij,ij->i", -u1, u2) / (L1 * L2)  # (m,)
 
     # Use cot(arccos(x)) = x/sqrt(1-x^2)
-    I = np.concatenate([faces[:,0], faces[:,1], faces[:,2]])
-    J = np.concatenate([faces[:,1], faces[:,2], faces[:,0]])
-    S = np.concatenate([A3,A1,A2])
-    S = 0.5 * S / np.sqrt(1-S**2)
+    I = np.concatenate([faces[:, 0], faces[:, 1], faces[:, 2]])
+    J = np.concatenate([faces[:, 1], faces[:, 2], faces[:, 0]])
+    S = np.concatenate([A3, A1, A2])
+    S = 0.5 * S / np.sqrt(1 - S**2)
 
     In = np.concatenate([I, J, I, J])
     Jn = np.concatenate([J, I, I, J])
@@ -162,16 +164,18 @@ def laplacian_spectrum(W, A, spectrum_size=200):
         (n, spectrum_size) - array of eigenvectors
     """
     try:
-        eigenvalues, eigenvectors = sparse.linalg.eigsh(W, k=spectrum_size, M=A,
-                                                        sigma=-0.01)
+        eigenvalues, eigenvectors = sparse.linalg.eigsh(
+            W, k=spectrum_size, M=A, sigma=-0.01
+        )
 
     except RuntimeError:
         # raise ValueError('Matrices are not positive semidefinite')
         # Initial eigenvector values:
-        print('Problem during LBO decomposition ! Please check')
+        print("Problem during LBO decomposition ! Please check")
         init_eigenvecs = np.random.random((A.shape[0], spectrum_size))
-        eigenvalues, eigenvectors = sparse.linalg.lobpcg(W, init_eigenvecs,
-                                                         B=A, largest=False, maxiter=40)
+        eigenvalues, eigenvectors = sparse.linalg.lobpcg(
+            W, init_eigenvecs, B=A, largest=False, maxiter=40
+        )
 
         eigenvalues = np.real(eigenvalues)
         sorting_arr = np.argsort(eigenvalues)

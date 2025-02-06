@@ -361,8 +361,10 @@ class TriMesh:
         """
         Normalize the mesh by its area
         """
-
+        center_mass = self.center_mass
+        self.translate(-center_mass)
         self.scale(1 / self.sqrtarea)
+        self.translate(center_mass)
         self._normalized = True
         return self
 

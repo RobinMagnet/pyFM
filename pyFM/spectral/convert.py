@@ -36,11 +36,15 @@ def p2p_to_FM(p2p_21, evects1, evects2, A2=None):
                   Solved with pseudo inverse if A2 is given, else using least square.
     """
     # Pulled back eigenvectors
-    evects1_pb = evects1[p2p_21, :] if np.asarray(p2p_21).ndim == 1 else p2p_21 @ evects1
+    evects1_pb = (
+        evects1[p2p_21, :] if np.asarray(p2p_21).ndim == 1 else p2p_21 @ evects1
+    )
 
     if A2 is not None:
         if A2.shape[0] != evects2.shape[0]:
-            raise ValueError("Can't compute exact pseudo inverse with subsampled eigenvectors")
+            raise ValueError(
+                "Can't compute exact pseudo inverse with subsampled eigenvectors"
+            )
 
         if A2.ndim == 1:
             return evects2.T @ (A2[:, None] * evects1_pb)  # (k2,k1)
@@ -87,10 +91,14 @@ def mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=None, subsample=None):
         k1, k2 = dims
 
     if subsample is None:
-        return p2p_to_FM(p2p_21, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2], A2=mesh2.A)
+        return p2p_to_FM(
+            p2p_21, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2], A2=mesh2.A
+        )
 
     sub1, sub2 = subsample
-    return p2p_to_FM(p2p_21, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=None)
+    return p2p_to_FM(
+        p2p_21, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=None
+    )
 
 
 def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
@@ -126,10 +134,12 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
     """
     k2, k1 = FM_12.shape
 
-    assert k1 <= evects1.shape[1], \
-        f'At least {k1} should be provided, here only {evects1.shape[1]} are given'
-    assert k2 <= evects2.shape[1], \
-        f'At least {k2} should be provided, here only {evects2.shape[1]} are given'
+    assert (
+        k1 <= evects1.shape[1]
+    ), f"At least {k1} should be provided, here only {evects1.shape[1]} are given"
+    assert (
+        k2 <= evects2.shape[1]
+    ), f"At least {k2} should be provided, here only {evects2.shape[1]} are given"
 
     if use_adj:
         emb1 = evects1[:, :k1]
@@ -139,7 +149,7 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
         emb1 = evects1[:, :k1] @ FM_12.T
         emb2 = evects2[:, :k2]
 
-    p2p_21 = knn_query(emb1, emb2,  k=1, n_jobs=n_jobs)
+    p2p_21 = knn_query(emb1, emb2, k=1, n_jobs=n_jobs)
     return p2p_21  # (n2,)
 
 
@@ -170,19 +180,37 @@ def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, n_jobs=1)
     """
     k2, k1 = FM_12.shape
     if subsample is None:
-        p2p_21 = FM_to_p2p(FM_12, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2],
-                           use_adj=use_adj, n_jobs=n_jobs)
+        p2p_21 = FM_to_p2p(
+            FM_12,
+            mesh1.eigenvectors[:, :k1],
+            mesh2.eigenvectors[:, :k2],
+            use_adj=use_adj,
+            n_jobs=n_jobs,
+        )
 
     else:
         sub1, sub2 = subsample
-        p2p_21 = FM_to_p2p(FM_12, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2],
-                           use_adj=use_adj, n_jobs=n_jobs)
+        p2p_21 = FM_to_p2p(
+            FM_12,
+            mesh1.eigenvectors[sub1, :k1],
+            mesh2.eigenvectors[sub2, :k2],
+            use_adj=use_adj,
+            n_jobs=n_jobs,
+        )
 
     return p2p_21
 
 
-def mesh_FM_to_p2p_precise(FM_12, mesh1, mesh2, precompute_dmin=True, use_adj=True, batch_size=None,
-                           n_jobs=1, verbose=False):
+def mesh_FM_to_p2p_precise(
+    FM_12,
+    mesh1,
+    mesh2,
+    precompute_dmin=True,
+    use_adj=True,
+    batch_size=None,
+    n_jobs=1,
+    verbose=False,
+):
     """
     Computes a precise pointwise map between two meshes, that is for each vertex in mesh2, gives
     barycentric coordinates of its image on mesh1.
@@ -222,7 +250,14 @@ def mesh_FM_to_p2p_precise(FM_12, mesh1, mesh2, precompute_dmin=True, use_adj=Tr
         emb1 = mesh1.eigenvectors[:, :k1] @ FM_12.T
         emb2 = mesh2.eigenvectors[:, :k2]
 
-    P_21 = pju.project_pc_to_triangles(emb1, mesh1.facelist, emb2, precompute_dmin=precompute_dmin,
-                                       batch_size=batch_size, n_jobs=n_jobs, verbose=verbose)
+    P_21 = pju.project_pc_to_triangles(
+        emb1,
+        mesh1.facelist,
+        emb2,
+        precompute_dmin=precompute_dmin,
+        batch_size=batch_size,
+        n_jobs=n_jobs,
+        verbose=verbose,
+    )
 
     return P_21

@@ -44,8 +44,18 @@ def zoomout_iteration(FM_12, evects1, evects2, step=1, A2=None, n_jobs=1):
     return FM_zo
 
 
-def zoomout_refine(FM_12, evects1, evects2, nit=10, step=1, A2=None, subsample=None,
-                   return_p2p=False, n_jobs=1, verbose=False):
+def zoomout_refine(
+    FM_12,
+    evects1,
+    evects2,
+    nit=10,
+    step=1,
+    A2=None,
+    subsample=None,
+    return_p2p=False,
+    n_jobs=1,
+    verbose=False,
+):
     """
     Refine a functional map with ZoomOut.
     Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
@@ -84,11 +94,13 @@ def zoomout_refine(FM_12, evects1, evects2, nit=10, step=1, A2=None, subsample=N
         step1 = step
         step2 = step
 
-    assert k1_0 + nit*step1 <= evects1.shape[1], \
-        f"Not enough eigenvectors on source : \
+    assert (
+        k1_0 + nit * step1 <= evects1.shape[1]
+    ), f"Not enough eigenvectors on source : \
         {k1_0 + nit*step1} are needed when {evects1.shape[1]} are provided"
-    assert k2_0 + nit*step2 <= evects2.shape[1], \
-        f"Not enough eigenvectors on target : \
+    assert (
+        k2_0 + nit * step2 <= evects2.shape[1]
+    ), f"Not enough eigenvectors on target : \
         {k2_0 + nit*step2} are needed when {evects2.shape[1]} are provided"
 
     use_subsample = False
@@ -101,22 +113,40 @@ def zoomout_refine(FM_12, evects1, evects2, nit=10, step=1, A2=None, subsample=N
     iterable = range(nit) if not verbose else tqdm(range(nit))
     for it in iterable:
         if use_subsample:
-            FM_12_zo = zoomout_iteration(FM_12_zo, evects1[sub1], evects2[sub2], A2=None,
-                                         step=step, n_jobs=n_jobs)
+            FM_12_zo = zoomout_iteration(
+                FM_12_zo,
+                evects1[sub1],
+                evects2[sub2],
+                A2=None,
+                step=step,
+                n_jobs=n_jobs,
+            )
 
         else:
-            FM_12_zo = zoomout_iteration(FM_12_zo, evects1, evects2, A2=A2,
-                                         step=step, n_jobs=n_jobs)
+            FM_12_zo = zoomout_iteration(
+                FM_12_zo, evects1, evects2, A2=A2, step=step, n_jobs=n_jobs
+            )
 
     if return_p2p:
-        p2p_21_zo = spectral.FM_to_p2p(FM_12_zo, evects1, evects2, n_jobs=n_jobs)  # (n2,)
+        p2p_21_zo = spectral.FM_to_p2p(
+            FM_12_zo, evects1, evects2, n_jobs=n_jobs
+        )  # (n2,)
         return FM_12_zo, p2p_21_zo
 
     return FM_12_zo
 
 
-def mesh_zoomout_refine(FM_12, mesh1, mesh2, nit=10, step=1, subsample=None,
-                        return_p2p=False, n_jobs=1, verbose=False):
+def mesh_zoomout_refine(
+    FM_12,
+    mesh1,
+    mesh2,
+    nit=10,
+    step=1,
+    subsample=None,
+    return_p2p=False,
+    n_jobs=1,
+    verbose=False,
+):
     """
     Refine a functional map between meshes with ZoomOut.
     Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
@@ -149,21 +179,40 @@ def mesh_zoomout_refine(FM_12, mesh1, mesh2, nit=10, step=1, subsample=None,
 
     if np.issubdtype(type(subsample), np.integer):
         if verbose:
-            print(f'Computing farthest point sampling of size {subsample}')
+            print(f"Computing farthest point sampling of size {subsample}")
         sub1 = mesh1.extract_fps(subsample)
         sub2 = mesh2.extract_fps(subsample)
         subsample = (sub1, sub2)
 
-    result = zoomout_refine(FM_12, mesh1.eigenvectors, mesh2.eigenvectors, nit,
-                            step=step, A2=mesh2.A, subsample=subsample, return_p2p=return_p2p,
-                            n_jobs=n_jobs, verbose=verbose)
+    result = zoomout_refine(
+        FM_12,
+        mesh1.eigenvectors,
+        mesh2.eigenvectors,
+        nit,
+        step=step,
+        A2=mesh2.A,
+        subsample=subsample,
+        return_p2p=return_p2p,
+        n_jobs=n_jobs,
+        verbose=verbose,
+    )
 
     return result
 
 
-def mesh_zoomout_refine_p2p(p2p_21, mesh1, mesh2, k_init, nit=10, step=1, subsample=None,
-                            return_p2p=False, n_jobs=1, p2p_on_sub=False, verbose=False):
-
+def mesh_zoomout_refine_p2p(
+    p2p_21,
+    mesh1,
+    mesh2,
+    k_init,
+    nit=10,
+    step=1,
+    subsample=None,
+    return_p2p=False,
+    n_jobs=1,
+    p2p_on_sub=False,
+    verbose=False,
+):
     """
     Refine a functional map between meshes with ZoomOut.
     Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
@@ -200,18 +249,31 @@ def mesh_zoomout_refine_p2p(p2p_21, mesh1, mesh2, k_init, nit=10, step=1, subsam
         if p2p_on_sub:
             raise ValueError("P2P can't be defined on undefined subsample")
         if verbose:
-            print(f'Computing farthest point sampling of size {subsample}')
+            print(f"Computing farthest point sampling of size {subsample}")
         sub1 = mesh1.extract_fps(subsample)
         sub2 = mesh2.extract_fps(subsample)
         subsample = (sub1, sub2)
 
     if p2p_on_sub:
-        FM_12_init = spectral.mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=k_init, subsample=subsample)
+        FM_12_init = spectral.mesh_p2p_to_FM(
+            p2p_21, mesh1, mesh2, dims=k_init, subsample=subsample
+        )
     else:
-        FM_12_init = spectral.mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=k_init, subsample=None)
+        FM_12_init = spectral.mesh_p2p_to_FM(
+            p2p_21, mesh1, mesh2, dims=k_init, subsample=None
+        )
 
-    result = zoomout_refine(FM_12_init, mesh1.eigenvectors, mesh2.eigenvectors, nit,
-                            step=step, A2=mesh2.A, subsample=subsample, return_p2p=return_p2p,
-                            n_jobs=n_jobs, verbose=verbose)
+    result = zoomout_refine(
+        FM_12_init,
+        mesh1.eigenvectors,
+        mesh2.eigenvectors,
+        nit,
+        step=step,
+        A2=mesh2.A,
+        subsample=subsample,
+        return_p2p=return_p2p,
+        n_jobs=n_jobs,
+        verbose=verbose,
+    )
 
     return result
