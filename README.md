@@ -18,6 +18,21 @@ This package contains a comprehensive Python implementation for shape correspond
 - Fast functional-to-pointwise map conversion
 - Functional Map Network utilities
 
+## Design Philosophy
+This codebase prioritizes readability and adaptability over rigid modularity. The implementation seeks to make it easy to:
+- Read and understand the underlying algorithms
+- Copy and modify code snippets for your research
+- Experiment with and extend existing methods
+- Avoid rewriting core functionality from scratch
+
+Under the hood, core algorithms are implemented as standalone functions operating on basic numpy arrays.
+This dual-layer design means you can:
+- Use the high-level interface for standard workflows
+- Easily extract and modify the core functions for your research, as they work with simple numpy arrays
+
+While this approach differs from highly modular packages like `scikit-learn`, it better serves researchers who need to modify and build upon existing shape correspondence methods.
+
+
 ## Installation
 ```bash
 pip install pyfmaps
@@ -58,3 +73,35 @@ This library implements methods from several key papers in shape correspondence,
 # Contact and Citation
 
 robin.magnet@inria.fr
+
+This package has not (yet) been presented as a paper in itself, although all my works heavily rely on this.
+
+If you use this package or copy and paste parts of it for you experiments, please cite this github or one of the following paper. Note these papers never directly refer to pyfmaps as so I am fine with you only citing the github for now.
+
+
+```bibtex
+@inproceedings{magnetDWKSLocalDescriptor2021,
+  title = {{{DWKS}} : {{A Local Descriptor}} of {{Deformations Between Meshes}} and {{Point Clouds}}},
+  shorttitle = {{{DWKS}}},
+  booktitle = {2021 {{IEEE}}/{{CVF International Conference}} on {{Computer Vision}} ({{ICCV}})},
+  author = {Magnet, Robin and Ovsjanikov, Maks},
+  publisher = {IEEE},
+}
+
+
+@inproceedings{magnetSmoothNonRigidShape2022,
+  title = {Smooth {{Non-Rigid Shape Matching}} via {{Effective Dirichlet Energy Optimization}}},
+  booktitle = {2022 {{International Conference}} on {{3D Vision}} ({{3DV}})},
+  author = {Magnet, Robin and Ren, Jing and {Sorkine-Hornung}, Olga and Ovsjanikov, Maks},
+  year = {2022},
+  publisher = {{IEEE}},
+
+}
+
+@article{magnetScalableEfficientFunctional2023,
+  title = {Scalable and {{Efficient Functional Map Computations}} on {{Dense Meshes}}},
+  author = {Magnet, Robin and Ovsjanikov, Maks},
+  year = {2023},
+  journal = {Computer Graphics Forum},
+}
+```
