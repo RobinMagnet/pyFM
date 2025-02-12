@@ -19,7 +19,8 @@ This package contains a comprehensive Python implementation for shape correspond
 - Functional Map Network utilities
 
 ## Design Philosophy
-This codebase prioritizes readability and adaptability over rigid modularity. The implementation seeks to make it easy to:
+This codebase prioritizes readability and adaptability over rigid modularity.
+The implementation seeks to make it easy to:
 - Read and understand the underlying algorithms
 - Copy and modify code snippets for your research
 - Experiment with and extend existing methods
@@ -29,6 +30,14 @@ Under the hood, core algorithms are implemented as standalone functions operatin
 This dual-layer design means you can use the high-level interface for standard workflows, but still easily extract and modify the core functions for your research, as they work with simple numpy arrays.
 
 While this approach differs from highly modular packages like `scikit-learn`, it better serves researchers who need to modify and build upon existing shape correspondence methods.
+
+
+This design choice comes with some **trade-offs**:
+ - Less abstraction means potentially more code to achieve certain tasks
+- Users need some familiarity with shape correspondence concepts
+- Implementation favors explicit algorithms over general-purpose interfaces
+
+This approach stems from personal experience with research codebases and may not suit everyone's needs. More generic and abstracted implementations of geometric processing can be expected to appear soonish in the [scikit-shapes](https://scikit-shapes.github.io/scikit-shapes/) or [geomstats](https://geomstats.github.io/) libraries.
 
 ## Installation
 ```bash
