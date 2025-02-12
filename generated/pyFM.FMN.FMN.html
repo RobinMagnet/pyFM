@@ -1,0 +1,804 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pyFM.eval" href="pyFM.eval.html" /><link rel="prev" title="pyFM.FMN" href="pyFM.FMN.html" />
+
+    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>pyFM.FMN.FMN - pyfmaps 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">pyfmaps 1.0.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">pyfmaps 1.0.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../api.html">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="pyFM.html">pyFM</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of pyFM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 current has-children"><a class="reference internal" href="pyFM.FMN.html">pyFM.FMN</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of pyFM.FMN</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">pyFM.FMN.FMN</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.eval.html">pyFM.eval</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of pyFM.eval</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.eval.evaluate.html">pyFM.eval.evaluate</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyFM.functional.html">pyFM.functional</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.mesh.html">pyFM.mesh</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of pyFM.mesh</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.mesh.file_utils.html">pyFM.mesh.file_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.mesh.geometry.html">pyFM.mesh.geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.mesh.laplacian.html">pyFM.mesh.laplacian</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.mesh.trimesh.html">pyFM.mesh.trimesh</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.optimize.html">pyFM.optimize</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of pyFM.optimize</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.optimize.base_functions.html">pyFM.optimize.base_functions</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.refine.html">pyFM.refine</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of pyFM.refine</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.refine.icp.html">pyFM.refine.icp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.refine.zoomout.html">pyFM.refine.zoomout</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.signatures.html">pyFM.signatures</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of pyFM.signatures</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.signatures.HKS_functions.html">pyFM.signatures.HKS_functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.signatures.WKS_functions.html">pyFM.signatures.WKS_functions</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.spectral.html">pyFM.spectral</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of pyFM.spectral</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.spectral.convert.html">pyFM.spectral.convert</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.spectral.nn_utils.html">pyFM.spectral.nn_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.spectral.projection_utils.html">pyFM.spectral.projection_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.spectral.shape_difference.html">pyFM.spectral.shape_difference</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/generated/pyFM.FMN.FMN.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="pyfm-fmn-fmn">
+<h1>pyFM.FMN.FMN<a class="headerlink" href="#pyfm-fmn-fmn" title="Link to this heading">¶</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pyFM.FMN.</span></span><span class="sig-name descname"><span class="pre">FMN</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maps_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN" title="Link to this definition">¶</a></dt>
+<dd><p>Functional Map Network Class</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>meshlist</strong> (<em>list</em>) – list of TriMesh objects</p></li>
+<li><p><strong>maps_dict</strong> (<em>dict</em><em>, </em><em>optional</em>) – dictionnary of functional maps between each pair of meshes.
+Keys are (i,j) with i,j indices of the meshes in the list.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshlist</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maps_dict</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.__init__" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p class="rubric">Methods</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code>(meshlist[, maps_dict])</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_3cycle_weights</span></code>([M])</p></td>
+<td><p>Compute per-cycle costs and per-edge costs for icsm optimization.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_Amat</span></code>()</p></td>
+<td><p>Compute matrix A for icsm weights optimization.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_CCLB</span></code>(m[, verbose])</p></td>
+<td><p>Compute the Canonical Consistent Latent Basis CCLB from the CLB.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_CLB</span></code>([equals_id, verbose])</p></td>
+<td><p>Computes the Consistent Latent Basis CLB using the quadratic form associated to the problem.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_W</span></code>([M, verbose])</p></td>
+<td><p>Computes the quadratic form for Consistent Latent Basis (CLB) computation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_maps</span></code>(M[, complete])</p></td>
+<td><p>Convert pointwise maps into Functional Maps of size M.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_p2p</span></code>([complete, n_jobs])</p></td>
+<td><p>Computes vertex to vertex maps for each (directed) edge using the factorization of functional maps CCLB.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_subsample</span></code>([size, geodesic, verbose])</p></td>
+<td><p>Subsample vertices on each shape using farthest point sampling.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_3_cycles</span></code>()</p></td>
+<td><p>Extract all 3-cycles from the graph in a list of 3-uple (i,j,k)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_CSD</span></code>(i)</p></td>
+<td><p>Returns the Characterisic Shape Difference operators CSD for mesh i</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_LB</span></code>(i[, complete])</p></td>
+<td><p>Returns the latent basis LB for mesh i</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_cycle_weight</span></code>(cycle[, M])</p></td>
+<td><p>Given a cycle (i,j,k), compute its cost using the functional maps.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">optimize_icsm</span></code>([verbose])</p></td>
+<td><p>Solves the linear problem for icsm weights computation $min w^{top}  x$ s.t.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_isometries</span></code>([M])</p></td>
+<td><p>For each edge (i,j), if (j,i) is also an edge then, the corresponding functional maps are set as transpose of each other chosing the closest to orthogonal of both.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_maps</span></code>(maps_dict[, verbose])</p></td>
+<td><p>Set the edges of the graph with maps.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_subsample</span></code>(subsample)</p></td>
+<td><p>Set subsamples an all shapes in the network</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">set_weights</span></code>([weights, weight_type, verbose])</p></td>
+<td><p>Set weights for each edge in the graph</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">zoomout_iteration</span></code>(cclb_size, M_init, M_final)</p></td>
+<td><p>Performs an iteration of Consistent Zoomout refinement</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">zoomout_refine</span></code>([nit, step, subsample, ...])</p></td>
+<td><p>Refines the functional maps using Consistent Zoomout refinement</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p class="rubric">Attributes</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">M</span></code></p></td>
+<td><p>Return the current shared dimension for functional maps (which are square matrices).</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">m_cclb</span></code></p></td>
+<td><p>Return the dimension of the Canonical Consistent Latent Basis</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">n_meshes</span></code></p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py property">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.M">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">M</span></span><a class="headerlink" href="#pyFM.FMN.FMN.M" title="Link to this definition">¶</a></dt>
+<dd><p>Return the current shared dimension for functional maps
+(which are square matrices).</p>
+<p>If not specified, returns the sized of the first found map.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>M</strong> – size of the functional maps</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.m_cclb">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">m_cclb</span></span><a class="headerlink" href="#pyFM.FMN.FMN.m_cclb" title="Link to this definition">¶</a></dt>
+<dd><p>Return the dimension of the Canonical Consistent Latent Basis</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>m</strong> – size of the CCLB</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.set_maps">
+<span class="sig-name descname"><span class="pre">set_maps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maps_dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.set_maps" title="Link to this definition">¶</a></dt>
+<dd><p>Set the edges of the graph with maps.
+Saves extra information about the edges.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>maps_dict</strong> (<em>dict</em>) – dictionnary, key (i,j) gives functional map FM between mesh i and j.
+FM can be of different size depending on the edge</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.set_subsample">
+<span class="sig-name descname"><span class="pre">set_subsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">subsample</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.set_subsample" title="Link to this definition">¶</a></dt>
+<dd><p>Set subsamples an all shapes in the network</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>subsample</strong> – (n, size) array of indices of vertices to subsample on each shape</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.compute_subsample">
+<span class="sig-name descname"><span class="pre">compute_subsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geodesic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.compute_subsample" title="Link to this definition">¶</a></dt>
+<dd><p>Subsample vertices on each shape using farthest point sampling.
+Store in an (n,size) array of indices</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>size</strong> (<em>int</em>) – number of vertices to subsample on each shape</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.set_weights">
+<span class="sig-name descname"><span class="pre">set_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icsm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.set_weights" title="Link to this definition">¶</a></dt>
+<dd><p>Set weights for each edge in the graph</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>weights</strong> (<em>sparse</em>) – (n,n) matrix. If not specified, sets weights according to ‘weight_type’ argument</p></li>
+<li><p><strong>weight_type</strong> – ‘icsm’ | ‘adjacency’ : if ‘weights’ is not specified, computes weights
+according to the Consistent Zoomout adaptation of icsm or using the adjacency
+matrix of the graph.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.set_isometries">
+<span class="sig-name descname"><span class="pre">set_isometries</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.set_isometries" title="Link to this definition">¶</a></dt>
+<dd><p>For each edge (i,j), if (j,i) is also an edge then,
+the corresponding functional maps are set as transpose of each other
+chosing the closest to orthogonal of both.</p>
+<p>Since this modifies the maps, icsm weights are deleted</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>M</strong> (<em>int</em>) – dimension with wich to compare the functional maps.
+If None, uses the current self.M</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.compute_W">
+<span class="sig-name descname"><span class="pre">compute_W</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.compute_W" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the quadratic form for Consistent Latent Basis (CLB) computation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>M</strong> (<em>int</em><em>, </em><em>optional</em>) – size of the functional maps to use, uses projection of FM on this dimension.
+If not specified, used the size of the first found functional map</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.compute_CLB">
+<span class="sig-name descname"><span class="pre">compute_CLB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">equals_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.compute_CLB" title="Link to this definition">¶</a></dt>
+<dd><p>Computes the Consistent Latent Basis CLB using the quadratic form
+associated to the problem.
+The first M vectors for each basis are computed in order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>equals_id</strong> (<em>bool</em>) – If False, the sum of Y.T&#64;Y are expected to give n*Id.
+If True,  the sum of Y.T&#64;Y are expected to give Id.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.compute_CCLB">
+<span class="sig-name descname"><span class="pre">compute_CCLB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.compute_CCLB" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the Canonical Consistent Latent Basis CCLB from the CLB.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>m</strong> (<em>int</em>) – size of the CCLB to compute.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.get_CSD">
+<span class="sig-name descname"><span class="pre">get_CSD</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.get_CSD" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the Characterisic Shape Difference operators CSD for mesh i</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>i</strong> (<em>int</em>) – index of the mesh on which to returns the two CSD</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>CSD_a</strong> (<em>np.ndarray</em>) – (m,m) array of area CSD expressed in the Latent Space</p></li>
+<li><p><strong>CSD_c</strong> (<em>np.ndarray</em>) – (m,m) array of conformal CSD expressed in the Latent Space</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.get_LB">
+<span class="sig-name descname"><span class="pre">get_LB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.get_LB" title="Link to this definition">¶</a></dt>
+<dd><p>Returns the latent basis LB for mesh i</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>i</strong> (<em>int</em>) – index of the mesh on which to returns the LB</p></li>
+<li><p><strong>complete</strong> (<em>bool</em>) – If False, only computes values on the self.subsample[i] vertices</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>latent_basis</strong> – (n_i,m) latent basis on mesh i</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.compute_p2p">
+<span class="sig-name descname"><span class="pre">compute_p2p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">complete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.compute_p2p" title="Link to this definition">¶</a></dt>
+<dd><p>Computes vertex to vertex maps for each (directed) edge using the factorization of
+functional maps CCLB. Only maps related to existing edges are computed.
+Vertex to vertex maps are saved in a dictionnary the same way as functional maps,
+although their direction are reversed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>complete</strong> (<em>bool</em>) – If False, uses self.subsample to obtain pointwise maps between
+subsamples of vertices for each shape</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.compute_maps">
+<span class="sig-name descname"><span class="pre">compute_maps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.compute_maps" title="Link to this definition">¶</a></dt>
+<dd><p>Convert pointwise maps into Functional Maps of size M.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>M</strong> (<em>int</em>) – size of the functional map to compute</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.extract_3_cycles">
+<span class="sig-name descname"><span class="pre">extract_3_cycles</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.extract_3_cycles" title="Link to this definition">¶</a></dt>
+<dd><p>Extract all 3-cycles from the graph in a list of 3-uple (i,j,k)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.compute_Amat">
+<span class="sig-name descname"><span class="pre">compute_Amat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.compute_Amat" title="Link to this definition">¶</a></dt>
+<dd><p>Compute matrix A for icsm weights optimization.  Binary matrix telling which edge
+belongs to which cycle.
+Uses the arbitraty edge ordering createede in the self.set_maps method</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.compute_3cycle_weights">
+<span class="sig-name descname"><span class="pre">compute_3cycle_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.compute_3cycle_weights" title="Link to this definition">¶</a></dt>
+<dd><p>Compute per-cycle costs and per-edge costs for icsm optimization.
+Cycle weights are given by the self.get_cycle_weight method (deviation from Id map)
+Edge weight is the inverse of the sum of all weights of the cycles the edge belongs to.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>M</strong> (<em>int</em>) – Dimension of functional maps to use. If None, uses self.M</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.optimize_icsm">
+<span class="sig-name descname"><span class="pre">optimize_icsm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.optimize_icsm" title="Link to this definition">¶</a></dt>
+<dd><p>Solves the linear problem for icsm weights computation
+<span class="math notranslate nohighlight">\(\min w^{\top}  x\)</span>
+s.t.  <span class="math notranslate nohighlight">\(A x \geq C_{\gamma}\)</span> and <span class="math notranslate nohighlight">\(x \geq 0\)</span></p>
+<p>Edges which are not part of a cycle are given 0-weigths</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>opt_weights</strong> – (n_edges,) (positive) weights for each edge.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.get_cycle_weight">
+<span class="sig-name descname"><span class="pre">get_cycle_weight</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cycle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.get_cycle_weight" title="Link to this definition">¶</a></dt>
+<dd><p>Given a cycle (i,j,k), compute its cost using the functional maps.
+Cost is given as the maximum deviation to the identity map when
+going through the complete cycle (3 possibilities)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cycle</strong> – 3-uple with node indices creating a cycle</p></li>
+<li><p><strong>M</strong> (<em>int</em>) – Dimension of functional maps to use. If None use self.M</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>cost</strong> – cost of the cycle</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.zoomout_iteration">
+<span class="sig-name descname"><span class="pre">zoomout_iteration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cclb_size</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M_init</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M_final</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isometric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icsm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equals_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complete</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.zoomout_iteration" title="Link to this definition">¶</a></dt>
+<dd><p>Performs an iteration of Consistent Zoomout refinement</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>cclb_size</strong> – size of the CCLB to compute</p></li>
+<li><p><strong>M_init</strong> – initial dimension of maps</p></li>
+<li><p><strong>M_final</strong> – dimension at the end of the iteration</p></li>
+<li><p><strong>isometric</strong> – whether to use the reduced space strategy of ConsistentZoomout-iso</p></li>
+<li><p><strong>weight_type</strong> – ‘icsm’ or ‘adjacency’, type of weights to use</p></li>
+<li><p><strong>equals_id</strong> – Whether the CLB optimization uses Id or n*Id as a constraint</p></li>
+<li><p><strong>complete</strong> – <dl class="simple">
+<dt>If vertex-to-vertex and functional maps should be computed with all vertices</dt><dd><p>instead of the subsampling.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pyFM.FMN.FMN.zoomout_refine">
+<span class="sig-name descname"><span class="pre">zoomout_refine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nit</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subsample</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">isometric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'icsm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cclb_ratio</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.9</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_jobs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">equals_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.FMN.FMN.zoomout_refine" title="Link to this definition">¶</a></dt>
+<dd><p>Refines the functional maps using Consistent Zoomout refinement</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>nit</strong> – number of zoomout iterations</p></li>
+<li><p><strong>step</strong> – dimension increase at each iteration</p></li>
+<li><p><strong>subsample</strong> – size of vertices subsample. If set to 0 or None, all vertices are used.</p></li>
+<li><p><strong>isometric</strong> – whether to use the reduced space strategy of ConsistentZoomout-iso</p></li>
+<li><p><strong>weight_type</strong> – ‘icsm’ or ‘adjacency’, type of weights to use</p></li>
+<li><p><strong>M_init</strong> – original size of functional maps. If None, uses self.M</p></li>
+<li><p><strong>cclb_ratio</strong> – size of CCLB as a ratio of the current dimension M</p></li>
+<li><p><strong>equals_id</strong> – Whether the CLB optimization uses Id or n*Id as a constraint</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="pyFM.eval.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">pyFM.eval</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="pyFM.FMN.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">pyFM.FMN</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Robin Magnet
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">pyFM.FMN.FMN</a><ul>
+<li><a class="reference internal" href="#pyFM.FMN.FMN"><code class="docutils literal notranslate"><span class="pre">FMN</span></code></a><ul>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.__init__"><code class="docutils literal notranslate"><span class="pre">FMN.__init__()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.M"><code class="docutils literal notranslate"><span class="pre">FMN.M</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.m_cclb"><code class="docutils literal notranslate"><span class="pre">FMN.m_cclb</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.set_maps"><code class="docutils literal notranslate"><span class="pre">FMN.set_maps()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.set_subsample"><code class="docutils literal notranslate"><span class="pre">FMN.set_subsample()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.compute_subsample"><code class="docutils literal notranslate"><span class="pre">FMN.compute_subsample()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.set_weights"><code class="docutils literal notranslate"><span class="pre">FMN.set_weights()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.set_isometries"><code class="docutils literal notranslate"><span class="pre">FMN.set_isometries()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.compute_W"><code class="docutils literal notranslate"><span class="pre">FMN.compute_W()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.compute_CLB"><code class="docutils literal notranslate"><span class="pre">FMN.compute_CLB()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.compute_CCLB"><code class="docutils literal notranslate"><span class="pre">FMN.compute_CCLB()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.get_CSD"><code class="docutils literal notranslate"><span class="pre">FMN.get_CSD()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.get_LB"><code class="docutils literal notranslate"><span class="pre">FMN.get_LB()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.compute_p2p"><code class="docutils literal notranslate"><span class="pre">FMN.compute_p2p()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.compute_maps"><code class="docutils literal notranslate"><span class="pre">FMN.compute_maps()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.extract_3_cycles"><code class="docutils literal notranslate"><span class="pre">FMN.extract_3_cycles()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.compute_Amat"><code class="docutils literal notranslate"><span class="pre">FMN.compute_Amat()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.compute_3cycle_weights"><code class="docutils literal notranslate"><span class="pre">FMN.compute_3cycle_weights()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.optimize_icsm"><code class="docutils literal notranslate"><span class="pre">FMN.optimize_icsm()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.get_cycle_weight"><code class="docutils literal notranslate"><span class="pre">FMN.get_cycle_weight()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.zoomout_iteration"><code class="docutils literal notranslate"><span class="pre">FMN.zoomout_iteration()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.FMN.FMN.zoomout_refine"><code class="docutils literal notranslate"><span class="pre">FMN.zoomout_refine()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

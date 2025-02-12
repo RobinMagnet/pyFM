@@ -1,0 +1,933 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html" /><link rel="search" title="Search" href="../search.html" /><link rel="next" title="pyFM.mesh.laplacian" href="pyFM.mesh.laplacian.html" /><link rel="prev" title="pyFM.mesh.file_utils" href="pyFM.mesh.file_utils.html" />
+
+    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 -->
+        <title>pyFM.mesh.geometry - pyfmaps 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">pyfmaps 1.0.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  
+  <span class="sidebar-brand-text">pyfmaps 1.0.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples.html">Examples</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../api.html">API Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="pyFM.html">pyFM</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of pyFM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.FMN.html">pyFM.FMN</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of pyFM.FMN</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.FMN.FMN.html">pyFM.FMN.FMN</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.eval.html">pyFM.eval</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of pyFM.eval</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.eval.evaluate.html">pyFM.eval.evaluate</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pyFM.functional.html">pyFM.functional</a></li>
+<li class="toctree-l3 current has-children"><a class="reference internal" href="pyFM.mesh.html">pyFM.mesh</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of pyFM.mesh</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pyFM.mesh.file_utils.html">pyFM.mesh.file_utils</a></li>
+<li class="toctree-l4 current current-page"><a class="current reference internal" href="#">pyFM.mesh.geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.mesh.laplacian.html">pyFM.mesh.laplacian</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.mesh.trimesh.html">pyFM.mesh.trimesh</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.optimize.html">pyFM.optimize</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of pyFM.optimize</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.optimize.base_functions.html">pyFM.optimize.base_functions</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.refine.html">pyFM.refine</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of pyFM.refine</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.refine.icp.html">pyFM.refine.icp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.refine.zoomout.html">pyFM.refine.zoomout</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.signatures.html">pyFM.signatures</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of pyFM.signatures</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.signatures.HKS_functions.html">pyFM.signatures.HKS_functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.signatures.WKS_functions.html">pyFM.signatures.WKS_functions</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="pyFM.spectral.html">pyFM.spectral</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of pyFM.spectral</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.spectral.convert.html">pyFM.spectral.convert</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.spectral.nn_utils.html">pyFM.spectral.nn_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.spectral.projection_utils.html">pyFM.spectral.projection_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pyFM.spectral.shape_difference.html">pyFM.spectral.shape_difference</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/generated/pyFM.mesh.geometry.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="module-pyFM.mesh.geometry">
+<span id="pyfm-mesh-geometry"></span><h1>pyFM.mesh.geometry<a class="headerlink" href="#module-pyFM.mesh.geometry" title="Link to this heading">¶</a></h1>
+<p class="rubric">Functions</p>
+<div class="table-wrapper autosummary longtable docutils container">
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.compute_faces_areas" title="pyFM.mesh.geometry.compute_faces_areas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_faces_areas</span></code></a>(vertices, faces)</p></td>
+<td><p>Compute per-face areas of a triangular mesh</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.compute_normals" title="pyFM.mesh.geometry.compute_normals"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_normals</span></code></a>(vertices, faces)</p></td>
+<td><p>Compute face normals of a triangular mesh</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.compute_vertex_areas" title="pyFM.mesh.geometry.compute_vertex_areas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_vertex_areas</span></code></a>(vertices, faces[, ...])</p></td>
+<td><p>Compute per-vertex areas of a triangular mesh.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.div_f" title="pyFM.mesh.geometry.div_f"><code class="xref py py-obj docutils literal notranslate"><span class="pre">div_f</span></code></a>(f, vertices, faces, normals[, ...])</p></td>
+<td><p>Compute the divergence of a vector field on a mesh.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.edges_from_faces" title="pyFM.mesh.geometry.edges_from_faces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">edges_from_faces</span></code></a>(faces)</p></td>
+<td><p>Compute all edges in the mesh</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.farthest_point_sampling" title="pyFM.mesh.geometry.farthest_point_sampling"><code class="xref py py-obj docutils literal notranslate"><span class="pre">farthest_point_sampling</span></code></a>(d, k[, random_init, ...])</p></td>
+<td><p>Samples points using farthest point sampling using either a complete distance matrix or a function giving distances to a given index i</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.farthest_point_sampling_call" title="pyFM.mesh.geometry.farthest_point_sampling_call"><code class="xref py py-obj docutils literal notranslate"><span class="pre">farthest_point_sampling_call</span></code></a>(d_func, k[, ...])</p></td>
+<td><p>Samples points using farthest point sampling, initialized randomly</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.farthest_point_sampling_call_sub" title="pyFM.mesh.geometry.farthest_point_sampling_call_sub"><code class="xref py py-obj docutils literal notranslate"><span class="pre">farthest_point_sampling_call_sub</span></code></a>(d_func, k, ...)</p></td>
+<td><p>Samples points using farthest point sampling on a mesh but reduced on a set of samples.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.farthest_point_sampling_distmat" title="pyFM.mesh.geometry.farthest_point_sampling_distmat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">farthest_point_sampling_distmat</span></code></a>(D, k[, ...])</p></td>
+<td><p>Samples points using farthest point sampling using a complete distance matrix</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.geodesic_distmat_dijkstra" title="pyFM.mesh.geometry.geodesic_distmat_dijkstra"><code class="xref py py-obj docutils literal notranslate"><span class="pre">geodesic_distmat_dijkstra</span></code></a>(vertices, faces)</p></td>
+<td><p>Compute geodesic distance matrix using Dijkstra algorithm.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.get_orientation_op" title="pyFM.mesh.geometry.get_orientation_op"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_orientation_op</span></code></a>(grad_field, vertices, ...)</p></td>
+<td><p>Compute the linear orientation operator associated to a gradient field grad(f).</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.grad_f" title="pyFM.mesh.geometry.grad_f"><code class="xref py py-obj docutils literal notranslate"><span class="pre">grad_f</span></code></a>(f, vertices, faces, normals[, ...])</p></td>
+<td><p>Compute the gradient of one or multiple functions on a mesh</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.grad_mat" title="pyFM.mesh.geometry.grad_mat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">grad_mat</span></code></a>(vertices, faces[, normals, ...])</p></td>
+<td><p>Returns gradient in the shape of a 3*n_faces * n_vertices matrix G.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.heat_geodesic_from" title="pyFM.mesh.geometry.heat_geodesic_from"><code class="xref py py-obj docutils literal notranslate"><span class="pre">heat_geodesic_from</span></code></a>(inds, vertices, faces, ...)</p></td>
+<td><p>Computes geodesic distances between vertices of index inds and all other vertices using the Heat Method</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.heat_geodmat" title="pyFM.mesh.geometry.heat_geodmat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">heat_geodmat</span></code></a>(vertices, faces, normals, A, W)</p></td>
+<td><p>Computes geodesic distances between all pairs of vertices using the Heat Method</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.heat_geodmat_robust" title="pyFM.mesh.geometry.heat_geodmat_robust"><code class="xref py py-obj docutils literal notranslate"><span class="pre">heat_geodmat_robust</span></code></a>(vertices, faces[, verbose])</p></td>
+<td><p>Compute the geodesic distance matrix using the Heat Method, with robust computation.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.neigh_faces" title="pyFM.mesh.geometry.neigh_faces"><code class="xref py py-obj docutils literal notranslate"><span class="pre">neigh_faces</span></code></a>(faces)</p></td>
+<td><p>Return the indices of neighbor faces for each vertex.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.per_vertex_normal" title="pyFM.mesh.geometry.per_vertex_normal"><code class="xref py py-obj docutils literal notranslate"><span class="pre">per_vertex_normal</span></code></a>(vertices, faces[, ...])</p></td>
+<td><p>Compute per-vertex normals of a triangular mesh, with a chosen weighting scheme.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.per_vertex_normal_area" title="pyFM.mesh.geometry.per_vertex_normal_area"><code class="xref py py-obj docutils literal notranslate"><span class="pre">per_vertex_normal_area</span></code></a>(vertices, faces)</p></td>
+<td><p>Compute per-vertex normals of a triangular mesh, weighted by the area of adjacent faces.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#pyFM.mesh.geometry.per_vertex_normal_uniform" title="pyFM.mesh.geometry.per_vertex_normal_uniform"><code class="xref py py-obj docutils literal notranslate"><span class="pre">per_vertex_normal_uniform</span></code></a>(vertices, faces[, ...])</p></td>
+<td><p>Compute per-vertex normals of a triangular mesh, weighted by the area of adjacent faces.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.edges_from_faces">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">edges_from_faces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.edges_from_faces" title="Link to this definition">¶</a></dt>
+<dd><p>Compute all edges in the mesh</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>faces</strong> (<em>np.ndarray</em>) – (m,3) array defining faces with vertex indices</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>edges</strong> – (p,2) array of all edges defined by vertex indices with no particular order</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.compute_faces_areas">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">compute_faces_areas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.compute_faces_areas" title="Link to this definition">¶</a></dt>
+<dd><p>Compute per-face areas of a triangular mesh</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> (<em>np.ndarray</em>) – (n,3) array of vertices coordinates</p></li>
+<li><p><strong>faces</strong> (<em>np.ndarray</em>) – (m,3) array of vertex indices defining faces</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>faces_areas</strong> – (m,) array of per-face areas</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.compute_vertex_areas">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">compute_vertex_areas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces_areas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.compute_vertex_areas" title="Link to this definition">¶</a></dt>
+<dd><p>Compute per-vertex areas of a triangular mesh.
+Area of a vertex, approximated as one third of the sum of the area of its adjacent triangles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> (<em>np.ndarray</em>) – (n,3) array of vertices coordinates</p></li>
+<li><p><strong>faces</strong> (<em>np.ndarray</em>) – (m,3) array of vertex indices defining faces</p></li>
+<li><p><strong>faces_areas</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – (m,) array of per-face areas</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>vert_areas</strong> – (n,) array of per-vertex areas</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.compute_normals">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">compute_normals</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.compute_normals" title="Link to this definition">¶</a></dt>
+<dd><p>Compute face normals of a triangular mesh</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> (<em>np.ndarray</em>) – (n,3) array of vertices coordinates</p></li>
+<li><p><strong>faces</strong> (<em>np.ndarray</em>) – (m,3) array of vertex indices defining faces</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>normals</strong> – (m,3) array of normalized per-face normals</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.per_vertex_normal">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">per_vertex_normal</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_normals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weighting</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'uniform'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.per_vertex_normal" title="Link to this definition">¶</a></dt>
+<dd><p>Compute per-vertex normals of a triangular mesh, with a chosen weighting scheme.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> – (n,3) array of vertices coordinates</p></li>
+<li><p><strong>faces</strong> – m,3) array of vertex indices defining faces</p></li>
+<li><p><strong>face_normals</strong> – (m,3) array of per-face normals</p></li>
+<li><p><strong>weighting</strong> (<em>str</em>) – ‘area’ or ‘uniform’.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>vert_areas</strong> – (n,) array of per-vertex areas</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.per_vertex_normal_area">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">per_vertex_normal_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.per_vertex_normal_area" title="Link to this definition">¶</a></dt>
+<dd><p>Compute per-vertex normals of a triangular mesh, weighted by the area of adjacent faces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> – (n,3) array of vertices coordinates</p></li>
+<li><p><strong>faces</strong> – (m,3) array of vertex indices defining faces</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>vert_areas</strong> – (n,) array of per-vertex areas</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.per_vertex_normal_uniform">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">per_vertex_normal_uniform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_normals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.per_vertex_normal_uniform" title="Link to this definition">¶</a></dt>
+<dd><p>Compute per-vertex normals of a triangular mesh, weighted by the area of adjacent faces.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> – (n,3) array of vertices coordinates</p></li>
+<li><p><strong>faces</strong> – (m,3) array of vertex indices defining faces</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>vert_areas</strong> – (n,) array of per-vertex areas</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.neigh_faces">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">neigh_faces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">faces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.neigh_faces" title="Link to this definition">¶</a></dt>
+<dd><p>Return the indices of neighbor faces for each vertex. This supposed all vertices appear in
+the face list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>faces</strong> – (m,3) list of faces</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>neighbors</strong> – (n,) list of list of indices of neighbor faces for each vertex</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.grad_mat">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">grad_mat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normals</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_areas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order_style</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'C'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.grad_mat" title="Link to this definition">¶</a></dt>
+<dd><p>Returns gradient in the shape of a 3*n_faces * n_vertices matrix G.</p>
+<p>Returns a ‘flatten’ version of the gradient.
+Given a function f of shape (n,), the gradient is given by (G&#64;f).reshape(order=order_style)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> – (n,3) coordinates of vertices</p></li>
+<li><p><strong>faces</strong> – (m,3) indices of vertices for each face</p></li>
+<li><p><strong>normals</strong> – (m,3) normals coordinate for each face</p></li>
+<li><p><strong>face_areas</strong> – (m,) - Optional, array of per-face area, for faster computation</p></li>
+<li><p><strong>order_style</strong> (<em>str</em><em>, </em><em>optional</em>) – ‘C’ or ‘F’, order style to use for reshape</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>G</strong> – (3*m,n) matrix of gradient</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>sparse.csr_matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.grad_f">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">grad_f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_areas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_sym</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.grad_f" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the gradient of one or multiple functions on a mesh</p>
+<p>Takes a function defined on each vertex and returns per-face gradient</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – (n,p) or (n,) functions value on each vertex</p></li>
+<li><p><strong>vertices</strong> – (n,3) coordinates of vertices</p></li>
+<li><p><strong>faces</strong> – (m,3) indices of vertices for each face</p></li>
+<li><p><strong>normals</strong> – (m,3) normals coordinate for each face</p></li>
+<li><p><strong>face_areas</strong> (<em>Optional</em>) – (m,) array of per-face area, for faster computation</p></li>
+<li><p><strong>use_sym</strong> (<em>bool</em>) – <dl class="simple">
+<dt>If true, uses the (slower but) symmetric expression</dt><dd><p>of the gradient</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>grads</strong> – <dl class="simple">
+<dt>iterable of size 3 containing arrays of size (m,3) giving gradient directions</dt><dd><p>for all faces (see function <cite>_get_grad_dir</cite>.</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>gradient</strong> – (m,p,3) or (n,3) gradient of f on the mesh</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.div_f">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">div_f</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vert_areas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_areas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.div_f" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the divergence of a vector field on a mesh.</p>
+<p>Takes a per-face vector field and returns per-vertex divergence</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>f</strong> – (m,3) vector field on each face</p></li>
+<li><p><strong>vertices</strong> – (n,3) coordinates of vertices</p></li>
+<li><p><strong>faces</strong> – (m,3) indices of vertices for each face</p></li>
+<li><p><strong>normals</strong> – (m,3) normals coordinate for each face</p></li>
+<li><p><strong>vert_areas</strong> – (m,) - Optional, array of per-vertex area, for faster computation</p></li>
+<li><p><strong>grads</strong> – <dl class="simple">
+<dt>iterable of size 3 containing arrays of size (m,3) giving gradient directions</dt><dd><p>for all faces</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>face_areas</strong> – <dl class="simple">
+<dt>(m,) - Optional, array of per-face area, for faster computation</dt><dd><p>ONLY USED IF grads is given</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>divergence</strong> – (n,) divergence of f on the mesh</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.geodesic_distmat_dijkstra">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">geodesic_distmat_dijkstra</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.geodesic_distmat_dijkstra" title="Link to this definition">¶</a></dt>
+<dd><p>Compute geodesic distance matrix using Dijkstra algorithm.
+Not very efficient, but works.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> – (n,3) coordinates of vertices</p></li>
+<li><p><strong>faces</strong> – (m,3) indices of vertices for each face</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>geod_dist</strong> – (n,n) geodesic distance matrix</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.heat_geodmat_robust">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">heat_geodmat_robust</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.heat_geodmat_robust" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the geodesic distance matrix using the Heat Method, with robust computation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> – (n,3) coordinates of vertices</p></li>
+<li><p><strong>faces</strong> – (m,3) indices of vertices for each face</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>distmat</strong> – (n,n) geodesic distance matrix</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.heat_geodesic_from">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">heat_geodesic_from</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_areas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vert_areas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">grads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_heat</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">solver_lap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.heat_geodesic_from" title="Link to this definition">¶</a></dt>
+<dd><p>Computes geodesic distances between vertices of index inds and all other vertices
+using the Heat Method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inds</strong> – int or (p,) array of ints - index of the source vertex (or vertices)</p></li>
+<li><p><strong>vertices</strong> – (n,3) vertices coordinates</p></li>
+<li><p><strong>faces</strong> – (m,3) triangular faces defined by 3 vertices index</p></li>
+<li><p><strong>normals</strong> – (m,3) per-face normals</p></li>
+<li><p><strong>A</strong> – (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W</p></li>
+<li><p><strong>W</strong> – <dl class="simple">
+<dt>(n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W.</dt><dd><p>Optional if solvers are given !</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – time parameter for which to solve the heat equation</p></li>
+<li><p><strong>face_area</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – (m,) - Optional, array of per-face area, for faster computation</p></li>
+<li><p><strong>vert_areas</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – (n,) - Optional, array of per-vertex area, for faster computation</p></li>
+<li><p><strong>grads</strong> (<em>list</em>) – list of size 3, each give per-face gradient directions (output of _get_grad_dir())</p></li>
+<li><p><strong>solver_heat</strong> (<em>callable</em><em>, </em><em>optional</em>) – solver for (A + tW)x = b given b</p></li>
+<li><p><strong>solver_lap</strong> (<em>callable</em><em>, </em><em>optional</em>) – solver for Wx = b given b</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>geod_dist</strong> – (n,) or (n,p) geodesic distance for each vertex in inds</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.heat_geodmat">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">heat_geodmat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">W</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.001</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">face_areas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vert_areas</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.heat_geodmat" title="Link to this definition">¶</a></dt>
+<dd><p>Computes geodesic distances between all pairs of vertices using the Heat Method</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>vertices</strong> – (n,3) vertices coordinates</p></li>
+<li><p><strong>faces</strong> – (m,3) triangular faces defined by 3 vertices index</p></li>
+<li><p><strong>normals</strong> – (m,3) per-face normals</p></li>
+<li><p><strong>A</strong> – (n,n) sparse - area matrix of the mesh so that the laplacian L = A^-1 W</p></li>
+<li><p><strong>W</strong> – (n,n) sparse - stiffness matrix so that the laplacian L = A^-1 W</p></li>
+<li><p><strong>t</strong> (<em>float</em>) – time parameter for which to solve the heat equation</p></li>
+<li><p><strong>face_areas</strong> (<em>optional</em>) – (m,) - Optional, array of per-face area, for faster computation</p></li>
+<li><p><strong>vert_areas</strong> (<em>optional</em>) – (n,) - Optional, array of per-vertex area, for faster computation</p></li>
+<li><p><strong>batch_size</strong> (<em>int</em>) – size of batches to use for computation. None means full shape</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>distmat</strong> – (n,n) geodesic distance matrix</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.farthest_point_sampling">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">farthest_point_sampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.farthest_point_sampling" title="Link to this definition">¶</a></dt>
+<dd><p>Samples points using farthest point sampling using either a complete distance matrix
+or a function giving distances to a given index i</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d</strong> – (n,n) array or callable - Either a distance matrix between points or a function computing geodesic distance from a given index.</p></li>
+<li><p><strong>k</strong> – int - number of points to sample</p></li>
+<li><p><strong>random_init</strong> – Whether to sample the first point randomly or to take the furthest away from all the other ones. Only used if d is a distance matrix</p></li>
+<li><p><strong>n_points</strong> – In the case where d is callable, specifies the size of the output</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fps</strong> – (k,) array of indices of sampled points</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.farthest_point_sampling_distmat">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">farthest_point_sampling_distmat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">D</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.farthest_point_sampling_distmat" title="Link to this definition">¶</a></dt>
+<dd><p>Samples points using farthest point sampling using a complete distance matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>D</strong> – (n,n) distance matrix between points</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – number of points to sample</p></li>
+<li><p><strong>random_init</strong> – <dl class="simple">
+<dt>Whether to sample the first point randomly or to</dt><dd><p>take the furthest away from all the other ones</p>
+</dd>
+</dl>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fps</strong> – (k,) array of indices of sampled points</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.farthest_point_sampling_call">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">farthest_point_sampling_call</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_points</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.farthest_point_sampling_call" title="Link to this definition">¶</a></dt>
+<dd><p>Samples points using farthest point sampling, initialized randomly</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d_func</strong> (<em>callable</em>) – for index i, d_func(i) is a (n_points,) array of geodesic distance to other points</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – number of points to sample</p></li>
+<li><p><strong>n_points</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of points. If not specified, checks d_func(0)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>fps</strong> – (k,) array of indices of sampled points</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.farthest_point_sampling_call_sub">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">farthest_point_sampling_call_sub</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">d_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sub_points</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_sub_inds</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">random_init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.farthest_point_sampling_call_sub" title="Link to this definition">¶</a></dt>
+<dd><p>Samples points using farthest point sampling on a mesh but reduced on a set of samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>d_func</strong> (<em>callable</em>) – <dl class="simple">
+<dt>for index i, d_func(i) is a (n_points,) array of geodesic distance to</dt><dd><p>other points</p>
+</dd>
+</dl>
+</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – number of points to sample</p></li>
+<li><p><strong>sub_points</strong> (<em>(</em><em>m</em><em>,</em><em>)</em>) – indices of vertices in the subsample</p></li>
+<li><p><strong>return_sub_inds</strong> (<em>bool</em>) – wether to return indices of fps inside the subsample</p></li>
+<li><p><strong>random_init</strong> (<em>bool</em>) – whether to sample the first point randomly or to take the furthest away</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>fps</strong> (<em>np.ndarray</em>) – (k,) array of indices of sampled points (as seen from the full set of points)</p></li>
+<li><p><strong>fps_sub</strong> (<em>optional</em>) – If return_sub_inds is True. (k,) array of indices of sampled points (as seen from inside sub_points)</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pyFM.mesh.geometry.get_orientation_op">
+<span class="sig-prename descclassname"><span class="pre">pyFM.mesh.geometry.</span></span><span class="sig-name descname"><span class="pre">get_orientation_op</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">grad_field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vertices</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">faces</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normals</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">per_vert_area</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotated</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyFM.mesh.geometry.get_orientation_op" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the linear orientation operator associated to a gradient field grad(f).</p>
+<p>This operator computes g -&gt; &lt; grad(f) x grad(g), n&gt; (given at each vertex) for any function g
+In practice, we compute &lt; n x grad(f), grad(g) &gt; for simpler computation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>grad_field</strong> – (n_f,3) gradient field on the mesh</p></li>
+<li><p><strong>vertices</strong> – (n_v,3) coordinates of vertices</p></li>
+<li><p><strong>faces</strong> – (n_f,3) indices of vertices for each face</p></li>
+<li><p><strong>normals</strong> – (n_f,3) normals coordinate for each face</p></li>
+<li><p><strong>per_vert_area</strong> – (n_v,) voronoi area for each vertex</p></li>
+<li><p><strong>rotated</strong> (<em>bool</em>) – whether gradient field is already rotated by n x grad(f)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>operator</strong> – (n_v,n_v) orientation operator.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>sparse.csc_matrix</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="pyFM.mesh.laplacian.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">pyFM.mesh.laplacian</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="pyFM.mesh.file_utils.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">pyFM.mesh.file_utils</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Robin Magnet
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">pyFM.mesh.geometry</a><ul>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.edges_from_faces"><code class="docutils literal notranslate"><span class="pre">edges_from_faces()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.compute_faces_areas"><code class="docutils literal notranslate"><span class="pre">compute_faces_areas()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.compute_vertex_areas"><code class="docutils literal notranslate"><span class="pre">compute_vertex_areas()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.compute_normals"><code class="docutils literal notranslate"><span class="pre">compute_normals()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.per_vertex_normal"><code class="docutils literal notranslate"><span class="pre">per_vertex_normal()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.per_vertex_normal_area"><code class="docutils literal notranslate"><span class="pre">per_vertex_normal_area()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.per_vertex_normal_uniform"><code class="docutils literal notranslate"><span class="pre">per_vertex_normal_uniform()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.neigh_faces"><code class="docutils literal notranslate"><span class="pre">neigh_faces()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.grad_mat"><code class="docutils literal notranslate"><span class="pre">grad_mat()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.grad_f"><code class="docutils literal notranslate"><span class="pre">grad_f()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.div_f"><code class="docutils literal notranslate"><span class="pre">div_f()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.geodesic_distmat_dijkstra"><code class="docutils literal notranslate"><span class="pre">geodesic_distmat_dijkstra()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.heat_geodmat_robust"><code class="docutils literal notranslate"><span class="pre">heat_geodmat_robust()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.heat_geodesic_from"><code class="docutils literal notranslate"><span class="pre">heat_geodesic_from()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.heat_geodmat"><code class="docutils literal notranslate"><span class="pre">heat_geodmat()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.farthest_point_sampling"><code class="docutils literal notranslate"><span class="pre">farthest_point_sampling()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.farthest_point_sampling_distmat"><code class="docutils literal notranslate"><span class="pre">farthest_point_sampling_distmat()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.farthest_point_sampling_call"><code class="docutils literal notranslate"><span class="pre">farthest_point_sampling_call()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.farthest_point_sampling_call_sub"><code class="docutils literal notranslate"><span class="pre">farthest_point_sampling_call_sub()</span></code></a></li>
+<li><a class="reference internal" href="#pyFM.mesh.geometry.get_orientation_op"><code class="docutils literal notranslate"><span class="pre">get_orientation_op()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=8d563738"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    </body>
+</html>

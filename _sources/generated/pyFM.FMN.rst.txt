@@ -1,0 +1,13 @@
+pyFM.FMN
+========
+
+.. automodule:: pyFM.FMN
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   FMN

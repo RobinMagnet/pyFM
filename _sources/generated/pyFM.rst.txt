@@ -1,0 +1,20 @@
+﻿pyFM
+====
+
+.. automodule:: pyFM
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   FMN
+   eval
+   functional
+   mesh
+   optimize
+   refine
+   signatures
+   spectral

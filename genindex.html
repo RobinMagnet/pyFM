@@ -1,0 +1,1170 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><link rel="index" title="Index" href="#" /><link rel="search" title="Search" href="search.html" />
+
+    <!-- Generated with Sphinx 8.1.3 and Furo 2024.08.06 --><title>Index - pyfmaps 1.0.0 documentation</title>
+<link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=302659d7" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f8f8f8;
+  --color-code-foreground: black;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">pyfmaps 1.0.0 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  
+  
+  <span class="sidebar-brand-text">pyfmaps 1.0.0 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API Documentation</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of API Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="generated/pyFM.html">pyFM</a><input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of pyFM</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="generated/pyFM.FMN.html">pyFM.FMN</a><input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of pyFM.FMN</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.FMN.FMN.html">pyFM.FMN.FMN</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="generated/pyFM.eval.html">pyFM.eval</a><input class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><div class="visually-hidden">Toggle navigation of pyFM.eval</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.eval.evaluate.html">pyFM.eval.evaluate</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="generated/pyFM.functional.html">pyFM.functional</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="generated/pyFM.mesh.html">pyFM.mesh</a><input class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><div class="visually-hidden">Toggle navigation of pyFM.mesh</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.mesh.file_utils.html">pyFM.mesh.file_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.mesh.geometry.html">pyFM.mesh.geometry</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.mesh.laplacian.html">pyFM.mesh.laplacian</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.mesh.trimesh.html">pyFM.mesh.trimesh</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="generated/pyFM.optimize.html">pyFM.optimize</a><input class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><div class="visually-hidden">Toggle navigation of pyFM.optimize</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.optimize.base_functions.html">pyFM.optimize.base_functions</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="generated/pyFM.refine.html">pyFM.refine</a><input class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><div class="visually-hidden">Toggle navigation of pyFM.refine</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.refine.icp.html">pyFM.refine.icp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.refine.zoomout.html">pyFM.refine.zoomout</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="generated/pyFM.signatures.html">pyFM.signatures</a><input class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><div class="visually-hidden">Toggle navigation of pyFM.signatures</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.signatures.HKS_functions.html">pyFM.signatures.HKS_functions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.signatures.WKS_functions.html">pyFM.signatures.WKS_functions</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="generated/pyFM.spectral.html">pyFM.spectral</a><input class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><div class="visually-hidden">Toggle navigation of pyFM.spectral</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.spectral.convert.html">pyFM.spectral.convert</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.spectral.nn_utils.html">pyFM.spectral.nn_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.spectral.projection_utils.html">pyFM.spectral.projection_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/pyFM.spectral.shape_difference.html">pyFM.spectral.shape_difference</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          
+<section class="genindex-section">
+  <h1 id="index">Index</h1>
+  <div class="genindex-jumpbox"><a href="#_"><strong>_</strong></a> | <a href="#A"><strong>A</strong></a> | <a href="#B"><strong>B</strong></a> | <a href="#C"><strong>C</strong></a> | <a href="#D"><strong>D</strong></a> | <a href="#E"><strong>E</strong></a> | <a href="#F"><strong>F</strong></a> | <a href="#G"><strong>G</strong></a> | <a href="#H"><strong>H</strong></a> | <a href="#I"><strong>I</strong></a> | <a href="#K"><strong>K</strong></a> | <a href="#L"><strong>L</strong></a> | <a href="#M"><strong>M</strong></a> | <a href="#N"><strong>N</strong></a> | <a href="#O"><strong>O</strong></a> | <a href="#P"><strong>P</strong></a> | <a href="#R"><strong>R</strong></a> | <a href="#S"><strong>S</strong></a> | <a href="#T"><strong>T</strong></a> | <a href="#U"><strong>U</strong></a> | <a href="#V"><strong>V</strong></a> | <a href="#W"><strong>W</strong></a> | <a href="#Z"><strong>Z</strong></a></div>
+</section>
+<section id="_" class="genindex-section">
+  <h2>_</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.__init__">__init__() (pyFM.FMN.FMN method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="A" class="genindex-section">
+  <h2>A</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.A">A (pyFM.mesh.trimesh.TriMesh attribute)</a>
+</li>
+        <li><a href="generated/pyFM.eval.evaluate.html#pyFM.eval.evaluate.accuracy">accuracy() (in module pyFM.eval.evaluate)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.area">area (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.area_normalize">area_normalize() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.shape_difference.html#pyFM.spectral.shape_difference.area_SD">area_SD() (in module pyFM.spectral.shape_difference)</a>
+</li>
+        <li><a href="generated/pyFM.signatures.HKS_functions.html#pyFM.signatures.HKS_functions.auto_HKS">auto_HKS() (in module pyFM.signatures.HKS_functions)</a>
+</li>
+        <li><a href="generated/pyFM.signatures.WKS_functions.html#pyFM.signatures.WKS_functions.auto_WKS">auto_WKS() (in module pyFM.signatures.WKS_functions)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="B" class="genindex-section">
+  <h2>B</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.spectral.projection_utils.html#pyFM.spectral.projection_utils.barycentric_to_precise">barycentric_to_precise() (in module pyFM.spectral.projection_utils)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="C" class="genindex-section">
+  <h2>C</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.center">center() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.center_mass">center_mass (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.change_FM_type">change_FM_type() (pyFM.functional.FunctionalMapping method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.compute_3cycle_weights">compute_3cycle_weights() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.projection_utils.html#pyFM.spectral.projection_utils.compute_all_dmin">compute_all_dmin() (in module pyFM.spectral.projection_utils)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.compute_Amat">compute_Amat() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.compute_CCLB">compute_CCLB() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.compute_CLB">compute_CLB() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.projection_utils.html#pyFM.spectral.projection_utils.compute_Deltamin">compute_Deltamin() (in module pyFM.spectral.projection_utils)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.compute_descr_op">compute_descr_op() (pyFM.functional.FunctionalMapping method)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.projection_utils.html#pyFM.spectral.projection_utils.compute_dmin">compute_dmin() (in module pyFM.spectral.projection_utils)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.compute_edges">compute_edges() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.compute_faces_areas">compute_faces_areas() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.projection_utils.html#pyFM.spectral.projection_utils.compute_lmax">compute_lmax() (in module pyFM.spectral.projection_utils)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.compute_maps">compute_maps() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.compute_normals">compute_normals() (in module pyFM.mesh.geometry)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.compute_normals">(pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.compute_orientation_op">compute_orientation_op() (pyFM.functional.FunctionalMapping method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.compute_p2p">compute_p2p() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.shape_difference.html#pyFM.spectral.shape_difference.compute_SD">compute_SD() (in module pyFM.spectral.shape_difference)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.compute_SD">(pyFM.functional.FunctionalMapping method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.compute_subsample">compute_subsample() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.compute_vertex_areas">compute_vertex_areas() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.compute_vertex_normals">compute_vertex_normals() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.compute_W">compute_W() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.shape_difference.html#pyFM.spectral.shape_difference.conformal_SD">conformal_SD() (in module pyFM.spectral.shape_difference)</a>
+</li>
+        <li><a href="generated/pyFM.eval.evaluate.html#pyFM.eval.evaluate.continuity">continuity() (in module pyFM.eval.evaluate)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.laplacian.html#pyFM.mesh.laplacian.cotangent_weights">cotangent_weights() (in module pyFM.mesh.laplacian)</a>
+</li>
+        <li><a href="generated/pyFM.eval.evaluate.html#pyFM.eval.evaluate.coverage">coverage() (in module pyFM.eval.evaluate)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="D" class="genindex-section">
+  <h2>D</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.D_a">D_a (pyFM.functional.FunctionalMapping attribute)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.D_c">D_c (pyFM.functional.FunctionalMapping attribute)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.decode">decode() (pyFM.functional.FunctionalMapping method)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.decode">(pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.descr1">descr1 (pyFM.functional.FunctionalMapping attribute)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.descr2">descr2 (pyFM.functional.FunctionalMapping attribute)</a>
+</li>
+        <li><a href="generated/pyFM.optimize.base_functions.html#pyFM.optimize.base_functions.descr_preservation">descr_preservation() (in module pyFM.optimize.base_functions)</a>
+</li>
+        <li><a href="generated/pyFM.optimize.base_functions.html#pyFM.optimize.base_functions.descr_preservation_grad">descr_preservation_grad() (in module pyFM.optimize.base_functions)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.laplacian.html#pyFM.mesh.laplacian.dia_area_mat">dia_area_mat() (in module pyFM.mesh.laplacian)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.div_f">div_f() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.divergence">divergence() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="E" class="genindex-section">
+  <h2>E</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.edges">edges (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.edges_from_faces">edges_from_faces() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.eigenvalues">eigenvalues (pyFM.mesh.trimesh.TriMesh attribute)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.eigenvectors">eigenvectors (pyFM.mesh.trimesh.TriMesh attribute)</a>
+</li>
+        <li><a href="generated/pyFM.optimize.base_functions.html#pyFM.optimize.base_functions.energy_func_std">energy_func_std() (in module pyFM.optimize.base_functions)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.export">export() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.export_texture">export_texture() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.extract_3_cycles">extract_3_cycles() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.extract_fps">extract_fps() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.extract_fps_sub">extract_fps_sub() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="F" class="genindex-section">
+  <h2>F</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.face_areas">face_areas (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.facelist">facelist (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.faces">faces (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.faces_areas">faces_areas (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.farthest_point_sampling">farthest_point_sampling() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.farthest_point_sampling_call">farthest_point_sampling_call() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.farthest_point_sampling_call_sub">farthest_point_sampling_call_sub() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.farthest_point_sampling_distmat">farthest_point_sampling_distmat() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.laplacian.html#pyFM.mesh.laplacian.fem_area_mat">fem_area_mat() (in module pyFM.mesh.laplacian)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.fit">fit() (pyFM.functional.FunctionalMapping method)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.fitted">fitted (pyFM.functional.FunctionalMapping property)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.FM">FM (pyFM.functional.FunctionalMapping attribute)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.functional.html#id3">(pyFM.functional.FunctionalMapping property)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/pyFM.spectral.convert.html#pyFM.spectral.convert.FM_to_p2p">FM_to_p2p() (in module pyFM.spectral.convert)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.FM_type">FM_type (pyFM.functional.FunctionalMapping attribute)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.functional.html#id2">(pyFM.functional.FunctionalMapping property)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN">FMN (class in pyFM.FMN)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping">FunctionalMapping (class in pyFM.functional)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="G" class="genindex-section">
+  <h2>G</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.geod_from">geod_from() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.geodesic_distmat_dijkstra">geodesic_distmat_dijkstra() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.get_CSD">get_CSD() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.get_cycle_weight">get_cycle_weight() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.get_geodesic">get_geodesic() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.get_LB">get_LB() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.get_orientation_op">get_orientation_op() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.get_p2p">get_p2p() (pyFM.functional.FunctionalMapping method)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.get_precise_map">get_precise_map() (pyFM.functional.FunctionalMapping method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.file_utils.html#pyFM.mesh.file_utils.get_uv">get_uv() (in module pyFM.mesh.file_utils)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.get_uv">(pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.get_x0">get_x0() (pyFM.functional.FunctionalMapping method)</a>
+</li>
+        <li><a href="generated/pyFM.optimize.base_functions.html#pyFM.optimize.base_functions.grad_energy_std">grad_energy_std() (in module pyFM.optimize.base_functions)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.grad_f">grad_f() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.grad_mat">grad_mat() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.gradient">gradient() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="H" class="genindex-section">
+  <h2>H</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.h1_inner">h1_inner() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.h1_sqnorm">h1_sqnorm() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.heat_geodesic_from">heat_geodesic_from() (in module pyFM.mesh.geometry)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.heat_geodmat">heat_geodmat() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.heat_geodmat_robust">heat_geodmat_robust() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.signatures.HKS_functions.html#pyFM.signatures.HKS_functions.HKS">HKS() (in module pyFM.signatures.HKS_functions)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="I" class="genindex-section">
+  <h2>I</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.refine.icp.html#pyFM.refine.icp.icp_iteration">icp_iteration() (in module pyFM.refine.icp)</a>
+</li>
+        <li><a href="generated/pyFM.refine.icp.html#pyFM.refine.icp.icp_refine">icp_refine() (in module pyFM.refine.icp)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.icp_refine">(pyFM.functional.FunctionalMapping method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.integrate">integrate() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.is_modified">is_modified (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.is_normalized">is_normalized (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="K" class="genindex-section">
+  <h2>K</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.k1">k1 (pyFM.functional.FunctionalMapping attribute)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.functional.html#id0">(pyFM.functional.FunctionalMapping property)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.k2">k2 (pyFM.functional.FunctionalMapping attribute)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.functional.html#id1">(pyFM.functional.FunctionalMapping property)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/pyFM.spectral.nn_utils.html#pyFM.spectral.nn_utils.knn_query">knn_query() (in module pyFM.spectral.nn_utils)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="L" class="genindex-section">
+  <h2>L</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.l2_inner">l2_inner() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.l2_sqnorm">l2_sqnorm() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.laplacian.html#pyFM.mesh.laplacian.laplacian_spectrum">laplacian_spectrum() (in module pyFM.mesh.laplacian)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.laplacian_spectrum">(pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.optimize.base_functions.html#pyFM.optimize.base_functions.LB_commutation">LB_commutation() (in module pyFM.optimize.base_functions)</a>
+</li>
+        <li><a href="generated/pyFM.optimize.base_functions.html#pyFM.optimize.base_functions.LB_commutation_grad">LB_commutation_grad() (in module pyFM.optimize.base_functions)</a>
+</li>
+        <li><a href="generated/pyFM.signatures.HKS_functions.html#pyFM.signatures.HKS_functions.lm_HKS">lm_HKS() (in module pyFM.signatures.HKS_functions)</a>
+</li>
+        <li><a href="generated/pyFM.signatures.WKS_functions.html#pyFM.signatures.WKS_functions.lm_WKS">lm_WKS() (in module pyFM.signatures.WKS_functions)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="M" class="genindex-section">
+  <h2>M</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.M">M (pyFM.FMN.FMN property)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.m_cclb">m_cclb (pyFM.FMN.FMN property)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.mesh1">mesh1 (pyFM.functional.FunctionalMapping attribute)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.mesh2">mesh2 (pyFM.functional.FunctionalMapping attribute)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.convert.html#pyFM.spectral.convert.mesh_FM_to_p2p">mesh_FM_to_p2p() (in module pyFM.spectral.convert)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.convert.html#pyFM.spectral.convert.mesh_FM_to_p2p_precise">mesh_FM_to_p2p_precise() (in module pyFM.spectral.convert)</a>
+</li>
+        <li><a href="generated/pyFM.signatures.HKS_functions.html#pyFM.signatures.HKS_functions.mesh_HKS">mesh_HKS() (in module pyFM.signatures.HKS_functions)</a>
+</li>
+        <li><a href="generated/pyFM.refine.icp.html#pyFM.refine.icp.mesh_icp_refine">mesh_icp_refine() (in module pyFM.refine.icp)</a>
+</li>
+        <li><a href="generated/pyFM.refine.icp.html#pyFM.refine.icp.mesh_icp_refine_p2p">mesh_icp_refine_p2p() (in module pyFM.refine.icp)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.convert.html#pyFM.spectral.convert.mesh_p2p_to_FM">mesh_p2p_to_FM() (in module pyFM.spectral.convert)</a>
+</li>
+        <li><a href="generated/pyFM.signatures.WKS_functions.html#pyFM.signatures.WKS_functions.mesh_WKS">mesh_WKS() (in module pyFM.signatures.WKS_functions)</a>
+</li>
+        <li><a href="generated/pyFM.refine.zoomout.html#pyFM.refine.zoomout.mesh_zoomout_refine">mesh_zoomout_refine() (in module pyFM.refine.zoomout)</a>
+</li>
+        <li><a href="generated/pyFM.refine.zoomout.html#pyFM.refine.zoomout.mesh_zoomout_refine_p2p">mesh_zoomout_refine_p2p() (in module pyFM.refine.zoomout)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.meshname">meshname (pyFM.mesh.trimesh.TriMesh attribute)</a>
+</li>
+        <li>
+    module
+
+        <ul>
+          <li><a href="generated/pyFM.html#module-pyFM">pyFM</a>
+</li>
+          <li><a href="generated/pyFM.eval.html#module-pyFM.eval">pyFM.eval</a>
+</li>
+          <li><a href="generated/pyFM.eval.evaluate.html#module-pyFM.eval.evaluate">pyFM.eval.evaluate</a>
+</li>
+          <li><a href="generated/pyFM.FMN.html#module-pyFM.FMN">pyFM.FMN</a>
+</li>
+          <li><a href="generated/pyFM.functional.html#module-pyFM.functional">pyFM.functional</a>
+</li>
+          <li><a href="generated/pyFM.mesh.html#module-pyFM.mesh">pyFM.mesh</a>
+</li>
+          <li><a href="generated/pyFM.mesh.file_utils.html#module-pyFM.mesh.file_utils">pyFM.mesh.file_utils</a>
+</li>
+          <li><a href="generated/pyFM.mesh.geometry.html#module-pyFM.mesh.geometry">pyFM.mesh.geometry</a>
+</li>
+          <li><a href="generated/pyFM.mesh.laplacian.html#module-pyFM.mesh.laplacian">pyFM.mesh.laplacian</a>
+</li>
+          <li><a href="generated/pyFM.mesh.trimesh.html#module-pyFM.mesh.trimesh">pyFM.mesh.trimesh</a>
+</li>
+          <li><a href="generated/pyFM.optimize.html#module-pyFM.optimize">pyFM.optimize</a>
+</li>
+          <li><a href="generated/pyFM.optimize.base_functions.html#module-pyFM.optimize.base_functions">pyFM.optimize.base_functions</a>
+</li>
+          <li><a href="generated/pyFM.refine.html#module-pyFM.refine">pyFM.refine</a>
+</li>
+          <li><a href="generated/pyFM.refine.icp.html#module-pyFM.refine.icp">pyFM.refine.icp</a>
+</li>
+          <li><a href="generated/pyFM.refine.zoomout.html#module-pyFM.refine.zoomout">pyFM.refine.zoomout</a>
+</li>
+          <li><a href="generated/pyFM.signatures.html#module-pyFM.signatures">pyFM.signatures</a>
+</li>
+          <li><a href="generated/pyFM.signatures.HKS_functions.html#module-pyFM.signatures.HKS_functions">pyFM.signatures.HKS_functions</a>
+</li>
+          <li><a href="generated/pyFM.signatures.WKS_functions.html#module-pyFM.signatures.WKS_functions">pyFM.signatures.WKS_functions</a>
+</li>
+          <li><a href="generated/pyFM.spectral.html#module-pyFM.spectral">pyFM.spectral</a>
+</li>
+          <li><a href="generated/pyFM.spectral.convert.html#module-pyFM.spectral.convert">pyFM.spectral.convert</a>
+</li>
+          <li><a href="generated/pyFM.spectral.nn_utils.html#module-pyFM.spectral.nn_utils">pyFM.spectral.nn_utils</a>
+</li>
+          <li><a href="generated/pyFM.spectral.projection_utils.html#module-pyFM.spectral.projection_utils">pyFM.spectral.projection_utils</a>
+</li>
+          <li><a href="generated/pyFM.spectral.shape_difference.html#module-pyFM.spectral.shape_difference">pyFM.spectral.shape_difference</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.spectral.projection_utils.html#pyFM.spectral.projection_utils.mycdist">mycdist() (in module pyFM.spectral.projection_utils)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="N" class="genindex-section">
+  <h2>N</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.n_faces">n_faces (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.n_vertices">n_vertices (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.neigh_faces">neigh_faces() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.normals">normals (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="O" class="genindex-section">
+  <h2>O</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.optimize.base_functions.html#pyFM.optimize.base_functions.op_commutation">op_commutation() (in module pyFM.optimize.base_functions)</a>
+</li>
+        <li><a href="generated/pyFM.optimize.base_functions.html#pyFM.optimize.base_functions.op_commutation_grad">op_commutation_grad() (in module pyFM.optimize.base_functions)</a>
+</li>
+        <li><a href="generated/pyFM.optimize.base_functions.html#pyFM.optimize.base_functions.oplist_commutation">oplist_commutation() (in module pyFM.optimize.base_functions)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.optimize.base_functions.html#pyFM.optimize.base_functions.oplist_commutation_grad">oplist_commutation_grad() (in module pyFM.optimize.base_functions)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.optimize_icsm">optimize_icsm() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.orientation_op">orientation_op() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="P" class="genindex-section">
+  <h2>P</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.p2p_21">p2p_21 (pyFM.functional.FunctionalMapping attribute)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.convert.html#pyFM.spectral.convert.p2p_to_FM">p2p_to_FM() (in module pyFM.spectral.convert)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.path">path (pyFM.mesh.trimesh.TriMesh attribute)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.per_vertex_normal">per_vertex_normal() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.per_vertex_normal_area">per_vertex_normal_area() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.geometry.html#pyFM.mesh.geometry.per_vertex_normal_uniform">per_vertex_normal_uniform() (in module pyFM.mesh.geometry)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.projection_utils.html#pyFM.spectral.projection_utils.point_to_triangles_projection">point_to_triangles_projection() (in module pyFM.spectral.projection_utils)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.projection_utils.html#pyFM.spectral.projection_utils.pointTriangleDistance">pointTriangleDistance() (in module pyFM.spectral.projection_utils)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.preprocess">preprocess() (pyFM.functional.FunctionalMapping method)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.preprocessed">preprocessed (pyFM.functional.FunctionalMapping property)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.process">process() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.project">project() (pyFM.functional.FunctionalMapping method)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.project">(pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        </ul></li>
+        <li><a href="generated/pyFM.spectral.projection_utils.html#pyFM.spectral.projection_utils.project_pc_to_triangles">project_pc_to_triangles() (in module pyFM.spectral.projection_utils)</a>
+</li>
+        <li><a href="generated/pyFM.spectral.projection_utils.html#pyFM.spectral.projection_utils.project_to_mesh">project_to_mesh() (in module pyFM.spectral.projection_utils)</a>
+</li>
+        <li>
+    pyFM
+
+        <ul>
+          <li><a href="generated/pyFM.html#module-pyFM">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.eval
+
+        <ul>
+          <li><a href="generated/pyFM.eval.html#module-pyFM.eval">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.eval.evaluate
+
+        <ul>
+          <li><a href="generated/pyFM.eval.evaluate.html#module-pyFM.eval.evaluate">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.FMN
+
+        <ul>
+          <li><a href="generated/pyFM.FMN.html#module-pyFM.FMN">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.functional
+
+        <ul>
+          <li><a href="generated/pyFM.functional.html#module-pyFM.functional">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.mesh
+
+        <ul>
+          <li><a href="generated/pyFM.mesh.html#module-pyFM.mesh">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.mesh.file_utils
+
+        <ul>
+          <li><a href="generated/pyFM.mesh.file_utils.html#module-pyFM.mesh.file_utils">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.mesh.geometry
+
+        <ul>
+          <li><a href="generated/pyFM.mesh.geometry.html#module-pyFM.mesh.geometry">module</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li>
+    pyFM.mesh.laplacian
+
+        <ul>
+          <li><a href="generated/pyFM.mesh.laplacian.html#module-pyFM.mesh.laplacian">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.mesh.trimesh
+
+        <ul>
+          <li><a href="generated/pyFM.mesh.trimesh.html#module-pyFM.mesh.trimesh">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.optimize
+
+        <ul>
+          <li><a href="generated/pyFM.optimize.html#module-pyFM.optimize">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.optimize.base_functions
+
+        <ul>
+          <li><a href="generated/pyFM.optimize.base_functions.html#module-pyFM.optimize.base_functions">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.refine
+
+        <ul>
+          <li><a href="generated/pyFM.refine.html#module-pyFM.refine">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.refine.icp
+
+        <ul>
+          <li><a href="generated/pyFM.refine.icp.html#module-pyFM.refine.icp">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.refine.zoomout
+
+        <ul>
+          <li><a href="generated/pyFM.refine.zoomout.html#module-pyFM.refine.zoomout">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.signatures
+
+        <ul>
+          <li><a href="generated/pyFM.signatures.html#module-pyFM.signatures">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.signatures.HKS_functions
+
+        <ul>
+          <li><a href="generated/pyFM.signatures.HKS_functions.html#module-pyFM.signatures.HKS_functions">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.signatures.WKS_functions
+
+        <ul>
+          <li><a href="generated/pyFM.signatures.WKS_functions.html#module-pyFM.signatures.WKS_functions">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.spectral
+
+        <ul>
+          <li><a href="generated/pyFM.spectral.html#module-pyFM.spectral">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.spectral.convert
+
+        <ul>
+          <li><a href="generated/pyFM.spectral.convert.html#module-pyFM.spectral.convert">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.spectral.nn_utils
+
+        <ul>
+          <li><a href="generated/pyFM.spectral.nn_utils.html#module-pyFM.spectral.nn_utils">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.spectral.projection_utils
+
+        <ul>
+          <li><a href="generated/pyFM.spectral.projection_utils.html#module-pyFM.spectral.projection_utils">module</a>
+</li>
+        </ul></li>
+        <li>
+    pyFM.spectral.shape_difference
+
+        <ul>
+          <li><a href="generated/pyFM.spectral.shape_difference.html#module-pyFM.spectral.shape_difference">module</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="R" class="genindex-section">
+  <h2>R</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.file_utils.html#pyFM.mesh.file_utils.read_obj">read_obj() (in module pyFM.mesh.file_utils)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.file_utils.html#pyFM.mesh.file_utils.read_off">read_off() (in module pyFM.mesh.file_utils)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.file_utils.html#pyFM.mesh.file_utils.read_tri">read_tri() (in module pyFM.mesh.file_utils)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.file_utils.html#pyFM.mesh.file_utils.read_vert">read_vert() (in module pyFM.mesh.file_utils)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.reconstruct">reconstruct() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.rotate">rotate() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="S" class="genindex-section">
+  <h2>S</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.scale">scale() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.set_isometries">set_isometries() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.set_maps">set_maps() (pyFM.FMN.FMN method)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.set_subsample">set_subsample() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.set_vertex_normal_weighting">set_vertex_normal_weighting() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+        <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.set_weights">set_weights() (pyFM.FMN.FMN method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.sqrtarea">sqrtarea (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="T" class="genindex-section">
+  <h2>T</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.transfer">transfer() (pyFM.functional.FunctionalMapping method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.translate">translate() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.transport">transport() (pyFM.functional.FunctionalMapping method)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh">TriMesh (class in pyFM.mesh.trimesh)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="U" class="genindex-section">
+  <h2>U</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.unproject">unproject() (pyFM.mesh.trimesh.TriMesh method)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="V" class="genindex-section">
+  <h2>V</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.vertex_areas">vertex_areas (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.vertex_normals">vertex_normals (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.vertices">vertices (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.vertlist">vertlist (pyFM.mesh.trimesh.TriMesh property)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="W" class="genindex-section">
+  <h2>W</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.trimesh.html#pyFM.mesh.trimesh.TriMesh.W">W (pyFM.mesh.trimesh.TriMesh attribute)</a>
+</li>
+        <li><a href="generated/pyFM.signatures.WKS_functions.html#pyFM.signatures.WKS_functions.WKS">WKS() (in module pyFM.signatures.WKS_functions)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.file_utils.html#pyFM.mesh.file_utils.write_mtl">write_mtl() (in module pyFM.mesh.file_utils)</a>
+</li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.mesh.file_utils.html#pyFM.mesh.file_utils.write_obj">write_obj() (in module pyFM.mesh.file_utils)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.file_utils.html#pyFM.mesh.file_utils.write_obj_texture">write_obj_texture() (in module pyFM.mesh.file_utils)</a>
+</li>
+        <li><a href="generated/pyFM.mesh.file_utils.html#pyFM.mesh.file_utils.write_off">write_off() (in module pyFM.mesh.file_utils)</a>
+</li>
+    </ul></td>
+  </tr></table>
+</section>
+
+<section id="Z" class="genindex-section">
+  <h2>Z</h2>
+  <table style="width: 100%" class="indextable genindextable"><tr>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.refine.zoomout.html#pyFM.refine.zoomout.zoomout_iteration">zoomout_iteration() (in module pyFM.refine.zoomout)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.zoomout_iteration">(pyFM.FMN.FMN method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+    <td style="width: 33%; vertical-align: top;"><ul>
+        <li><a href="generated/pyFM.refine.zoomout.html#pyFM.refine.zoomout.zoomout_refine">zoomout_refine() (in module pyFM.refine.zoomout)</a>
+
+        <ul>
+          <li><a href="generated/pyFM.FMN.FMN.html#pyFM.FMN.FMN.zoomout_refine">(pyFM.FMN.FMN method)</a>
+</li>
+          <li><a href="generated/pyFM.functional.html#pyFM.functional.FunctionalMapping.zoomout_refine">(pyFM.functional.FunctionalMapping method)</a>
+</li>
+        </ul></li>
+    </ul></td>
+  </tr></table>
+</section>
+
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Robin Magnet
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=8d563738"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    </body>
+</html>

@@ -1,0 +1,20 @@
+pyFM.mesh.file\_utils
+=====================
+
+.. automodule:: pyFM.mesh.file_utils
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      get_uv
+      read_obj
+      read_off
+      read_tri
+      read_vert
+      write_mtl
+      write_obj
+      write_obj_texture
+      write_off
+   

@@ -1,0 +1,21 @@
+pyFM.optimize.base\_functions
+=============================
+
+.. automodule:: pyFM.optimize.base_functions
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      LB_commutation
+      LB_commutation_grad
+      descr_preservation
+      descr_preservation_grad
+      energy_func_std
+      grad_energy_std
+      op_commutation
+      op_commutation_grad
+      oplist_commutation
+      oplist_commutation_grad
+   

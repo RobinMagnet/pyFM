@@ -1,0 +1,21 @@
+pyFM.spectral.projection\_utils
+===============================
+
+.. automodule:: pyFM.spectral.projection_utils
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      barycentric_to_precise
+      compute_Deltamin
+      compute_all_dmin
+      compute_dmin
+      compute_lmax
+      mycdist
+      pointTriangleDistance
+      point_to_triangles_projection
+      project_pc_to_triangles
+      project_to_mesh
+   

@@ -1,0 +1,12 @@
+pyFM.spectral.nn\_utils
+=======================
+
+.. automodule:: pyFM.spectral.nn_utils
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      knn_query
+   
