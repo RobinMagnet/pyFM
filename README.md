@@ -1,6 +1,8 @@
 # pyFM - Python Functional Maps Library
 
-![](doc/zoomout.gif)
+<p align="center">
+  <img src="doc/zoomout.gif" alt="animated" />
+</p>
 
 [![](https://github.com/RobinMagnet/pyFM/actions/workflows/documentation.yml/badge.svg)](https://robinmagnet.github.io/pyFM/)
 
