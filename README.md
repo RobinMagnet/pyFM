@@ -26,9 +26,7 @@ This codebase prioritizes readability and adaptability over rigid modularity. Th
 - Avoid rewriting core functionality from scratch
 
 Under the hood, core algorithms are implemented as standalone functions operating on basic numpy arrays.
-This dual-layer design means you can:
-- Use the high-level interface for standard workflows
-- Easily extract and modify the core functions for your research, as they work with simple numpy arrays
+This dual-layer design means you can use the high-level interface for standard workflows, but still easily extract and modify the core functions for your research, as they work with simple numpy arrays.
 
 While this approach differs from highly modular packages like `scikit-learn`, it better serves researchers who need to modify and build upon existing shape correspondence methods.
 
