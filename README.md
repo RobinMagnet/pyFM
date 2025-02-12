@@ -18,6 +18,15 @@ This package contains a comprehensive Python implementation for shape correspond
 - Fast functional-to-pointwise map conversion
 - Functional Map Network utilities
 
+## Installation
+```bash
+pip install pyfmaps
+```
+
+### Key Dependencies
+- Required: numpy, scipy, tqdm, scikit-learn
+- Optional: [`potpourri3d`](https://github.com/nmwsharp/potpourri3d) (geodesics), [`robust_laplacian`](https://github.com/nmwsharp/robust-laplacians-py) (Delaunay/tufted Laplacian)
+
 ## Design Philosophy
 This codebase prioritizes readability and adaptability over rigid modularity.
 The implementation seeks to make it easy to:
@@ -37,16 +46,7 @@ This design choice comes with some **trade-offs**:
 - Users need some familiarity with shape correspondence concepts
 - Implementation favors explicit algorithms over general-purpose interfaces
 
-This approach stems from personal experience with research codebases and may not suit everyone's needs. More generic and abstracted implementations of geometric processing can be expected to appear soonish in the [scikit-shapes](https://scikit-shapes.github.io/scikit-shapes/) or [geomstats](https://geomstats.github.io/) libraries.
-
-## Installation
-```bash
-pip install pyfmaps
-```
-
-## Key Dependencies
-- Required: numpy, scipy, tqdm, scikit-learn
-- Optional: [`potpourri3d`](https://github.com/nmwsharp/potpourri3d) (geodesics), [`robust_laplacian`](https://github.com/nmwsharp/robust-laplacians-py) (Delaunay/tufted Laplacian)
+I selected this approach from my personal experience with research codebases and may not suit everyone's needs. More generic and abstracted implementations of geometric processing can be expected to appear soonish in the [scikit-shapes](https://scikit-shapes.github.io/scikit-shapes/) or [geomstats](https://geomstats.github.io/) libraries.
 
 ## Notation Convention
 - Functional maps (FM_12): mesh1 → mesh2
@@ -54,7 +54,7 @@ pip install pyfmaps
 
 ## Documentation & Examples
 - [API Documentation](https://robinmagnet.github.io/pyFM/)
-- [Example Notebook](https://github.com/RobinMagnet/pyFM/blob/master/example_notebook.ipynb)
+- [Example Notebooks](https://github.com/RobinMagnet/pyFM/tree/master/examples)
 
 ## Implemented Papers
 This library implements methods from several key papers in shape correspondence, including:
