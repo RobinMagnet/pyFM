@@ -30,7 +30,6 @@ This dual-layer design means you can use the high-level interface for standard w
 
 While this approach differs from highly modular packages like `scikit-learn`, it better serves researchers who need to modify and build upon existing shape correspondence methods.
 
-
 ## Installation
 ```bash
 pip install pyfmaps
@@ -64,13 +63,19 @@ This library implements methods from several key papers in shape correspondence,
  * [Limit Shapes – A Tool for Understanding Shape Differences and Variability in 3D Model Collections](http://www.lix.polytechnique.fr/~maks/papers/limit_shapes_SGP19.pdf)
  * [CONSISTENT ZOOMOUT: Efficient Spectral Map Synchronization](http://www.lix.polytechnique.fr/~maks/papers/ConsistentZoomOut_SGP2020.pdf), with Matlab implementation [here](https://github.com/llorz/SGA19_zoomOut)
 
+## Torch Version
+
+Most functions in this package can easily be translated to torch. However, for clarity of the code, a separate version will be released.
+
+For now, the torch implementations can be found in different githubs (see my GitHub profile).
+
 ## Coming Soon
 - [Discrete Optimization for Shape Matching](https://www.lix.polytechnique.fr/~maks/papers/SGP21_DiscMapOpt.pdf) and [Smooth Non-Rigid Shape Matching via Effective Dirichlet Energy Optimization](https://www.lix.polytechnique.fr/Labo/Robin.Magnet/3DV2022_smooth_corres/smooth_corres_main.pdf), already implemented [here](https://github.com/RobinMagnet/SmoothFunctionalMaps)
 - [Reversible Harmonic Maps](https://dl.acm.org/doi/10.1145/3202660), already implemented [here](https://github.com/RobinMagnet/ReversibleHarmonicMaps)
 
 # Contact and Citation
 
-robin.magnet@inria.fr
+You can contact me for any questions or requests at robin.magnet@inria.fr
 
 This package has not (yet) been presented as a paper in itself, although all my works heavily rely on this.
 
