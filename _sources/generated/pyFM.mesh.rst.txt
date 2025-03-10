@@ -1,0 +1,16 @@
+pyFM.mesh
+=========
+
+.. automodule:: pyFM.mesh
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   file_utils
+   geometry
+   laplacian
+   trimesh

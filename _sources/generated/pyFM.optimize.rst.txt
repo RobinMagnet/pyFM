@@ -1,0 +1,13 @@
+pyFM.optimize
+=============
+
+.. automodule:: pyFM.optimize
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   base_functions

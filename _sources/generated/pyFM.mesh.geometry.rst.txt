@@ -1,0 +1,31 @@
+pyFM.mesh.geometry
+==================
+
+.. automodule:: pyFM.mesh.geometry
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      compute_faces_areas
+      compute_normals
+      compute_vertex_areas
+      div_f
+      edges_from_faces
+      farthest_point_sampling
+      farthest_point_sampling_call
+      farthest_point_sampling_call_sub
+      farthest_point_sampling_distmat
+      geodesic_distmat_dijkstra
+      get_orientation_op
+      grad_f
+      grad_mat
+      heat_geodesic_from
+      heat_geodmat
+      heat_geodmat_robust
+      neigh_faces
+      per_vertex_normal
+      per_vertex_normal_area
+      per_vertex_normal_uniform
+   

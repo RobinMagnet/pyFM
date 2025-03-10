@@ -1,0 +1,15 @@
+pyFM.refine.icp
+===============
+
+.. automodule:: pyFM.refine.icp
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      icp_iteration
+      icp_refine
+      mesh_icp_refine
+      mesh_icp_refine_p2p
+   

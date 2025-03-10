@@ -1,0 +1,14 @@
+pyFM.refine
+===========
+
+.. automodule:: pyFM.refine
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   icp
+   zoomout

@@ -1,0 +1,15 @@
+pyFM.refine.zoomout
+===================
+
+.. automodule:: pyFM.refine.zoomout
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      mesh_zoomout_refine
+      mesh_zoomout_refine_p2p
+      zoomout_iteration
+      zoomout_refine
+   

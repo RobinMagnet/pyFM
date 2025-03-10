@@ -1,0 +1,16 @@
+pyFM.spectral
+=============
+
+.. automodule:: pyFM.spectral
+
+   
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   convert
+   nn_utils
+   projection_utils
+   shape_difference

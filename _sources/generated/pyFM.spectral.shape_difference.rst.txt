@@ -1,0 +1,14 @@
+pyFM.spectral.shape\_difference
+===============================
+
+.. automodule:: pyFM.spectral.shape_difference
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      area_SD
+      compute_SD
+      conformal_SD
+   

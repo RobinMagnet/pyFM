@@ -1,0 +1,15 @@
+pyFM.mesh.laplacian
+===================
+
+.. automodule:: pyFM.mesh.laplacian
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      cotangent_weights
+      dia_area_mat
+      fem_area_mat
+      laplacian_spectrum
+   

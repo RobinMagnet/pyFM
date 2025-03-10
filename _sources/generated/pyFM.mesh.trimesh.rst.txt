@@ -1,0 +1,12 @@
+pyFM.mesh.trimesh
+=================
+
+.. automodule:: pyFM.mesh.trimesh
+
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      TriMesh
+   
