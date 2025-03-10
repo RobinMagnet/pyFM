@@ -23,6 +23,8 @@ This package contains a comprehensive Python implementation for shape correspond
 pip install pyfmaps
 ```
 
+Please check the PyPi page to ensure the latest version is uploaded.
+
 ### Key Dependencies
 - Required: numpy, scipy, tqdm, scikit-learn
 - Optional: [`potpourri3d`](https://github.com/nmwsharp/potpourri3d) (geodesics), [`robust_laplacian`](https://github.com/nmwsharp/robust-laplacians-py) (Delaunay/tufted Laplacian)
