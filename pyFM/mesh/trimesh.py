@@ -248,6 +248,22 @@ class TriMesh:
         return self._edges
 
     @property
+    def edges_lengths(self):
+        """
+        return a (p,) array of edge lengths.
+
+        Returns
+        -----------------
+        edges_lengths : np.ndarray
+            (p,) array of edge lengths
+        """
+        edge_lengths = np.linalg.norm(
+            self.vertlist[self.edges[:, 1]] - self.vertlist[self.edges[:, 1]], axis=1
+        )
+
+        return edge_lengths
+
+    @property
     def normals(self):
         """
         return face normals
@@ -634,6 +650,7 @@ class TriMesh:
     def get_geodesic(
         self,
         dijkstra=False,
+        fast_marching=False,
         robust=True,
         save=False,
         force_compute=False,
@@ -674,9 +691,18 @@ class TriMesh:
             if geod_dist is not None:
                 return geod_dist
 
+        assert not (
+            dijkstra and fast_marching
+        ), "Cannot use both dijkstra and fast_marching"
+
         # Else compute the complete matrix
         if dijkstra:
             geod_dist = geom.geodesic_distmat_dijkstra(self.vertlist, self.facelist)
+
+        elif fast_marching:
+            geod_dist = geom.geodesic_distmat_fast_marching(
+                self.vertlist, self.facelist
+            )
 
         elif robust or self._intrinsic:
             geod_dist = geom.heat_geodmat_robust(
@@ -736,7 +762,7 @@ class TriMesh:
 
         return geod_dist
 
-    def geod_from(self, i, robust=True):
+    def geod_from(self, i, fast_marching=False, robust=True):
         """
         Compute geodesic distances from vertex i sing the Heat Method
 
@@ -753,16 +779,33 @@ class TriMesh:
             (n,) distances to vertex i
         """
 
-        if robust or self._intrinsic:
-            if self._solver_geod is None:
-                self._solver_geod = pp3d.MeshHeatMethodDistanceSolver(
+        use_heat = not fast_marching
+
+        if not use_heat:
+            if self._solver_geod_fmarch is None:
+                self._solver_geod_fmarch = pp3d.MeshFastMarchingDistanceSolver(
                     self.vertlist, self.facelist
                 )
 
             if np.issubdtype(type(i), np.integer):
-                return self._solver_geod.compute_distance(i)
+                return self._solver_geod_fmarch.compute_distance([[(i, [])]])
             else:
-                return np.array([self._solver_geod.compute_distance(x) for x in i]).T
+                return np.array(
+                    [self._solver_geod_fmarch.compute_distance([[(x, [])]]) for x in i]
+                ).T
+
+        if robust or self._intrinsic:
+            if self._solver_geod_heat is None:
+                self._solver_geod_heat = pp3d.MeshHeatMethodDistanceSolver(
+                    self.vertlist, self.facelist
+                )
+
+            if np.issubdtype(type(i), np.integer):
+                return self._solver_geod_heat.compute_distance([[(i, [])]])
+            else:
+                return np.array(
+                    [self._solver_geod_heat.compute_distance([[(x, [])]]) for x in i]
+                ).T
 
         if self.A is None or self.W is None:
             self.process(k=0)
@@ -1274,7 +1317,8 @@ class TriMesh:
 
         self._solver_heat = None
         self._solver_lap = None
-        self._solver_geod = None
+        self._solver_geod_heat = None
+        self._solver_geod_fmarch = None
 
     def _get_geod_cache(self, verbose=False):
         # Check if the mesh has a stored path
@@ -1368,6 +1412,7 @@ class TriMesh:
         self.eigenvalues = None
         self.eigenvectors = None
 
-        self._solver_geod = None
+        self._solver_geod_heat = None
+        self._solver_geod_fmarch = None
         self._solver_heat = None
         self._solver_lap = None

@@ -567,6 +567,34 @@ def geodesic_distmat_dijkstra(vertices, faces):
     return geod_dist
 
 
+def geodesic_distmat_fast_marching(vertices, faces):
+    """
+    Compute geodesic distance matrix using Fast Marching algorithm.
+
+    Parameters
+    --------------------------
+    vertices :
+        (n,3) coordinates of vertices
+    faces    :
+        (m,3) indices of vertices for each face
+
+    Returns
+    --------------------------
+    geod_dist : np.ndarray
+        (n,n) geodesic distance matrix
+    """
+
+    n_vertices = vertices.shape[0]
+    distmat = np.zeros((n_vertices, n_vertices))
+
+    solver = pp3d.MeshFastMarchingDistanceSolver(vertices, faces)
+
+    for vertind in range(n_vertices):
+        distmat[vertind] = solver.compute_distance([[(vertind, [])]])
+
+    return distmat
+
+
 def heat_geodmat_robust(vertices, faces, verbose=False):
     """
     Compute the geodesic distance matrix using the Heat Method, with robust computation.
