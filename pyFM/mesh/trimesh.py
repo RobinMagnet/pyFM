@@ -258,7 +258,7 @@ class TriMesh:
             (p,) array of edge lengths
         """
         edge_lengths = np.linalg.norm(
-            self.vertlist[self.edges[:, 1]] - self.vertlist[self.edges[:, 1]], axis=1
+            self.vertlist[self.edges[:, 1]] - self.vertlist[self.edges[:, 0]], axis=1
         )
 
         return edge_lengths
@@ -801,10 +801,10 @@ class TriMesh:
                 )
 
             if np.issubdtype(type(i), np.integer):
-                return self._solver_geod_heat.compute_distance([[(i, [])]])
+                return self._solver_geod_heat.compute_distance(i)
             else:
                 return np.array(
-                    [self._solver_geod_heat.compute_distance([[(x, [])]]) for x in i]
+                    [self._solver_geod_heat.compute_distance(x) for x in i]
                 ).T
 
         if self.A is None or self.W is None:
