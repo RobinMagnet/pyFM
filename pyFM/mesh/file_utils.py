@@ -476,7 +476,7 @@ def write_obj_texture(
 
         else:
             # texture_im is texture.jpg or just texture
-            if os.path.splitext(texture_im)[1] != ".jpg":
+            if os.path.splitext(texture_im)[1] not in [".jpg", ".png"]:
                 texture_im = texture_im + ".jpg"
 
             texture_im = os.path.join(os.path.dirname(__file__), "data", texture_im)
