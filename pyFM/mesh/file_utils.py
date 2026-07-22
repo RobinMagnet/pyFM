@@ -180,7 +180,7 @@ def write_off(filepath, vertices, faces, precision=None, face_colors=None):
     if face_colors is not None:
         assert face_colors.shape[0] == faces.shape[0], "PB"
         if face_colors.max() <= 1:
-            face_colors = (256 * face_colors).astype(int)
+            face_colors = np.clip((255 * face_colors).astype(int), 0, 255)
 
     with open(filepath, "w") as f:
         f.write("OFF\n")

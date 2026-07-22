@@ -402,9 +402,10 @@ class FunctionalMapping:
         ev_sqdiff = np.square(
             self.mesh1.eigenvalues[None, :k1] - self.mesh2.eigenvalues[:k2, None]
         )  # (k2, k1)
-        ev_sqdiff /= ev_sqdiff.sum()
+        ev_sqdiff_sum = ev_sqdiff.sum()
+        ev_sqdiff /= ev_sqdiff_sum
         if verbose:
-            print(f"\tLBO commutativity weight scaled by {1 / ev_sqdiff.sum():.2e}")
+            print(f"\tLBO commutativity weight scaled by {1 / ev_sqdiff_sum:.2e}")
 
         # Rescale orientation weight relative to the other terms
         if w_orient > 0:
@@ -422,10 +423,16 @@ class FunctionalMapping:
                 ev_sqdiff,
             )
             eval_orient = opt_func.oplist_commutation(C_eye, orient_op)
-            scale = eval_native / eval_orient
-            w_orient *= scale
-            if verbose:
-                print(f"\tOrientation weight scaled by {scale:.2e}")
+            if eval_orient > 0:
+                scale = eval_native / eval_orient
+                w_orient *= scale
+                if verbose:
+                    print(f"\tOrientation weight scaled by {scale:.2e}")
+            elif verbose:
+                print(
+                    "\tOrientation operator has zero energy; "
+                    "skipping orientation weight rescaling"
+                )
 
         args = (
             w_descr,

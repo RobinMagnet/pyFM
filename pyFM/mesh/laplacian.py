@@ -180,6 +180,6 @@ def laplacian_spectrum(W, A, spectrum_size=200):
         eigenvalues = np.real(eigenvalues)
         sorting_arr = np.argsort(eigenvalues)
         eigenvalues = eigenvalues[sorting_arr]
-        eigenvectors = eigenvectors[sorting_arr]
+        eigenvectors = eigenvectors[:, sorting_arr]
 
     return eigenvalues, eigenvectors

@@ -84,24 +84,25 @@ def icp_refine(
                  from basis 2 to basis 1
     """
     FM_12_curr = FM_12.copy()
-    iteration = 1
     if verbose:
         start_time = time.time()
 
-    if nit is not None and nit > 0:
-        myrange = tqdm(range(nit)) if verbose else range(nit)
-    else:
-        myrange = range(10000)
+    # If nit is not given (or 0), iterate until the map stops changing (tol mode).
+    use_tol = nit is None or nit == 0
+    myrange = range(10000) if use_tol else range(nit)
 
-    for i in myrange:
+    # In tol mode we print per-iteration diagnostics instead of a progress bar.
+    n_iter = 0
+    for i in tqdm(myrange, disable=not verbose or use_tol):
+        n_iter = i + 1
         FM_12_icp = icp_iteration(
             FM_12_curr, evects1, evects2, use_adj=use_adj, n_jobs=n_jobs
         )
 
-        if nit is None or nit == 0:
+        if use_tol:
             if verbose:
                 print(
-                    f"iteration : {1+i} - mean : {np.square(FM_12_curr - FM_12_icp).mean():.2e}"
+                    f"iteration : {n_iter} - mean : {np.square(FM_12_curr - FM_12_icp).mean():.2e}"
                     f" - max : {np.max(np.abs(FM_12_curr - FM_12_icp)):.2e}"
                 )
             if np.max(np.abs(FM_12_curr - FM_12_icp)) <= tol:
@@ -109,9 +110,9 @@ def icp_refine(
 
         FM_12_curr = FM_12_icp.copy()
 
-    if nit is None or nit == 0 and verbose:
+    if use_tol and verbose:
         run_time = time.time() - start_time
-        print(f"ICP done with {iteration:d} iterations - {run_time:.2f} s")
+        print(f"ICP done with {n_iter:d} iterations - {run_time:.2f} s")
 
     if return_p2p:
         p2p_21_icp = spectral.FM_to_p2p(

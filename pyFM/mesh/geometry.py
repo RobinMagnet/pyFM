@@ -79,8 +79,9 @@ def compute_vertex_areas(vertices, faces, faces_areas=None):
     -----------------------------
     vertices    : np.ndarray
         (n,3) array of vertices coordinates
-    faces       : np.ndarray
-        (m,3) array of vertex indices defining faces
+    faces       : np.ndarray or None
+        (m,3) array of vertex indices defining faces. If None (point cloud),
+        uniform unit areas are returned.
     faces_areas : np.ndarray, optional
         (m,) array of per-face areas
 
@@ -91,10 +92,13 @@ def compute_vertex_areas(vertices, faces, faces_areas=None):
     """
     N = vertices.shape[0]
 
-    if faces_areas is None and faces is not None:
+    if faces is None:
+        # Point cloud: no connectivity, hence no meaningful face-based areas.
+        # Fall back to uniform unit areas (one per vertex).
+        return np.ones(N)
+
+    if faces_areas is None:
         faces_areas = compute_faces_areas(vertices, faces)  # (m,)
-    elif faces is None:
-        return 1 / np.ones(N)
 
     # THIS IS JUST A TRICK TO BE FASTER THAN NP.ADD.AT
     I = np.concatenate([faces[:, 0], faces[:, 1], faces[:, 2]])

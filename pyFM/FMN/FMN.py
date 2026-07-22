@@ -741,33 +741,22 @@ class FMN:
         else:
             M_init = self.M
 
-        for i in tqdm(range(nit - 1)):
+        for i in tqdm(range(nit)):
             new_M = self.M + step
             m_cclb = int(cclb_ratio * self.M)
-            # If not the last iteration
-            if i < nit - 1:
-
-                self.zoomout_iteration(
-                    m_cclb,
-                    self.M,
-                    new_M,
-                    weight_type=weight_type,
-                    equals_id=equals_id,
-                    n_jobs=n_jobs,
-                    complete=not use_sub,
-                )
-
-            # Last iteration
-            else:
-                self.zoomout_iteration(
-                    m_cclb,
-                    self.M,
-                    new_M,
-                    weight_type=weight_type,
-                    equals_id=equals_id,
-                    n_jobs=n_jobs,
-                    complete=True,
-                )
+            # On the last iteration, always recompute the maps on the full mesh
+            # (not just the subsample).
+            is_last = i == nit - 1
+            self.zoomout_iteration(
+                m_cclb,
+                self.M,
+                new_M,
+                isometric=isometric,
+                weight_type=weight_type,
+                equals_id=equals_id,
+                n_jobs=n_jobs,
+                complete=is_last or not use_sub,
+            )
 
 
 def CLB_quad_form(maps, weights, M=None):

@@ -331,8 +331,8 @@ class TriMesh:
         return self._faces_areas
 
     @faces_areas.setter
-    def face_areas(self, face_areas):
-        self._faces_areas = face_areas
+    def faces_areas(self, faces_areas):
+        self._faces_areas = faces_areas
 
     @property
     def center_mass(self):
@@ -435,7 +435,7 @@ class TriMesh:
             self.A = alpha**2 * self.A
 
         if self._faces_areas is not None:
-            self._faces_area *= alpha
+            self._faces_areas *= alpha
 
         if self.eigenvalues is not None:
             self.eigenvalues = 1 / alpha**2 * self.eigenvalues
@@ -1316,7 +1316,7 @@ class TriMesh:
         Resets attributes which depend on the vertex positions
         in the case of nonisometric deformation
         """
-        self._face_areas = None
+        self._faces_areas = None
 
         self._normals = None
         self._vertex_normals = None

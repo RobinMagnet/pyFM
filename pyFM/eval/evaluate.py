@@ -88,6 +88,8 @@ def coverage(p2p, A):
     """
     if len(A.shape) == 2:
         vert_area = np.asarray(A.sum(1)).flatten()
+    else:
+        vert_area = np.asarray(A).flatten()
     coverage = vert_area[np.unique(p2p)].sum() / vert_area.sum()
 
     return coverage

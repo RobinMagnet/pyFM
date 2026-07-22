@@ -132,9 +132,9 @@ def mesh_HKS(mesh, num_T, landmarks=None, k=None):
     if k is None:
         k = len(mesh.eigenvalues)
     else:
-        assert len(
-            mesh.eigenvalues >= k
-        ), f"At least ${k}$ eigenvalues should be computed, not {len(mesh.eigenvalues)}"
+        assert (
+            len(mesh.eigenvalues) >= k
+        ), f"At least {k} eigenvalues should be computed, not {len(mesh.eigenvalues)}"
 
     return auto_HKS(
         mesh.eigenvalues[:k],
