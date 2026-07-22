@@ -664,7 +664,7 @@ class FunctionalMapping:
     def _get_x0(self, optinit):
         k1, k2 = self._k1, self._k2
         if optinit == "random":
-            x0 = np.random.random((k2, k1))
+            x0 = np.random.default_rng().random((k2, k1))
         elif optinit == "identity":
             x0 = np.eye(k2, k1)
         else:

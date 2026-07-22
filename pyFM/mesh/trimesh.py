@@ -435,7 +435,7 @@ class TriMesh:
             self.A = alpha**2 * self.A
 
         if self._faces_areas is not None:
-            self._faces_areas *= alpha
+            self._faces_areas *= alpha**2
 
         if self.eigenvalues is not None:
             self.eigenvalues = 1 / alpha**2 * self.eigenvalues
@@ -1388,13 +1388,13 @@ class TriMesh:
         center = kwargs["center"] if "center" in kwargs.keys() else False
 
         if "normalize" in kwargs.keys():
-            if "area_normalize" in kwargs.keys() and kwargs["area_normalize"] == False:
+            if "area_normalize" in kwargs.keys() and kwargs["area_normalize"] is False:
                 raise ValueError(
-                    "Area normalization is inlcuded in normalize, can't set normalize to True and area_normalize to False"
+                    "Area normalization is included in normalize, can't set normalize to True and area_normalize to False"
                 )
-            if "center" in kwargs.keys() and kwargs["center"] == False:
+            if "center" in kwargs.keys() and kwargs["center"] is False:
                 raise ValueError(
-                    "Centering is inlcuded in normalize, can't set normalize to True and center to False"
+                    "Centering is included in normalize, can't set normalize to True and center to False"
                 )
             area_normalize = True
             center = True

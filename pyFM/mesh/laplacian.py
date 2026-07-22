@@ -31,14 +31,9 @@ def dia_area_mat(vertices, faces, faces_areas=None):
         v3 = vertices[faces[:, 2]]  # (m,3)
         faces_areas = 0.5 * np.linalg.norm(np.cross(v2 - v1, v3 - v1), axis=1)  # (m,)
 
-    I = np.concatenate([faces[:, 0], faces[:, 1], faces[:, 2]])
-    J = np.zeros_like(I)
-    V = np.concatenate([faces_areas, faces_areas, faces_areas]) / 3
-
-    # Get array of vertex areas
-    vertex_areas = np.array(
-        sparse.coo_matrix((V, (I, J)), shape=(N, 1)).todense()
-    ).flatten()
+    # Accumulate one third of each face area onto its three vertices.
+    vertex_areas = np.zeros(N)
+    np.add.at(vertex_areas, faces.flatten(), np.repeat(faces_areas / 3, 3))
 
     A = sparse.dia_matrix((vertex_areas, 0), shape=(N, N))
     return A
@@ -172,7 +167,7 @@ def laplacian_spectrum(W, A, spectrum_size=200):
         # raise ValueError('Matrices are not positive semidefinite')
         # Initial eigenvector values:
         print("Problem during LBO decomposition ! Please check")
-        init_eigenvecs = np.random.random((A.shape[0], spectrum_size))
+        init_eigenvecs = np.random.default_rng().random((A.shape[0], spectrum_size))
         eigenvalues, eigenvectors = sparse.linalg.lobpcg(
             W, init_eigenvecs, B=A, largest=False, maxiter=40
         )

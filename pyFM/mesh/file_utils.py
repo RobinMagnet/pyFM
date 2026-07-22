@@ -457,8 +457,6 @@ def write_obj_texture(
     ), f"Filepath must end with .obj. Current filepath: {filepath}"
 
     use_texture = uv is not None
-    n_vertices = vertices.shape[0]
-    n_faces = faces.shape[0] if faces is not None else 0
     precision = 16 if precision is None else precision
 
     out_dir_name = os.path.abspath(os.path.dirname(filepath))

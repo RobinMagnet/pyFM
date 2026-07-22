@@ -100,16 +100,9 @@ def compute_vertex_areas(vertices, faces, faces_areas=None):
     if faces_areas is None:
         faces_areas = compute_faces_areas(vertices, faces)  # (m,)
 
-    # THIS IS JUST A TRICK TO BE FASTER THAN NP.ADD.AT
-    I = np.concatenate([faces[:, 0], faces[:, 1], faces[:, 2]])
-    J = np.zeros_like(I)
-
-    V = np.tile(faces_areas / 3, 3)
-
-    # Get the (n,) array of vertex areas
-    vertex_areas = np.array(
-        sparse.coo_matrix((V, (I, J)), shape=(N, 1)).todense()
-    ).flatten()
+    # Accumulate one third of each face area onto its three vertices.
+    vertex_areas = np.zeros(N)
+    np.add.at(vertex_areas, faces.flatten(), np.repeat(faces_areas / 3, 3))
 
     return vertex_areas
 
@@ -191,7 +184,6 @@ def per_vertex_normal_area(vertices, faces):
         (n,) array of per-vertex areas
     """
 
-    n_faces = faces.shape[0]
     n_vertices = vertices.shape[0]
 
     v1 = vertices[faces[:, 0]]  # (m,3)
@@ -201,17 +193,10 @@ def per_vertex_normal_area(vertices, faces):
     # That is 2* A(T) n(T) with A(T) area of face T
     face_normals_weighted = np.cross(1e3 * (v2 - v1), 1e3 * (v3 - v1))  # (m,3)
 
-    # A simple version should be :
-    # vert_normals = np.zeros((n_vertices,3))
-    # np.add.at(vert_normals, faces.flatten(),np.repeat(face_normals_weighted,3,axis=0))
-    # But this code is way faster in practice
-
-    In = np.repeat(faces.flatten(), 3)  # (9m,)
-    Jn = np.tile(np.arange(3), 3 * n_faces)  # (9m,)
-    Vn = np.tile(face_normals_weighted, (1, 3)).flatten()  # (9m,)
-
-    vert_normals = sparse.coo_matrix((Vn, (In, Jn)), shape=(n_vertices, 3))
-    vert_normals = np.asarray(vert_normals.todense())
+    vert_normals = np.zeros((n_vertices, 3))
+    np.add.at(
+        vert_normals, faces.flatten(), np.repeat(face_normals_weighted, 3, axis=0)
+    )
     vert_normals /= 1e-6 + np.linalg.norm(vert_normals, axis=1, keepdims=True)
 
     return vert_normals
@@ -219,7 +204,7 @@ def per_vertex_normal_area(vertices, faces):
 
 def per_vertex_normal_uniform(vertices, faces, face_normals=None):
     """
-    Compute per-vertex normals of a triangular mesh, weighted by the area of adjacent faces.
+    Compute per-vertex normals of a triangular mesh, with uniform weights across adjacent faces.
 
     Parameters
     -----------------------------
@@ -230,11 +215,10 @@ def per_vertex_normal_uniform(vertices, faces, face_normals=None):
 
     Returns
     -----------------------------
-    vert_areas : np.ndarray
-        (n,) array of per-vertex areas
+    vert_normals : np.ndarray
+        (n,3) array of per-vertex normals
     """
 
-    n_faces = faces.shape[0]
     n_vertices = vertices.shape[0]
 
     v1 = vertices[faces[:, 0]]  # (m,3)
@@ -245,17 +229,8 @@ def per_vertex_normal_uniform(vertices, faces, face_normals=None):
         face_normals = np.cross(1e3 * (v2 - v1), 1e3 * (v3 - v1))  # (m,3)
         face_normals /= np.linalg.norm(face_normals, axis=1, keepdims=True)
 
-    # A simple version should be :
-    # vert_normals = np.zeros((n_vertices,3))
-    # np.add.at(vert_normals, faces.flatten(),np.repeat(face_normals,3,axis=0))
-    # But this code is way faster in practice
-
-    In = np.repeat(faces.flatten(), 3)  # (9m,)
-    Jn = np.tile(np.arange(3), 3 * n_faces)  # (9m,)
-    Vn = np.tile(face_normals, (1, 3)).flatten()  # (9m,)
-
-    vert_normals = sparse.coo_matrix((Vn, (In, Jn)), shape=(n_vertices, 3))
-    vert_normals = np.asarray(vert_normals.todense())
+    vert_normals = np.zeros((n_vertices, 3))
+    np.add.at(vert_normals, faces.flatten(), np.repeat(face_normals, 3, axis=0))
     vert_normals /= 1e-6 + np.linalg.norm(vert_normals, axis=1, keepdims=True)
 
     return vert_normals
@@ -516,12 +491,13 @@ def div_f(f, vertices, faces, normals, vert_areas=None, grads=None, face_areas=N
         grad1 = np.einsum("ij,ij->i", grad1_n, f)  # (m,)
         grad2 = np.einsum("ij,ij->i", grad2_n, f)  # (m,)
         grad3 = np.einsum("ij,ij->i", grad3_n, f)  # (m,)
-        I = np.concatenate([faces[:, 0], faces[:, 1], faces[:, 2]])  # (3*m)
-        J = np.zeros_like(I)
-        V = np.concatenate([grad1, grad2, grad3])
 
-        div_val = sparse.coo_matrix((V, (I, J)), shape=(n_vertices, 1)).todense()
-        div_val = np.asarray(div_val).flatten() / vert_areas  # (n,)
+        div_val = np.zeros(n_vertices)  # (n,)
+        np.add.at(div_val, faces[:, 0], grad1)
+        np.add.at(div_val, faces[:, 1], grad2)
+        np.add.at(div_val, faces[:, 2], grad3)
+
+        div_val /= vert_areas  # (n,)
 
     else:
         grad1 = np.einsum("ij,ipj->ip", grad1_n, f)  # (m,p)
