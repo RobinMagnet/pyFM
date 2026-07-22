@@ -1,9 +1,7 @@
 import numpy as np
-import scipy.sparse as sparse
-
-from tqdm.auto import tqdm
-
 import potpourri3d as pp3d
+import scipy.sparse as sparse
+from tqdm.auto import tqdm
 
 
 def edges_from_faces(faces):
@@ -408,9 +406,7 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False, grads=No
         else:
             gradient = (f2 - f1)[:, :, None] * grad2[:, None, :] + (f3 - f1)[
                 :, :, None
-            ] * grad3[
-                :, None, :
-            ]  # (m,3)
+            ] * grad3[:, None, :]  # (m,3)
 
     else:
         if grads is None:

@@ -4,11 +4,11 @@ Python implementation of:
 [1] - "Deblurring and Denoising of Maps between Shapes", by Danielle Ezuz and Mirela Ben-Chen.
 """
 
-import scipy.linalg
 import numpy as np
+import scipy.linalg
 
-from .nn_utils import knn_query
 from . import projection_utils as pju
+from .nn_utils import knn_query
 
 
 def p2p_to_FM(p2p_21, evects1, evects2, A2=None):
@@ -134,12 +134,12 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
     """
     k2, k1 = FM_12.shape
 
-    assert (
-        k1 <= evects1.shape[1]
-    ), f"At least {k1} should be provided, here only {evects1.shape[1]} are given"
-    assert (
-        k2 <= evects2.shape[1]
-    ), f"At least {k2} should be provided, here only {evects2.shape[1]} are given"
+    assert k1 <= evects1.shape[1], (
+        f"At least {k1} should be provided, here only {evects1.shape[1]} are given"
+    )
+    assert k2 <= evects2.shape[1], (
+        f"At least {k2} should be provided, here only {evects2.shape[1]} are given"
+    )
 
     if use_adj:
         emb1 = evects1[:, :k1]

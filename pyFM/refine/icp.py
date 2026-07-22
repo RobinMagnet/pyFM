@@ -1,8 +1,8 @@
 import time
-from tqdm.auto import tqdm
 
 import numpy as np
 import scipy.linalg
+from tqdm.auto import tqdm
 
 from .. import spectral
 

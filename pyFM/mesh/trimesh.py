@@ -2,15 +2,13 @@ import os
 import time
 
 import numpy as np
-
-from . import file_utils
-from . import geometry as geom
-from . import laplacian
+import potpourri3d as pp3d
+import robust_laplacian
 import scipy.linalg
 import scipy.sparse as sparse
 
-import potpourri3d as pp3d
-import robust_laplacian
+from . import file_utils, laplacian
+from . import geometry as geom
 
 GEODESIC_METHODS = ("heat", "heat_pure", "dijkstra", "fast_marching")
 
@@ -517,7 +515,7 @@ class TriMesh:
             )
 
             if verbose:
-                print(f"\tDone in {time.time()-start_time:.2f} s")
+                print(f"\tDone in {time.time() - start_time:.2f} s")
 
             if return_spectrum:
                 return self.eigenvalues, self.eigenvectors
@@ -691,7 +689,9 @@ class TriMesh:
             (n,n) matrix of geodesic distances
         """
         if method not in GEODESIC_METHODS:
-            raise ValueError(f"method must be one of {GEODESIC_METHODS}, got '{method}'")
+            raise ValueError(
+                f"method must be one of {GEODESIC_METHODS}, got '{method}'"
+            )
 
         # Load cache if possible and not explicitly forbidden
         if not force_compute:
@@ -790,7 +790,9 @@ class TriMesh:
             (n,) distances to vertex i, or (n,p) if i is a sequence of length p
         """
         if method not in GEODESIC_METHODS:
-            raise ValueError(f"method must be one of {GEODESIC_METHODS}, got '{method}'")
+            raise ValueError(
+                f"method must be one of {GEODESIC_METHODS}, got '{method}'"
+            )
 
         if method == "fast_marching":
             if self._solver_geod_fmarch is None:

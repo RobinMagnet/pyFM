@@ -1,17 +1,16 @@
 import copy
-from collections import defaultdict
 import time
+from collections import defaultdict
 
 import numpy as np
+import scipy.linalg
 import scipy.sparse as sparse
 import scipy.sparse.linalg
-import scipy.linalg
 from scipy.optimize import linprog
+from sklearn.neighbors import NearestNeighbors
 from tqdm.auto import tqdm
 
 from .. import spectral
-
-from sklearn.neighbors import NearestNeighbors
 
 
 class FMN:
@@ -459,7 +458,6 @@ class FMN:
         self.p2p = dict()
         curr_vind = -1
         for i, j in self.edges:
-
             if i != curr_vind:
                 curr_v = i
                 LB_1 = self.get_LB(curr_v, complete=False)  # (n_1',m)

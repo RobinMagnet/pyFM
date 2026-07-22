@@ -1,5 +1,6 @@
 import os
 from shutil import copyfile
+
 import numpy as np
 
 
@@ -187,16 +188,16 @@ def write_off(filepath, vertices, faces, precision=None, face_colors=None):
         f.write(f"{n_vertices} {n_faces} 0\n")
         for i in range(n_vertices):
             f.write(
-                f'{" ".join([f"{coord:.{precision}f}" for coord in vertices[i]])}\n'
+                f"{' '.join([f'{coord:.{precision}f}' for coord in vertices[i]])}\n"
             )
 
         if n_faces != 0:
             for j in range(n_faces):
                 if face_colors is None:
-                    f.write(f'3 {" ".join([str(tri) for tri in faces[j]])}\n')
+                    f.write(f"3 {' '.join([str(tri) for tri in faces[j]])}\n")
                 else:
-                    f.write(f'4 {" ".join([str(tri) for tri in faces[j]])} ')
-                    f.write(f'{" ".join([str(tri_c) for tri_c in face_colors[j]])}\n')
+                    f.write(f"4 {' '.join([str(tri) for tri in faces[j]])} ")
+                    f.write(f"{' '.join([str(tri_c) for tri_c in face_colors[j]])}\n")
 
 
 def write_obj(
@@ -260,19 +261,19 @@ def write_obj(
 
         for i in range(n_vertices):
             f.write(
-                f'v {" ".join([f"{coord:.{precision}f}" for coord in vertices[i]])}\n'
+                f"v {' '.join([f'{coord:.{precision}f}' for coord in vertices[i]])}\n"
             )
 
         if vertex_normals is not None:
             for i in range(len(vertex_normals)):
                 f.write(
-                    f'vn {" ".join([f"{coord:.{precision}f}" for coord in vertex_normals[i]])}\n'
+                    f"vn {' '.join([f'{coord:.{precision}f}' for coord in vertex_normals[i]])}\n"
                 )
 
         if uv is not None:
             for i in range(len(uv)):
                 f.write(
-                    f'vt {" ".join([f"{coord:.{precision}f}" for coord in uv[i]])}\n'
+                    f"vt {' '.join([f'{coord:.{precision}f}' for coord in uv[i]])}\n"
                 )
 
         if n_faces > 0:
@@ -283,21 +284,21 @@ def write_obj(
             for j in range(n_faces):
                 if fvt is not None and fnt is not None:
                     f.write(
-                        f'f {" ".join([f"{1+faces[j][k]:d}/{1+fvt[j][k]:d}/{1+fnt[j][k]:d}" for k in range(3)])}\n'
+                        f"f {' '.join([f'{1 + faces[j][k]:d}/{1 + fvt[j][k]:d}/{1 + fnt[j][k]:d}' for k in range(3)])}\n"
                     )
 
                 elif fvt is not None:
                     f.write(
-                        f'f {" ".join([f"{1+faces[j][k]:d}/{1+fvt[j][k]:d}" for k in range(3)])}\n'
+                        f"f {' '.join([f'{1 + faces[j][k]:d}/{1 + fvt[j][k]:d}' for k in range(3)])}\n"
                     )
 
                 elif fnt is not None:
                     f.write(
-                        f'f {" ".join([f"{1+faces[j][k]:d}//{1+fnt[j][k]:d}" for k in range(3)])}\n'
+                        f"f {' '.join([f'{1 + faces[j][k]:d}//{1 + fnt[j][k]:d}' for k in range(3)])}\n"
                     )
 
                 else:
-                    f.write(f'f {" ".join([str(1+tri) for tri in faces[j]])}\n')
+                    f.write(f"f {' '.join([str(1 + tri) for tri in faces[j]])}\n")
 
 
 def read_vert(filepath):
@@ -361,8 +362,8 @@ def write_mtl(filepath, texture_im="texture_1.jpg"):
     with open(filepath, "w") as f:
         f.write("newmtl material_0\n")
         f.write(f"Ka  {0.2:.6f} {0.2:.6f} {0.2:.6f}\n")
-        f.write(f"Kd  {1.:.6f} {1.:.6f} {1.:.6f}\n")
-        f.write(f"Ks  {1.:.6f} {1.:.6f} {1.:.6f}\n")
+        f.write(f"Kd  {1.0:.6f} {1.0:.6f} {1.0:.6f}\n")
+        f.write(f"Ks  {1.0:.6f} {1.0:.6f} {1.0:.6f}\n")
         f.write(f"Tr  {1:d}\n")
         f.write(f"Ns  {0:d}\n")
         f.write(f"illum {2:d}\n")
@@ -452,9 +453,9 @@ def write_obj_texture(
         whether to print information
 
     """
-    assert filepath.endswith(
-        ".obj"
-    ), f"Filepath must end with .obj. Current filepath: {filepath}"
+    assert filepath.endswith(".obj"), (
+        f"Filepath must end with .obj. Current filepath: {filepath}"
+    )
 
     use_texture = uv is not None
     precision = 16 if precision is None else precision
