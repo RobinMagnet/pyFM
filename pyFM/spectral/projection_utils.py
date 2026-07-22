@@ -7,8 +7,8 @@
 import time
 
 import numpy as np
-from tqdm.auto import tqdm
 import scipy.sparse as sparse
+from tqdm.auto import tqdm
 
 from .nn_utils import knn_query
 
@@ -123,14 +123,14 @@ def project_pc_to_triangles(
         start_time = time.time()
     lmax = compute_lmax(vert_emb, faces)  # (n1,)
     if verbose:
-        print(f"\tDone in {time.time()-start_time:.2f}s")
+        print(f"\tDone in {time.time() - start_time:.2f}s")
 
     if verbose:
         print("Precompute nearest vertex...")
         start_time = time.time()
     Deltamin = compute_Deltamin(vert_emb, points_emb, n_jobs=n_jobs)  # (n2,)
     if verbose:
-        print(f"\tDone in {time.time()-start_time:.2f}s")
+        print(f"\tDone in {time.time() - start_time:.2f}s")
 
     dmin = None
     if precompute_dmin:
@@ -140,7 +140,7 @@ def project_pc_to_triangles(
         dmin = compute_all_dmin(vert_emb, faces, points_emb)  # (n_f1,n2)
         dmin_params = None
         if verbose:
-            print(f"\tDone in {time.time()-start_time:.2f}s")
+            print(f"\tDone in {time.time() - start_time:.2f}s")
 
     else:
         vert_sqnorms = np.linalg.norm(vert_emb, axis=1) ** 2
@@ -795,7 +795,6 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         )
 
     if len(inds_2) > 0:
-
         tmp0 = b[inds_2] + d[inds_2]
         tmp1 = c[inds_2] + e[inds_2]
 
