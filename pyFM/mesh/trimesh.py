@@ -12,6 +12,8 @@ import scipy.sparse as sparse
 import potpourri3d as pp3d
 import robust_laplacian
 
+GEODESIC_METHODS = ("heat", "heat_pure", "dijkstra", "fast_marching")
+
 
 class TriMesh:
     """
@@ -443,7 +445,8 @@ class TriMesh:
 
         self._solver_heat = None
         self._solver_lap = None
-        self._solver_geod = None
+        self._solver_geod_heat = None
+        self._solver_geod_fmarch = None
 
         self._modified = True
         self._normalized = False
@@ -649,9 +652,7 @@ class TriMesh:
 
     def get_geodesic(
         self,
-        dijkstra=False,
-        fast_marching=False,
-        robust=True,
+        method="heat",
         save=False,
         force_compute=False,
         sym=False,
@@ -659,24 +660,28 @@ class TriMesh:
         verbose=False,
     ):
         """
-        Compute the geodesic distance matrix using either the Dijkstra algorithm or the Heat Method.
-        Loads from cache if possible.
+        Compute the geodesic distance matrix. Loads from cache if possible.
 
         Parameters
         -----------------
-        dijkstra      : bool , optional
-            If True, use Dijkstra algorithm instead of the heat method. Defaults to False
-        robust        : boo, optional
-            Robust heat method. Defaults to True
+        method        : str, optional
+            Method to use to compute geodesic distances. One of:
+              - "heat"          : potpourri3d robust heat method (default)
+              - "heat_pure"     : pure-python heat method (falls back to "heat" if the mesh
+                                   uses an intrinsic triangulation, since the pure-python path
+                                   needs faces/normals that intrinsic meshes may lack)
+              - "dijkstra"      : graph-based Dijkstra algorithm
+              - "fast_marching" : potpourri3d fast marching method
+            Defaults to "heat".
         save          : bool, optional
             If True, save the resulting distance matrix at '{path}/geod_cache/{meshname}.npy' with 'path/meshname.{ext}' path of the
             current mesh. Defaults to False
         force_compute : bool, optional
             If True, doesn't look for a cached distance matrix. Defaults to False
         sym           : bool, optional
-            Symmetrize the matrix if computed with heat method. Defaults to False
+            Symmetrize the matrix if computed with the heat or fast marching method. Defaults to False
         batch_size    : int, optional
-            If robust is False, compute distances by batch
+            If method is "heat_pure", compute distances by batch
         verbose       : bool, optional
             Print progress
 
@@ -685,26 +690,25 @@ class TriMesh:
         distances : np.ndarray
             (n,n) matrix of geodesic distances
         """
+        if method not in GEODESIC_METHODS:
+            raise ValueError(f"method must be one of {GEODESIC_METHODS}, got '{method}'")
+
         # Load cache if possible and not explicitly forbidden
         if not force_compute:
             geod_dist = self._get_geod_cache(verbose=verbose)
             if geod_dist is not None:
                 return geod_dist
 
-        assert not (
-            dijkstra and fast_marching
-        ), "Cannot use both dijkstra and fast_marching"
-
         # Else compute the complete matrix
-        if dijkstra:
+        if method == "dijkstra":
             geod_dist = geom.geodesic_distmat_dijkstra(self.vertlist, self.facelist)
 
-        elif fast_marching:
+        elif method == "fast_marching":
             geod_dist = geom.geodesic_distmat_fast_marching(
                 self.vertlist, self.facelist
             )
 
-        elif robust or self._intrinsic:
+        elif method == "heat" or (method == "heat_pure" and self._intrinsic):
             geod_dist = geom.heat_geodmat_robust(
                 self.vertlist, self.facelist, verbose=verbose
             )
@@ -733,7 +737,7 @@ class TriMesh:
                 verbose=verbose,
             )
 
-        if sym and not dijkstra:
+        if sym and method != "dijkstra":
             geod_dist *= 0.5
             geod_dist += geod_dist.T
 
@@ -762,26 +766,33 @@ class TriMesh:
 
         return geod_dist
 
-    def geod_from(self, i, fast_marching=False, robust=True):
+    def geod_from(self, i, method="heat"):
         """
-        Compute geodesic distances from vertex i sing the Heat Method
+        Compute geodesic distances from vertex (or vertices) i using the given method.
 
         Parameters
         ----------------------
-        i      : int
-            index from source
-        robust : bool, optional
-            Robust heat method
+        i      : int or (p,) array of ints
+            index (or indices) of the source vertex/vertices
+        method : str, optional
+            Method to use to compute geodesic distances. One of:
+              - "heat"          : potpourri3d robust heat method (default)
+              - "heat_pure"     : pure-python heat method (falls back to "heat" if the mesh
+                                   uses an intrinsic triangulation, since the pure-python path
+                                   needs faces/normals that intrinsic meshes may lack)
+              - "dijkstra"      : graph-based Dijkstra algorithm
+              - "fast_marching" : potpourri3d fast marching method
+            Defaults to "heat".
 
         Returns
         ----------------------
         dist : np.ndarray
-            (n,) distances to vertex i
+            (n,) distances to vertex i, or (n,p) if i is a sequence of length p
         """
+        if method not in GEODESIC_METHODS:
+            raise ValueError(f"method must be one of {GEODESIC_METHODS}, got '{method}'")
 
-        use_heat = not fast_marching
-
-        if not use_heat:
+        if method == "fast_marching":
             if self._solver_geod_fmarch is None:
                 self._solver_geod_fmarch = pp3d.MeshFastMarchingDistanceSolver(
                     self.vertlist, self.facelist
@@ -794,7 +805,11 @@ class TriMesh:
                     [self._solver_geod_fmarch.compute_distance([[(x, [])]]) for x in i]
                 ).T
 
-        if robust or self._intrinsic:
+        elif method == "dijkstra":
+            graph = geom.build_dijkstra_graph(self.vertlist, self.facelist)
+            return geom.dijkstra_from(i, graph)
+
+        elif method == "heat" or (method == "heat_pure" and self._intrinsic):
             if self._solver_geod_heat is None:
                 self._solver_geod_heat = pp3d.MeshHeatMethodDistanceSolver(
                     self.vertlist, self.facelist
@@ -807,6 +822,7 @@ class TriMesh:
                     [self._solver_geod_heat.compute_distance(x) for x in i]
                 ).T
 
+        # method == "heat_pure" and not self._intrinsic
         if self.A is None or self.W is None:
             self.process(k=0)
         if self._normals is None:
@@ -818,10 +834,8 @@ class TriMesh:
         t = np.linalg.norm(v2 - v1, axis=1).mean() ** 2
 
         if self._solver_heat is None:
-            solver_heat = sparse.linalg.factorized(self.A.tocsc() + t * self.W)
-            solver_lap = sparse.linalg.factorized(self.W)
-            self._solver_heat = solver_heat
-            self._solver_lap = solver_lap
+            self._solver_heat = sparse.linalg.factorized(self.A.tocsc() + t * self.W)
+            self._solver_lap = sparse.linalg.factorized(self.W)
 
         # Compute distance with cached solvers
         dists = geom.heat_geodesic_from(
@@ -832,8 +846,8 @@ class TriMesh:
             self.A,
             W=None,
             t=t,
-            solver_heat=solver_heat,
-            solver_lap=solver_lap,
+            solver_heat=self._solver_heat,
+            solver_lap=self._solver_lap,
         )
 
         return dists

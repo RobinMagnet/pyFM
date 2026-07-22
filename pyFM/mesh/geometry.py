@@ -91,8 +91,10 @@ def compute_vertex_areas(vertices, faces, faces_areas=None):
     """
     N = vertices.shape[0]
 
-    if faces_areas is None:
+    if faces_areas is None and faces is not None:
         faces_areas = compute_faces_areas(vertices, faces)  # (m,)
+    elif faces is None:
+        return 1 / np.ones(N)
 
     # THIS IS JUST A TRICK TO BE FASTER THAN NP.ADD.AT
     I = np.concatenate([faces[:, 0], faces[:, 1], faces[:, 2]])
@@ -532,6 +534,39 @@ def div_f(f, vertices, faces, normals, vert_areas=None, grads=None, face_areas=N
     return div_val
 
 
+def build_dijkstra_graph(vertices, faces):
+    """
+    Build the sparse symmetric edge-weighted graph (edge length weights) used for
+    Dijkstra-based geodesic distance computation.
+
+    Parameters
+    --------------------------
+    vertices :
+        (n,3) coordinates of vertices
+    faces    :
+        (m,3) indices of vertices for each face
+
+    Returns
+    --------------------------
+    graph : scipy.sparse.csc_matrix
+        (n,n) symmetric sparse graph with edge-length weights
+    """
+    N = vertices.shape[0]
+    edges = edges_from_faces(faces)
+
+    I = edges[:, 0]  # (p,)
+    J = edges[:, 1]  # (p,)
+    V = np.linalg.norm(vertices[J] - vertices[I], axis=1)  # (p,)
+
+    In = np.concatenate([I, J])
+    Jn = np.concatenate([J, I])
+    Vn = np.concatenate([V, V])
+
+    graph = sparse.coo_matrix((Vn, (In, Jn)), shape=(N, N)).tocsc()
+
+    return graph
+
+
 def geodesic_distmat_dijkstra(vertices, faces):
     """
     Compute geodesic distance matrix using Dijkstra algorithm.
@@ -549,22 +584,38 @@ def geodesic_distmat_dijkstra(vertices, faces):
     geod_dist : np.ndarray
         (n,n) geodesic distance matrix
     """
-    N = vertices.shape[0]
-    edges = edges_from_faces(faces)
-
-    I = edges[:, 0]  # (p,)
-    J = edges[:, 1]  # (p,)
-    V = np.linalg.norm(vertices[J] - vertices[I], axis=1)  # (p,)
-
-    In = np.concatenate([I, J])
-    Jn = np.concatenate([J, I])
-    Vn = np.concatenate([V, V])
-
-    graph = sparse.coo_matrix((Vn, (In, Jn)), shape=(N, N)).tocsc()
+    graph = build_dijkstra_graph(vertices, faces)
 
     geod_dist = sparse.csgraph.dijkstra(graph)
 
     return geod_dist
+
+
+def dijkstra_from(inds, graph):
+    """
+    Compute geodesic distances from one or several source vertices to all vertices,
+    using Dijkstra's algorithm on a precomputed edge-weighted graph.
+
+    Parameters
+    -------------------------
+    inds  : int or (p,) array of ints
+        index (or indices) of the source vertex/vertices
+    graph : scipy.sparse.csc_matrix
+        (n,n) sparse graph as built by build_dijkstra_graph
+
+    Returns
+    -------------------------
+    geod_dist : np.ndarray
+        (n,) if inds is a single int, or (n,p) if inds is a sequence of length p -
+        geodesic distance from each source index to every vertex
+    """
+    single = np.issubdtype(type(inds), np.integer)
+    indices = [inds] if single else list(inds)
+
+    dist = sparse.csgraph.dijkstra(graph, indices=indices)  # (p,n)
+    dist = dist.T  # (n,p)
+
+    return dist.squeeze(axis=1) if single else dist
 
 
 def geodesic_distmat_fast_marching(vertices, faces):

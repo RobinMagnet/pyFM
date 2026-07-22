@@ -72,9 +72,7 @@ class FunctionalMapping:
     @property
     def preprocessed(self):
         return (
-            self.descr1 is not None
-            and self.descr2 is not None
-            and self.mesh1.eigenvalues is not None
+            self.mesh1.eigenvalues is not None
             and self.mesh2.eigenvalues is not None
             and self.mesh1.eigenvectors is not None
             and self.mesh2.eigenvectors is not None
@@ -183,7 +181,9 @@ class FunctionalMapping:
             Number of LBO eigenvectors to keep for each mesh.
         n_descr       : int
             Number of descriptor values per mesh.
-        descr_type    : "WKS" | "HKS"
+        descr_type    : "WKS" | "HKS" | None
+            Built-in descriptor type. Pass None to skip descriptor computation
+            and supply descriptors manually via add_descriptors().
         landmarks     : (p,) or (p, 2) ndarray, optional
             Landmark indices. Shape (p,) uses the same indices on both meshes;
             shape (p, 2) uses column 0 for mesh1 and column 1 for mesh2.
@@ -206,6 +206,11 @@ class FunctionalMapping:
             print("\nComputing Laplacian spectrum")
         self.mesh1.process(max(k1, k_process), verbose=verbose)
         self.mesh2.process(max(k2, k_process), verbose=verbose)
+
+        if descr_type is None:
+            if verbose:
+                print("\nSkipping descriptor computation (descr_type=None)")
+            return self
 
         if verbose:
             print("\nComputing descriptors")
@@ -248,7 +253,9 @@ class FunctionalMapping:
                 )
 
         else:
-            raise ValueError(f'descr_type must be "HKS" or "WKS", got "{descr_type}"')
+            raise ValueError(
+                f'descr_type must be "HKS", "WKS", or None, got "{descr_type}"'
+            )
 
         self.descr1 = self.descr1[:, ::subsample_step]  # (n1, p//s)
         self.descr2 = self.descr2[:, ::subsample_step]  # (n2, p//s)
@@ -264,6 +271,62 @@ class FunctionalMapping:
             print(
                 f"\n\t{self.descr1.shape[1]} / {n_descr * (1 + n_lmks)} descriptors kept"
             )
+
+        return self
+
+    def add_descriptors(self, descr1, descr2, normalize=True):
+        """
+        Append custom descriptors for both meshes.
+
+        Can be called after preprocess() to mix custom descriptors with
+        built-in ones, or after preprocess(descr_type=None) for a fully
+        custom descriptor workflow.
+
+        Parameters
+        ----------
+        descr1    : (n1, p) or (n1,) ndarray
+        descr2    : (n2, p) or (n2,) ndarray
+        normalize : bool
+            L2-normalize each descriptor column using the mesh area metric.
+
+        Returns
+        -------
+        self
+        """
+        descr1 = np.asarray(descr1, dtype=float)
+        descr2 = np.asarray(descr2, dtype=float)
+
+        if descr1.ndim == 1:
+            descr1 = descr1[:, None]
+        if descr2.ndim == 1:
+            descr2 = descr2[:, None]
+
+        if descr1.shape[0] != self.mesh1.n_vertices:
+            raise ValueError(
+                f"descr1 must have {self.mesh1.n_vertices} rows, got {descr1.shape[0]}"
+            )
+        if descr2.shape[0] != self.mesh2.n_vertices:
+            raise ValueError(
+                f"descr2 must have {self.mesh2.n_vertices} rows, got {descr2.shape[0]}"
+            )
+        if descr1.shape[1] != descr2.shape[1]:
+            raise ValueError(
+                f"descr1 and descr2 must have the same number of columns, "
+                f"got {descr1.shape[1]} and {descr2.shape[1]}"
+            )
+
+        if normalize:
+            no1 = np.sqrt(self.mesh1.l2_sqnorm(descr1))
+            no2 = np.sqrt(self.mesh2.l2_sqnorm(descr2))
+            descr1 = descr1 / no1[None, :]
+            descr2 = descr2 / no2[None, :]
+
+        if self.descr1 is None:
+            self.descr1 = descr1
+            self.descr2 = descr2
+        else:
+            self.descr1 = np.hstack([self.descr1, descr1])
+            self.descr2 = np.hstack([self.descr2, descr2])
 
         return self
 
@@ -317,6 +380,12 @@ class FunctionalMapping:
                 )
             self.preprocess(verbose=verbose)
 
+        if self.descr1 is None:
+            raise ValueError(
+                "No descriptors set — call add_descriptors() or preprocess() "
+                "with a descr_type before fitting."
+            )
+
         k1, k2 = self._k1, self._k2
 
         descr1_red = self.project(self.descr1, mesh_ind=1)  # (k1, p)
@@ -340,7 +409,7 @@ class FunctionalMapping:
         # Rescale orientation weight relative to the other terms
         if w_orient > 0:
             C_eye = np.eye(k2, k1)
-            (eval_native,) = opt_func.energy_func_std(
+            eval_native = opt_func.energy_func_std(
                 C_eye,
                 w_descr,
                 w_lap,
