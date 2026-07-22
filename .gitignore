@@ -96,6 +96,9 @@ venv/
 # written by setuptools_scm
 **/_version.py
 
+# scratch / local test notebooks
+small_test.ipynb
+
 # Dask
 dask-worker-space/
 

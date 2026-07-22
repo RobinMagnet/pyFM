@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyfmaps"
+description = "Python bindings for functional maps"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Robin Magnet" }]
+requires-python = ">=3.8"
+dynamic = ["version"]
+dependencies = [
+    "numpy",
+    "scipy",
+    "potpourri3d>=1.3",
+    "robust_laplacian",
+    "tqdm",
+    "scikit-learn",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Testing",
+]
+
+[project.optional-dependencies]
+dev = ["ruff", "pre-commit", "pytest", "pytest-cov", "build"]
+docs = [
+    "furo",
+    "myst_parser>=0.13",
+    "sphinx>=4.0",
+    "sphinx-autodoc-typehints",
+    "sphinx-copybutton",
+    "sphinx-design",
+    "sphinx-gallery",
+    "sphinx-math-dollar",
+]
+
+[project.urls]
+"Bug Tracker" = "https://github.com/RobinMagnet/pyFM/issues"
+"Documentation" = "https://robinmagnet.github.io/pyFM/"
+"Source Code" = "https://github.com/RobinMagnet/pyFM"
+"User Support" = "https://github.com/RobinMagnet/pyFM/issues"
+
+[tool.setuptools.packages.find]
+include = ["pyFM*"]
+
+[tool.setuptools_scm]
+version_file = "pyFM/_version.py"
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
+# Lint the library; sphinx config and teaching notebooks follow their own style.
+extend-exclude = ["docs", "examples", "build"]
+
+[tool.ruff.lint]
+# E/W: pycodestyle, F: pyflakes, I: isort
+select = ["E", "W", "F", "I"]
+ignore = [
+    "E501", # line length is handled by the formatter
+    "E741", # ambiguous names (I, J, V, l) are idiomatic in the numerical code
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Package __init__ files intentionally re-export via `import *`.
+"**/__init__.py" = ["F401", "F403"]

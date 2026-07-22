@@ -10,7 +10,7 @@ import sys
 sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
 print(pathlib.Path(__file__).parents[2].resolve().as_posix())
 
-import importlib
+import importlib.metadata
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -18,7 +18,10 @@ import importlib
 project = "pyfmaps"
 copyright = "2024, Robin Magnet"
 author = "Robin Magnet"
-release = "1.0.0"  # importlib.metadata.version("pyFM")
+try:
+    release = importlib.metadata.version("pyfmaps")
+except importlib.metadata.PackageNotFoundError:
+    release = "0.0.0"
 
 
 # -- General configuration ---------------------------------------------------

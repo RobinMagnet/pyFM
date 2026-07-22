@@ -18,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # setuptools_scm needs tags to compute the version
 
     - uses: actions/setup-python@v5
       with:
