@@ -13,6 +13,60 @@ import scipy.sparse as sparse
 from .nn_utils import knn_query
 
 
+def nn_query_precise_np(
+    vert_emb, faces, points_emb, return_dist=False, batch_size=None, n_jobs=1
+):
+    """
+    Project a pointcloud on a p-dimensional mesh.
+
+    Parameters
+    ----------------------------
+    vert_emb    :
+        (n1, p) coordinates of the mesh vertices
+    faces       :
+        (m1, 3) faces of the mesh defined as indices of vertices
+    points_emb  :
+        (n2, p) coordinates of the pointcloud
+    return_dist :
+        whether to return the distance to the nearest vertex
+    batch_size  : int, optional
+        if precompute_dmin is False, projects batches of points on the surface
+    n_jobs      : int
+        number of parallel process for nearest neighbor precomputation
+
+    Returns
+    ----------------------------
+    face_match  : np.ndarray
+        (n2,) - indices of the face assigned to each point
+    bary_coord  : np.ndarray
+        (n2,3) - barycentric coordinates of each point within the face
+    dists       : np.ndarray
+        (n2,) - distance to the nearest vertex
+    """
+
+    # n2,  (n2,3)
+    face_match, bary_coords = project_pc_to_triangles(
+        vert_emb,
+        faces,
+        points_emb,
+        precompute_dmin=batch_size is None,
+        batch_size=batch_size,
+        return_sparse=False,
+        n_jobs=n_jobs,
+        verbose=False,
+    )
+
+    if return_dist:
+        targets = (bary_coords[..., None] * vert_emb[faces[face_match]]).sum(
+            1
+        )  # (n2, p)
+        dists = np.linalg.norm(targets - points_emb, axis=-1)  # (n2,)
+
+        return face_match, bary_coords, dists
+
+    return face_match, bary_coords
+
+
 def project_pc_to_triangles(
     vert_emb,
     faces,
@@ -20,6 +74,7 @@ def project_pc_to_triangles(
     precompute_dmin=True,
     batch_size=None,
     n_jobs=1,
+    return_sparse=False,
     verbose=False,
 ):
     """
@@ -30,25 +85,30 @@ def project_pc_to_triangles(
 
     Parameters
     ----------------------------
-    vert_emb        :
+    vert_emb        : np.ndarray
         (n1, p) coordinates of the mesh vertices
-    faces           :
+    faces           : np.ndarray
         (m1, 3) faces of the mesh defined as indices of vertices
-    points_emb      :
+    points_emb      : np.ndarray
         (n2, p) coordinates of the pointcloud
-    precompute_dmin :
-        Whether to precompute all the values of delta_min.
-                      Faster but heavier in memory.
-    batch_size      :
+    precompute_dmin : bool
+        Whether to precompute all the values of delta_min. Faster but heavier in memory.
+    batch_size      : int, optional
         If precompute_dmin is False, projects batches of points on the surface
-    n_jobs          :
+    n_jobs          : int
         number of parallel process for nearest neighbor precomputation
+    return_sparse   : bool
+        Whether to return a sparse matrix instead of the face_match and barycentric coordinate
 
 
     Returns
     ----------------------------
-    precise_map : scipy.sparse.csr_matrix
-        (n2,n1) - precise point to point map.
+    precise_map : sparse.csrmatrix, optional
+        (n2,n1) - precise point to point map. ONLY if `return_sparse` is True
+    face_match  : np.ndarray
+        (n2,) - indices of the face assigned to each point. ONLY if `return_sparse` is False
+    bary_coord  : np.ndarray
+        (n2,3) - barycentric coordinates of each point within the face. ONLY if `return_sparse` is False
     """
     if batch_size is not None:
         batch_size = None if batch_size < 2 else batch_size
@@ -90,7 +150,6 @@ def project_pc_to_triangles(
     # Iterate along all points
     if precompute_dmin or batch_size is None:
         iterable = range(n_points) if not verbose else tqdm(range(n_points))
-        # for vertind in tqdm(range(n2)):
         for vertind in iterable:
             faceind, bary = project_to_mesh(
                 vert_emb,
@@ -114,7 +173,6 @@ def project_pc_to_triangles(
                 batch_size * batchind,
                 min(n_points, batch_size * (1 + batchind)),
             ]
-            # print(batch_minmax)
             dmin_batch = compute_all_dmin(
                 vert_emb,
                 faces,
@@ -142,7 +200,13 @@ def project_pc_to_triangles(
                 face_match[vertind] = faceind
                 bary_coord[vertind] = bary
 
-    return barycentric_to_precise(faces, face_match, bary_coord, n_vertices=n_vertices)
+    if return_sparse:
+        return barycentric_to_precise(
+            faces, face_match, bary_coord, n_vertices=n_vertices
+        )
+
+    return face_match, bary_coord
+    # return barycentric_to_precise(faces, face_match, bary_coord, n_vertices=n_vertices)
 
 
 def compute_lmax(vert_emb, faces):
@@ -176,7 +240,7 @@ def compute_lmax(vert_emb, faces):
 
 
 def compute_Deltamin(vert_emb, points_emb, n_jobs=1):
-    """
+    r"""
     For each point in the pointcloud gives the distance to the nearest vertex
     on the mesh.
 
@@ -259,7 +323,7 @@ def mycdist(X, Y, sqnormX=None, sqnormY=None, squared=False):
 def compute_dmin(
     vert_emb, faces, points_emb, vertind, vert_sqnorms=None, points_sqnorm=None
 ):
-    """
+    r"""
     Given a vertex in the pointcloud and each face on the surface, gives the minimum distance
     to between the vertex and each of the 3 points of the triangle.
 
@@ -322,7 +386,7 @@ def compute_dmin(
 
 
 def compute_all_dmin(vert_emb, faces, points_emb, vert_sqnorm=None, points_sqnorm=None):
-    """
+    r"""
     For each vertex in the pointcloud and each face on the surface, gives the minimum distance
     to between the vertex and each of the 3 points of the triangle.
 
@@ -436,6 +500,11 @@ def project_to_mesh(
 
     query_faceinds = np.where(deltamin - lmax < Deltamin[vertind])[0]  # (p)
 
+    # Fall back to all faces if the pre-selection filtered everything out
+    # (can happen with numerical round-off on the threshold).
+    if len(query_faceinds) == 0:
+        query_faceinds = np.arange(faces.shape[0])
+
     # Projection can be done on multiple triangles
     query_triangles = vert_emb[faces[query_faceinds]]  # (p, 3, k1)
     query_point = points_emb[vertind]
@@ -446,7 +515,7 @@ def project_to_mesh(
         min_dist, proj, min_bary = pointTriangleDistance(
             query_triangles.squeeze(), query_point, return_bary=True
         )
-        return query_faceinds, min_bary
+        return query_faceinds[0], min_bary
 
     dists, proj, bary_coords = point_to_triangles_projection(
         query_triangles, query_point, return_bary=True
@@ -504,7 +573,7 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
 
     This functions projects a p-dimensional point on each of the given p-dimensional triangle.
 
-    This is a parallelized version of pointTriangleDistance.
+    This is a parallelized version of `pointTriangleDistance`.
 
     All operations are parallelized, which makes the code quite hard to read. For an easier take,
     follow the code in the function below (not written by me) for projection on a single triangle.
@@ -514,8 +583,7 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
     The algorithm first find for each triangle in which of the following region the projected point
     lies, then solves for each region.
 
-    ::
-
+    IGNORE:
            ^t
      \     |
       \reg2|
@@ -534,6 +602,7 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
     -------*-------*------->s
            |P0      \
      reg4  | reg5    \ reg6
+    IGNORE
 
     .. note::
         Most notations come from :
@@ -556,6 +625,7 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         (m,p) coordinates of the projected point
     bary_coords :
         (m,3) barycentric coordinates of the projection within each triangle
+
     """
 
     if point.ndim == 2:
@@ -622,7 +692,6 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
 
     # REGION 4
     if len(inds_4) > 0:
-        # print('Case 4',inds_4)
         test4_1 = d[inds_4] < 0
         inds4_1 = inds_4[test4_1]
         inds4_2 = inds_4[~test4_1]
@@ -638,7 +707,7 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         final_dists[inds4_11] = a[inds4_11] + 2.0 * d[inds4_11] + f[inds4_11]
 
         final_s[inds4_12] = -d[inds4_12] / a[inds4_12]
-        final_dists[inds4_12] = d[inds4_12] * s[inds4_12] + f[inds4_12]
+        final_dists[inds4_12] = d[inds4_12] * final_s[inds4_12] + f[inds4_12]
 
         # SECOND PART - SUBDIVIDE IN 2
         final_s[inds4_2] = 0  # Useless already done
@@ -659,10 +728,9 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         final_dists[inds4_221] = c[inds4_221] + 2.0 * e[inds4_221] + f[inds4_221]
 
         final_t[inds4_222] = -e[inds4_222] / c[inds4_222]
-        final_dists[inds4_222] = e[inds4_222] * t[inds4_222] + f[inds4_222]
+        final_dists[inds4_222] = e[inds4_222] * final_t[inds4_222] + f[inds4_222]
 
     if len(inds_3) > 0:
-        # print('Case 3', inds_3)
         final_s[inds_3] = 0
 
         test3_1 = e[inds_3] >= 0
@@ -678,18 +746,13 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         inds3_21 = inds3_2[test3_21]
         inds3_22 = inds3_2[~test3_21]
 
-        # print(inds3_21, inds3_22)
-
         final_t[inds3_21] = 1
         final_dists[inds3_21] = c[inds3_21] + 2.0 * e[inds3_21] + f[inds3_21]
 
         final_t[inds3_22] = -e[inds3_22] / c[inds3_22]
-        final_dists[inds3_22] = (
-            e[inds3_22] * final_t[inds3_22] + f[inds3_22]
-        )  # -e*t ????
+        final_dists[inds3_22] = e[inds3_22] * final_t[inds3_22] + f[inds3_22]
 
     if len(inds_5) > 0:
-        # print('Case 5', inds_5)
         final_t[inds_5] = 0
 
         test5_1 = d[inds_5] >= 0
@@ -710,8 +773,9 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         final_dists[inds5_22] = d[inds5_22] * final_s[inds5_22] + f[inds5_22]
 
     if len(inds_0) > 0:
-        # print('Case 0', inds_0)
-        invDet = 1.0 / det[inds_0]
+        # Clamp det away from 0 (matches the torch backend) so degenerate/near-degenerate
+        # triangles yield a finite projection instead of inf/NaN. det = a*c - b**2 >= 0.
+        invDet = 1.0 / np.clip(det[inds_0], 1e-6, None)
         final_s[inds_0] = s[inds_0] * invDet
         final_t[inds_0] = t[inds_0] * invDet
         final_dists[inds_0] = (
@@ -731,7 +795,6 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         )
 
     if len(inds_2) > 0:
-        # print('Case 2', inds_2)
 
         tmp0 = b[inds_2] + d[inds_2]
         tmp1 = c[inds_2] + e[inds_2]
@@ -789,7 +852,6 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         final_dists[inds2_222] = e[inds2_222] * final_t[inds2_222] + f[inds2_222]
 
     if len(inds_6) > 0:
-        # print('Case 6', inds_6)
         tmp0 = b[inds_6] + e[inds_6]
         tmp1 = a[inds_6] + d[inds_6]
 
@@ -846,7 +908,6 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         final_dists[inds6_222] = d[inds6_222] * final_s[inds6_222] + f[inds6_222]
 
     if len(inds_1) > 0:
-        # print('Case 1', inds_1)
         numer = c[inds_1] + e[inds_1] - b[inds_1] - d[inds_1]
 
         test1_1 = numer <= 0
@@ -860,7 +921,6 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         denom = a[inds1_2] - 2.0 * b[inds1_2] + c[inds1_2]
 
         test1_21 = numer[~test1_1] >= denom
-        # print(denom, numer, numer[~test1_1], test1_21, inds1_2)
         inds1_21 = inds1_2[test1_21]
         inds1_22 = inds1_2[~test1_21]
 
@@ -909,7 +969,8 @@ def pointTriangleDistance(TRI, P, return_bary=False):
     Computes distance between a point and a triangle in a p-dimensional space
 
     .. note::
-        Based on the implementation in (modified to return barycentric coordinates of the projection): https://gist.github.com/joshuashaffer/99d58e4ccbd37ca5d96e
+        Based on the implementation in (modified to return barycentric coordinates of the projection):
+        https://gist.github.com/joshuashaffer/99d58e4ccbd37ca5d96e
 
     DESCRIPTION
       Calculate the distance of a given point P from a triangle TRI.
@@ -925,8 +986,7 @@ def pointTriangleDistance(TRI, P, return_bary=False):
     Geometric Tools, LLC, (1999)"
     http:\\www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
 
-    ::
-
+    IGNORE:
            ^t
      \     |
       \reg2|
@@ -945,6 +1005,8 @@ def pointTriangleDistance(TRI, P, return_bary=False):
     -------*-------*------->s
            |P0      \
      reg4  | reg5    \ reg6
+
+    IGNORE
 
     Parameters
     -------------------------------
