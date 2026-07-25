@@ -45,13 +45,10 @@ napoleon_numpy_docstring = True
 napoleon_use_param = True
 napoleon_use_rtype = True
 
-autodoc_default_options = {"members": True, "member-order": "bysource"}
-# Document names re-exported into subpackage __init__.py (guarded by each
-# module's __all__, so numpy/scipy/tqdm names do not leak into the API pages).
+# Members are documented on their own per-object pages (numpy-style), so module
+# and class pages only render the module/class docstring + summary tables.
+autodoc_default_options = {"member-order": "bysource"}
 autosummary_generate = True
-# Package pages document the names re-exported into each subpackage __init__.py.
-# Every documented module defines __all__, so only intended public names appear
-# (numpy/scipy/tqdm/etc. never leak into the API pages).
 # Honour each module's __all__ so only intended public names are documented
 # (default True *ignores* __all__, which would leak imported numpy/tqdm/sklearn names).
 autosummary_ignore_module_all = False
