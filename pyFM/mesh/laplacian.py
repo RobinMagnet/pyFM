@@ -160,9 +160,7 @@ def laplacian_spectrum(W, A, spectrum_size=200):
         Array of eigenvectors.
     """
     try:
-        eigenvalues, eigenvectors = sparse.linalg.eigsh(
-            W, k=spectrum_size, M=A, sigma=-0.01
-        )
+        eigenvalues, eigenvectors = sparse.linalg.eigsh(W, k=spectrum_size, M=A, sigma=-0.01)
 
     except RuntimeError:
         # raise ValueError('Matrices are not positive semidefinite')

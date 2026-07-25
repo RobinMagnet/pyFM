@@ -109,9 +109,7 @@ class FunctionalMapping:
                 raise ValueError("No FM available — run fit() first or pass an FM.")
             FM = self.FM
 
-        return spectral.mesh_FM_to_p2p(
-            FM, self.mesh1, self.mesh2, use_adj=use_adj, n_jobs=n_jobs
-        )
+        return spectral.mesh_FM_to_p2p(FM, self.mesh1, self.mesh2, use_adj=use_adj, n_jobs=n_jobs)
 
     def get_precise_map(
         self,
@@ -253,9 +251,7 @@ class FunctionalMapping:
                 )
 
         else:
-            raise ValueError(
-                f'descr_type must be "HKS", "WKS", or None, got "{descr_type}"'
-            )
+            raise ValueError(f'descr_type must be "HKS", "WKS", or None, got "{descr_type}"')
 
         self.descr1 = self.descr1[:, ::subsample_step]  # (n1, p//s)
         self.descr2 = self.descr2[:, ::subsample_step]  # (n2, p//s)
@@ -268,9 +264,7 @@ class FunctionalMapping:
 
         if verbose:
             n_lmks = np.asarray(landmarks).shape[0] if use_lm else 0
-            print(
-                f"\n\t{self.descr1.shape[1]} / {n_descr * (1 + n_lmks)} descriptors kept"
-            )
+            print(f"\n\t{self.descr1.shape[1]} / {n_descr * (1 + n_lmks)} descriptors kept")
 
         return self
 
@@ -369,15 +363,11 @@ class FunctionalMapping:
         verbose          : bool
         """
         if optinit not in ("zeros", "identity", "random"):
-            raise ValueError(
-                f'optinit must be "zeros", "identity" or "random", got "{optinit}"'
-            )
+            raise ValueError(f'optinit must be "zeros", "identity" or "random", got "{optinit}"')
 
         if not self.preprocessed:
             if verbose:
-                print(
-                    "Preprocessing not done — running preprocess() with default parameters."
-                )
+                print("Preprocessing not done — running preprocess() with default parameters.")
             self.preprocess(verbose=verbose)
 
         if self.descr1 is None:
@@ -477,9 +467,7 @@ class FunctionalMapping:
     # Refinement
     # ------------------------------------------------------------------
 
-    def icp_refine(
-        self, FM=None, nit=10, tol=None, use_adj=False, n_jobs=1, verbose=False
-    ):
+    def icp_refine(self, FM=None, nit=10, tol=None, use_adj=False, n_jobs=1, verbose=False):
         """
         Refine a functional map with ICP.
 
@@ -561,14 +549,10 @@ class FunctionalMapping:
         Stores results in self.SD_a and self.SD_c.
         """
         if not self.fitted:
-            raise ValueError(
-                "Fit the model before computing shape difference operators."
-            )
+            raise ValueError("Fit the model before computing shape difference operators.")
 
         self.SD_a = spectral.area_SD(self.FM)
-        self.SD_c = spectral.conformal_SD(
-            self.FM, self.mesh1.eigenvalues, self.mesh2.eigenvalues
-        )
+        self.SD_c = spectral.conformal_SD(self.FM, self.mesh1.eigenvalues, self.mesh2.eigenvalues)
 
     # ------------------------------------------------------------------
     # Transfer Functions
@@ -644,12 +628,8 @@ class FunctionalMapping:
         transferred : (n2, p) or (n1, p) ndarray
         """
         if not reverse:
-            return self.decode(
-                self.transport(self.project(func, mesh_ind=1)), mesh_ind=2
-            )
-        return self.decode(
-            self.transport(self.project(func, mesh_ind=2), reverse=True), mesh_ind=1
-        )
+            return self.decode(self.transport(self.project(func, mesh_ind=1)), mesh_ind=2)
+        return self.decode(self.transport(self.project(func, mesh_ind=2), reverse=True), mesh_ind=1)
 
     # ------------------------------------------------------------------
     # Helpers
@@ -687,12 +667,10 @@ class FunctionalMapping:
         pinv2 = evecs2.T @ self.mesh2.A  # (k2, n2)
 
         ops1 = [
-            pinv1 @ (self.descr1[:, i, None] * evecs1)
-            for i in range(self.descr1.shape[1])
+            pinv1 @ (self.descr1[:, i, None] * evecs1) for i in range(self.descr1.shape[1])
         ]  # (p, k1, k1)
         ops2 = [
-            pinv2 @ (self.descr2[:, i, None] * evecs2)
-            for i in range(self.descr2.shape[1])
+            pinv2 @ (self.descr2[:, i, None] * evecs2) for i in range(self.descr2.shape[1])
         ]  # (p, k2, k2)
 
         return np.stack(ops1, axis=0), np.stack(ops2, axis=0)

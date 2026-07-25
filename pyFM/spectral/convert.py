@@ -46,15 +46,11 @@ def p2p_to_FM(p2p_21, evects1, evects2, A2=None):
         inverse if A2 is given, else using a least square solve.
     """
     # Pulled back eigenvectors
-    evects1_pb = (
-        evects1[p2p_21, :] if np.asarray(p2p_21).ndim == 1 else p2p_21 @ evects1
-    )
+    evects1_pb = evects1[p2p_21, :] if np.asarray(p2p_21).ndim == 1 else p2p_21 @ evects1
 
     if A2 is not None:
         if A2.shape[0] != evects2.shape[0]:
-            raise ValueError(
-                "Can't compute exact pseudo inverse with subsampled eigenvectors"
-            )
+            raise ValueError("Can't compute exact pseudo inverse with subsampled eigenvectors")
 
         if A2.ndim == 1:
             return evects2.T @ (A2[:, None] * evects1_pb)  # (k2,k1)
@@ -101,14 +97,10 @@ def mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=None, subsample=None):
         k1, k2 = dims
 
     if subsample is None:
-        return p2p_to_FM(
-            p2p_21, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2], A2=mesh2.A
-        )
+        return p2p_to_FM(p2p_21, mesh1.eigenvectors[:, :k1], mesh2.eigenvectors[:, :k2], A2=mesh2.A)
 
     sub1, sub2 = subsample
-    return p2p_to_FM(
-        p2p_21, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=None
-    )
+    return p2p_to_FM(p2p_21, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=None)
 
 
 def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
@@ -145,12 +137,12 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
     """
     k2, k1 = FM_12.shape
 
-    assert k1 <= evects1.shape[1], (
-        f"At least {k1} should be provided, here only {evects1.shape[1]} are given"
-    )
-    assert k2 <= evects2.shape[1], (
-        f"At least {k2} should be provided, here only {evects2.shape[1]} are given"
-    )
+    assert (
+        k1 <= evects1.shape[1]
+    ), f"At least {k1} should be provided, here only {evects1.shape[1]} are given"
+    assert (
+        k2 <= evects2.shape[1]
+    ), f"At least {k2} should be provided, here only {evects2.shape[1]} are given"
 
     if use_adj:
         emb1 = evects1[:, :k1]

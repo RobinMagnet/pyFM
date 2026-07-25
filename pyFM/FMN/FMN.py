@@ -56,9 +56,7 @@ class FMN:
         # CLB and CCLB attributes
         self.W = None  # (n*M, n*M) sparse matrix. Quadratic form for CLB computation.
         self.CLB = None  # (n,M,M) array of Consistent Latent Basis for each mesh.
-        self.CCLB = (
-            None  # (n,M,m) array of Canonical Consistent Latent Basis for each mesh
-        )
+        self.CCLB = None  # (n,M,m) array of Canonical Consistent Latent Basis for each mesh
         self.cclb_eigenvalues = None  # (m,) eigenvalues of the CCLB
 
         # Extra information
@@ -127,12 +125,8 @@ class FMN:
 
         # Reset map-dependent attributes
         self.W = None  # (n*M, n*M) sparse matrix. Quadratic form for CLB computation.
-        self.CLB = (
-            None  # (n,M,M) array containing the Consistent Latent Basis for each mesh.
-        )
-        self.CCLB = (
-            None  # (n,M,m) array of Canonical Consistent Latent Basis for each mesh
-        )
+        self.CLB = None  # (n,M,M) array containing the Consistent Latent Basis for each mesh.
+        self.CCLB = None  # (n,M,m) array of Canonical Consistent Latent Basis for each mesh
         self.cclb_eigenvalues = None  # (m,) eigenvalues of the CCLB
         self.p2p = None  # Dictionary of pointwise
 
@@ -263,23 +257,17 @@ class FMN:
 
             I = [x[0] for x in self.edges]
             J = [x[1] for x in self.edges]
-            self.weights = sparse.csr_matrix(
-                (new_w, (I, J)), shape=(self.n_meshes, self.n_meshes)
-            )
+            self.weights = sparse.csr_matrix((new_w, (I, J)), shape=(self.n_meshes, self.n_meshes))
 
         elif weight_type == "adjacency":
             self.use_icsm = False
             I = [x[0] for x in self.edges]
             J = [x[1] for x in self.edges]
             V = [1 for x in range(len(self.edges))]
-            self.weights = sparse.csr_matrix(
-                (V, (I, J)), shape=(self.n_meshes, self.n_meshes)
-            )
+            self.weights = sparse.csr_matrix((V, (I, J)), shape=(self.n_meshes, self.n_meshes))
 
         else:
-            raise ValueError(
-                f'"weight_type" should be "icsm" or "adjacency, not {weight_type}'
-            )
+            raise ValueError(f'"weight_type" should be "icsm" or "adjacency, not {weight_type}')
 
         return self
 
@@ -447,9 +435,7 @@ class FMN:
 
         # CCLB is stored as an (n,M,m) array
         self.cclb_eigenvalues = eigenvalues  # (m,)
-        self.CCLB = np.array(
-            [self.CLB[i, :, :m] @ eigenvectors for i in range(self.n_meshes)]
-        )
+        self.CCLB = np.array([self.CLB[i, :, :m] @ eigenvectors for i in range(self.n_meshes)])
 
         return self
 
@@ -497,13 +483,9 @@ class FMN:
         latent_basis : (n_i, m) np.ndarray
             Latent basis on mesh i.
         """
-        cclb = self.CCLB[
-            i
-        ]  # / np.linalg.norm(self.CCLB[i],axis=0,keepdims=True)  # (M,m)
+        cclb = self.CCLB[i]  # / np.linalg.norm(self.CCLB[i],axis=0,keepdims=True)  # (M,m)
         if not complete and self.subsample is not None:
-            latent_basis = (
-                self.meshlist[i].eigenvectors[self.subsample[i], : self.M] @ cclb
-            )
+            latent_basis = self.meshlist[i].eigenvectors[self.subsample[i], : self.M] @ cclb
             return latent_basis  # (n_i',m)
 
         latent_basis = self.meshlist[i].eigenvectors[:, : self.M] @ cclb  # (N_i,m)
@@ -606,20 +588,12 @@ class FMN:
         for i in range(self.n_meshes):
             for j in range(i):
                 for k in range(j):
-                    if (
-                        (i, j) in self.edges
-                        and (j, k) in self.edges
-                        and (k, i) in self.edges
-                    ):
+                    if (i, j) in self.edges and (j, k) in self.edges and (k, i) in self.edges:
                         self.cycles.append((i, j, k))
 
             for j in range(i + 1, self.n_meshes):
                 for k in range(j + 1, self.n_meshes):
-                    if (
-                        (i, j) in self.edges
-                        and (j, k) in self.edges
-                        and (k, i) in self.edges
-                    ):
+                    if (i, j) in self.edges and (j, k) in self.edges and (k, i) in self.edges:
                         self.cycles.append(tuple((i, j, k)))
 
     def compute_Amat(self):
@@ -735,7 +709,7 @@ class FMN:
         if M is None:
             M = self.M
 
-        (i, j, k) = cycle
+        i, j, k = cycle
 
         Cij = self.maps[(i, j)][:M, :M]
         Cjk = self.maps[(j, k)][:M, :M]
@@ -849,9 +823,7 @@ class FMN:
         None
             The maps are refined in place.
         """
-        if (
-            np.issubdtype(type(subsample), np.integer) and subsample == 0
-        ) or subsample is None:
+        if (np.issubdtype(type(subsample), np.integer) and subsample == 0) or subsample is None:
             use_sub = False
             self.subsample = None
         else:

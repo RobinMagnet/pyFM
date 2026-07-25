@@ -99,9 +99,7 @@ def auto_HKS(evals, evects, num_T, landmarks=None, scaled=True):
     """
 
     abs_ev = sorted(np.abs(evals))
-    t_list = np.geomspace(
-        4 * np.log(10) / abs_ev[-1], 4 * np.log(10) / abs_ev[1], num_T
-    )
+    t_list = np.geomspace(4 * np.log(10) / abs_ev[-1], 4 * np.log(10) / abs_ev[1], num_T)
 
     if landmarks is None:
         return HKS(abs_ev, evects, t_list, scaled=scaled)
@@ -134,9 +132,9 @@ def mesh_HKS(mesh, num_T, landmarks=None, k=None):
     if k is None:
         k = len(mesh.eigenvalues)
     else:
-        assert len(mesh.eigenvalues) >= k, (
-            f"At least {k} eigenvalues should be computed, not {len(mesh.eigenvalues)}"
-        )
+        assert (
+            len(mesh.eigenvalues) >= k
+        ), f"At least {k} eigenvalues should be computed, not {len(mesh.eigenvalues)}"
 
     return auto_HKS(
         mesh.eigenvalues[:k],

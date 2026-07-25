@@ -522,9 +522,7 @@ class TriMesh:
             if return_spectrum:
                 return self.eigenvalues, self.eigenvectors
 
-    def process(
-        self, k=200, skip_normals=True, intrinsic=False, robust=False, verbose=False
-    ):
+    def process(self, k=200, skip_normals=True, intrinsic=False, robust=False, verbose=False):
         """
         Process the LB spectrum and saves it.
         Additionnaly computes per-face normals
@@ -590,9 +588,7 @@ class TriMesh:
             return self.eigenvectors[:, :k].T @ (self.A @ func)
 
         else:
-            raise ValueError(
-                f"At least {k} eigenvectors should be computed before projecting"
-            )
+            raise ValueError(f"At least {k} eigenvectors should be computed before projecting")
 
     def decode(self, projection):
         """
@@ -613,9 +609,7 @@ class TriMesh:
             return self.eigenvectors[:, :k] @ projection
 
         else:
-            raise ValueError(
-                f"At least {k} eigenvectors should be computed before decoding"
-            )
+            raise ValueError(f"At least {k} eigenvectors should be computed before decoding")
 
     def unproject(self, projection):
         """
@@ -695,9 +689,7 @@ class TriMesh:
             (n,n) matrix of geodesic distances
         """
         if method not in GEODESIC_METHODS:
-            raise ValueError(
-                f"method must be one of {GEODESIC_METHODS}, got '{method}'"
-            )
+            raise ValueError(f"method must be one of {GEODESIC_METHODS}, got '{method}'")
 
         # Load cache if possible and not explicitly forbidden
         if not force_compute:
@@ -710,14 +702,10 @@ class TriMesh:
             geod_dist = geom.geodesic_distmat_dijkstra(self.vertlist, self.facelist)
 
         elif method == "fast_marching":
-            geod_dist = geom.geodesic_distmat_fast_marching(
-                self.vertlist, self.facelist
-            )
+            geod_dist = geom.geodesic_distmat_fast_marching(self.vertlist, self.facelist)
 
         elif method == "heat" or (method == "heat_pure" and self._intrinsic):
-            geod_dist = geom.heat_geodmat_robust(
-                self.vertlist, self.facelist, verbose=verbose
-            )
+            geod_dist = geom.heat_geodmat_robust(self.vertlist, self.facelist, verbose=verbose)
 
         else:
             # Ensure LB matrices are processed.
@@ -755,17 +743,11 @@ class TriMesh:
             root_dir = os.path.dirname(self.path)
 
             if self.is_normalized:
-                geod_filename = os.path.join(
-                    root_dir, "geod_cache", f"{self.meshname}_n.npy"
-                )
+                geod_filename = os.path.join(root_dir, "geod_cache", f"{self.meshname}_n.npy")
             elif self.is_modified:
-                geod_filename = os.path.join(
-                    root_dir, "geod_cache", f"{self.meshname}_mod.npy"
-                )
+                geod_filename = os.path.join(root_dir, "geod_cache", f"{self.meshname}_mod.npy")
             else:
-                geod_filename = os.path.join(
-                    root_dir, "geod_cache", f"{self.meshname}.npy"
-                )
+                geod_filename = os.path.join(root_dir, "geod_cache", f"{self.meshname}.npy")
 
             os.makedirs(os.path.dirname(geod_filename), exist_ok=True)
             np.save(geod_filename, geod_dist)
@@ -798,9 +780,7 @@ class TriMesh:
             (n,) distances to vertex i, or (n,p) if i is a sequence of length p
         """
         if method not in GEODESIC_METHODS:
-            raise ValueError(
-                f"method must be one of {GEODESIC_METHODS}, got '{method}'"
-            )
+            raise ValueError(f"method must be one of {GEODESIC_METHODS}, got '{method}'")
 
         if method == "fast_marching":
             if self._solver_geod_fmarch is None:
@@ -828,9 +808,7 @@ class TriMesh:
             if np.issubdtype(type(i), np.integer):
                 return self._solver_geod_heat.compute_distance(i)
             else:
-                return np.array(
-                    [self._solver_geod_heat.compute_distance(x) for x in i]
-                ).T
+                return np.array([self._solver_geod_heat.compute_distance(x) for x in i]).T
 
         # method == "heat_pure" and not self._intrinsic
         if self.A is None or self.W is None:
@@ -969,9 +947,7 @@ class TriMesh:
             return np.sum(self.A @ func)
         return np.sum(self.A @ func, axis=0)
 
-    def extract_fps(
-        self, size, random_init=True, geodesic=True, no_load=False, verbose=False
-    ):
+    def extract_fps(self, size, random_init=True, geodesic=True, no_load=False, verbose=False):
         """
         Samples points using farthest point sampling with geodesic distances. If the geodesic matrix
         is precomputed (in the cache folder) uses it, else computes geodesic distance in real time
@@ -1199,14 +1175,10 @@ class TriMesh:
             file_ext = ".off"
 
         if file_ext == ".off":
-            file_utils.write_off(
-                filename, self.vertlist, self.facelist, precision=precision
-            )
+            file_utils.write_off(filename, self.vertlist, self.facelist, precision=precision)
 
         elif file_ext == ".obj":
-            file_utils.write_obj(
-                filename, self.vertlist, faces=self.facelist, precision=precision
-            )
+            file_utils.write_obj(filename, self.vertlist, faces=self.facelist, precision=precision)
 
         return self
 
@@ -1360,9 +1332,7 @@ class TriMesh:
 
         root_dir = os.path.dirname(self.path)
         if self.is_normalized:
-            geod_filename = os.path.join(
-                root_dir, "geod_cache", f"{self.meshname}_n.npy"
-            )
+            geod_filename = os.path.join(root_dir, "geod_cache", f"{self.meshname}_n.npy")
 
         elif self.is_modified:
             return None
@@ -1402,9 +1372,7 @@ class TriMesh:
     def _read_init_kwargs(self, kwargs):
         rotation = kwargs["rotation"] if "rotation" in kwargs.keys() else None
         translation = kwargs["translation"] if "translation" in kwargs.keys() else None
-        area_normalize = (
-            kwargs["area_normalize"] if "area_normalize" in kwargs.keys() else False
-        )
+        area_normalize = kwargs["area_normalize"] if "area_normalize" in kwargs.keys() else False
         center = kwargs["center"] if "center" in kwargs.keys() else False
 
         if "normalize" in kwargs.keys():

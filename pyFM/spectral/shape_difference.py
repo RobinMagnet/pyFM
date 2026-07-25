@@ -97,8 +97,6 @@ def compute_SD(mesh1, mesh2, k1=None, k2=None, p2p=None, SD_type="spectral"):
     elif SD_type == "semican":
         FM = mesh1.eigenvectors[p2p, :k1]  # (n2,K1)
         SD_a = FM.T @ mesh2.A @ FM  # (K1,K1)
-        SD_c = (
-            np.linalg.pinv(np.diag(mesh1.eigenvalues[:k1])) @ FM.T @ mesh2.W @ FM
-        )  # (K1,K1)
+        SD_c = np.linalg.pinv(np.diag(mesh1.eigenvalues[:k1])) @ FM.T @ mesh2.W @ FM  # (K1,K1)
 
     return SD_a, SD_c

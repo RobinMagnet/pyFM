@@ -27,9 +27,7 @@ __all__ = [
 ]
 
 
-def nn_query_precise_np(
-    vert_emb, faces, points_emb, return_dist=False, batch_size=None, n_jobs=1
-):
+def nn_query_precise_np(vert_emb, faces, points_emb, return_dist=False, batch_size=None, n_jobs=1):
     """
     Project a pointcloud on a p-dimensional mesh.
 
@@ -71,9 +69,7 @@ def nn_query_precise_np(
     )
 
     if return_dist:
-        targets = (bary_coords[..., None] * vert_emb[faces[face_match]]).sum(
-            1
-        )  # (n2, p)
+        targets = (bary_coords[..., None] * vert_emb[faces[face_match]]).sum(1)  # (n2, p)
         dists = np.linalg.norm(targets - points_emb, axis=-1)  # (n2,)
 
         return face_match, bary_coords, dists
@@ -197,9 +193,7 @@ def project_pc_to_triangles(
                 points_sqnorm=points_sqnorm[batch_minmax[0] : batch_minmax[1]],
             )
 
-            batch_iterable = range(
-                *batch_minmax
-            )  # if not verbose else tqdm(range(*batch_minmax))
+            batch_iterable = range(*batch_minmax)  # if not verbose else tqdm(range(*batch_minmax))
             for vertind in batch_iterable:
                 batch_vertind = vertind - batch_minmax[0]
                 faceind, bary = project_to_mesh(
@@ -217,9 +211,7 @@ def project_pc_to_triangles(
                 bary_coord[vertind] = bary
 
     if return_sparse:
-        return barycentric_to_precise(
-            faces, face_match, bary_coord, n_vertices=n_vertices
-        )
+        return barycentric_to_precise(faces, face_match, bary_coord, n_vertices=n_vertices)
 
     return face_match, bary_coord
     # return barycentric_to_precise(faces, face_match, bary_coord, n_vertices=n_vertices)
@@ -340,9 +332,7 @@ def mycdist(X, Y, sqnormX=None, sqnormY=None, squared=False):
     return distmat
 
 
-def compute_dmin(
-    vert_emb, faces, points_emb, vertind, vert_sqnorms=None, points_sqnorm=None
-):
+def compute_dmin(vert_emb, faces, points_emb, vertind, vert_sqnorms=None, points_sqnorm=None):
     r"""
     Given a vertex in the pointcloud and each face on the surface, gives the minimum
     distance between the vertex and each of the 3 points of the triangle.
@@ -379,25 +369,17 @@ def compute_dmin(
     emb2 = vert_emb[faces[:, 2]]  # (m1,k1)
     b = points_emb[vertind]  # (k1,)
 
-    b_sqnorm = (
-        np.linalg.norm(b) ** 2 if points_sqnorm is None else points_sqnorm[vertind]
-    )
+    b_sqnorm = np.linalg.norm(b) ** 2 if points_sqnorm is None else points_sqnorm[vertind]
 
-    dmin = mycdist(
-        emb0, b, sqnormX=vert_sqnorms[faces[:, 0]], sqnormY=b_sqnorm, squared=True
-    )
+    dmin = mycdist(emb0, b, sqnormX=vert_sqnorms[faces[:, 0]], sqnormY=b_sqnorm, squared=True)
     np.minimum(
         dmin,
-        mycdist(
-            emb1, b, sqnormX=vert_sqnorms[faces[:, 1]], sqnormY=b_sqnorm, squared=True
-        ),
+        mycdist(emb1, b, sqnormX=vert_sqnorms[faces[:, 1]], sqnormY=b_sqnorm, squared=True),
         out=dmin,
     )
     np.minimum(
         dmin,
-        mycdist(
-            emb2, b, sqnormX=vert_sqnorms[faces[:, 2]], sqnormY=b_sqnorm, squared=True
-        ),
+        mycdist(emb2, b, sqnormX=vert_sqnorms[faces[:, 2]], sqnormY=b_sqnorm, squared=True),
         out=dmin,
     )
     np.sqrt(dmin, out=dmin)
@@ -512,9 +494,7 @@ def project_to_mesh(
     dmin_params = dict() if dmin_params is None else dmin_params
     # Obtain deltamin
     if dmin is None:
-        deltamin = compute_dmin(
-            vert_emb, faces, points_emb, vertind, **dmin_params
-        )  # (m1,)
+        deltamin = compute_dmin(vert_emb, faces, points_emb, vertind, **dmin_params)  # (m1,)
     else:
         deltamin = dmin[:, vertind]  # (m1,)
 
@@ -800,17 +780,9 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         final_t[inds_0] = t[inds_0] * invDet
         final_dists[inds_0] = (
             final_s[inds_0]
-            * (
-                a[inds_0] * final_s[inds_0]
-                + b[inds_0] * final_t[inds_0]
-                + 2.0 * d[inds_0]
-            )
+            * (a[inds_0] * final_s[inds_0] + b[inds_0] * final_t[inds_0] + 2.0 * d[inds_0])
             + final_t[inds_0]
-            * (
-                b[inds_0] * final_s[inds_0]
-                + c[inds_0] * final_t[inds_0]
-                + 2.0 * e[inds_0]
-            )
+            * (b[inds_0] * final_s[inds_0] + c[inds_0] * final_t[inds_0] + 2.0 * e[inds_0])
             + f[inds_0]
         )
 
@@ -837,17 +809,9 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         final_t[inds2_12] = 1 - final_s[inds2_12]
         final_dists[inds2_12] = (
             final_s[inds2_12]
-            * (
-                a[inds2_12] * final_s[inds2_12]
-                + b[inds2_12] * final_t[inds2_12]
-                + 2 * d[inds2_12]
-            )
+            * (a[inds2_12] * final_s[inds2_12] + b[inds2_12] * final_t[inds2_12] + 2 * d[inds2_12])
             + final_t[inds2_12]
-            * (
-                b[inds2_12] * final_s[inds2_12]
-                + c[inds2_12] * final_t[inds2_12]
-                + 2 * e[inds2_12]
-            )
+            * (b[inds2_12] * final_s[inds2_12] + c[inds2_12] * final_t[inds2_12] + 2 * e[inds2_12])
             + f[inds2_12]
         )
 
@@ -1127,9 +1091,7 @@ def pointTriangleDistance(TRI, P, return_bary=False):
                 invDet = 1.0 / det
                 s = s * invDet
                 t = t * invDet
-                sqrdistance = (
-                    s * (a * s + b * t + 2.0 * d) + t * (b * s + c * t + 2.0 * e) + f
-                )
+                sqrdistance = s * (a * s + b * t + 2.0 * d) + t * (b * s + c * t + 2.0 * e) + f
     else:
         if s < 0.0:
             # region 2
@@ -1146,9 +1108,7 @@ def pointTriangleDistance(TRI, P, return_bary=False):
                 else:
                     s = numer / denom
                     t = 1 - s
-                    sqrdistance = (
-                        s * (a * s + b * t + 2 * d) + t * (b * s + c * t + 2 * e) + f
-                    )
+                    sqrdistance = s * (a * s + b * t + 2 * d) + t * (b * s + c * t + 2 * e) + f
 
             else:  # minimum on edge s=0
                 s = 0.0
@@ -1179,9 +1139,7 @@ def pointTriangleDistance(TRI, P, return_bary=False):
                         t = numer / denom
                         s = 1 - t
                         sqrdistance = (
-                            s * (a * s + b * t + 2.0 * d)
-                            + t * (b * s + c * t + 2.0 * e)
-                            + f
+                            s * (a * s + b * t + 2.0 * d) + t * (b * s + c * t + 2.0 * e) + f
                         )
 
                 else:
@@ -1213,9 +1171,7 @@ def pointTriangleDistance(TRI, P, return_bary=False):
                         s = numer / denom
                         t = 1 - s
                         sqrdistance = (
-                            s * (a * s + b * t + 2.0 * d)
-                            + t * (b * s + c * t + 2.0 * e)
-                            + f
+                            s * (a * s + b * t + 2.0 * d) + t * (b * s + c * t + 2.0 * e) + f
                         )
 
     # account for numerical round-off error

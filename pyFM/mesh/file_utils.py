@@ -35,17 +35,11 @@ def read_off(filepath, read_colors=False):
             header_line = f.readline().strip().split(" ")
         n_verts, n_faces, _ = [int(x) for x in header_line]
 
-        vertices = [
-            [float(x) for x in f.readline().strip().split()[:3]] for _ in range(n_verts)
-        ]
+        vertices = [[float(x) for x in f.readline().strip().split()[:3]] for _ in range(n_verts)]
 
         if n_faces > 0:
             face_elements = [
-                [
-                    int(x)
-                    for x in f.readline().strip().split()[1:]
-                    if not x.startswith("#")
-                ]
+                [int(x) for x in f.readline().strip().split()[1:] if not x.startswith("#")]
                 for _ in range(n_faces)
             ]
             face_elements = np.asarray(face_elements)
@@ -61,9 +55,7 @@ def read_off(filepath, read_colors=False):
     return np.asarray(vertices), faces
 
 
-def read_obj(
-    filepath, load_normals=False, load_texture=False, load_texture_normals=False
-):
+def read_obj(filepath, load_normals=False, load_texture=False, load_texture_normals=False):
     """
     Read a .obj file containing a mesh.
 
@@ -114,11 +106,7 @@ def read_obj(
                 vertices.append([float(x) for x in line[1:4]])
 
             elif load_texture and line[0] == "vt":
-                uv.append(
-                    [float(x) for x in line[1:3]]
-                    if len(line) >= 3
-                    else [float(line[0]), 0]
-                )
+                uv.append([float(x) for x in line[1:3]] if len(line) >= 3 else [float(line[0]), 0])
 
             elif line[0] == "f":
                 faces.append([int(x.split("/")[0]) - 1 for x in line[1:]])
@@ -187,9 +175,7 @@ def write_off(filepath, vertices, faces, precision=None, face_colors=None):
         f.write("OFF\n")
         f.write(f"{n_vertices} {n_faces} 0\n")
         for i in range(n_vertices):
-            f.write(
-                f"{' '.join([f'{coord:.{precision}f}' for coord in vertices[i]])}\n"
-            )
+            f.write(f"{' '.join([f'{coord:.{precision}f}' for coord in vertices[i]])}\n")
 
         if n_faces != 0:
             for j in range(n_faces):
@@ -260,9 +246,7 @@ def write_obj(
         f.write(f"# {n_vertices} vertices - {n_faces} faces - {n_vt} vertex textures\n")
 
         for i in range(n_vertices):
-            f.write(
-                f"v {' '.join([f'{coord:.{precision}f}' for coord in vertices[i]])}\n"
-            )
+            f.write(f"v {' '.join([f'{coord:.{precision}f}' for coord in vertices[i]])}\n")
 
         if vertex_normals is not None:
             for i in range(len(vertex_normals)):
@@ -272,9 +256,7 @@ def write_obj(
 
         if uv is not None:
             for i in range(len(uv)):
-                f.write(
-                    f"vt {' '.join([f'{coord:.{precision}f}' for coord in uv[i]])}\n"
-                )
+                f.write(f"vt {' '.join([f'{coord:.{precision}f}' for coord in uv[i]])}\n")
 
         if n_faces > 0:
             if mtl_path is not None:
@@ -315,9 +297,7 @@ def read_vert(filepath):
     vertices : np.ndarray
         (n,3) array of vertices coordinates
     """
-    vertices = [
-        [float(x) for x in line.strip().split()] for line in open(filepath, "r")
-    ]
+    vertices = [[float(x) for x in line.strip().split()] for line in open(filepath, "r")]
     return np.asarray(vertices)
 
 
@@ -340,9 +320,7 @@ def read_tri(filepath, from_matlab=True):
     faces = [[int(x) for x in line.strip().split()] for line in open(filepath, "r")]
     faces = np.asarray(faces)
     if from_matlab and np.min(faces) > 0:
-        raise ValueError(
-            "Indexing starts at 0, can't set the from_matlab argument to True "
-        )
+        raise ValueError("Indexing starts at 0, can't set the from_matlab argument to True ")
     return faces - int(from_matlab)
 
 
@@ -452,9 +430,7 @@ def write_obj_texture(
         whether to print information
 
     """
-    assert filepath.endswith(".obj"), (
-        f"Filepath must end with .obj. Current filepath: {filepath}"
-    )
+    assert filepath.endswith(".obj"), f"Filepath must end with .obj. Current filepath: {filepath}"
 
     use_texture = uv is not None
     precision = 16 if precision is None else precision
@@ -507,9 +483,7 @@ def write_obj_texture(
             mtl_abspath = os.path.abspath(
                 os.path.join(out_dir_name, mtl_file)
             )  # /outdir/material.mtl
-            mtl_relpath = os.path.join(
-                "./", os.path.basename(mtl_file)
-            )  # ./material.mtl
+            mtl_relpath = os.path.join("./", os.path.basename(mtl_file))  # ./material.mtl
             if os.path.isfile(mtl_abspath):
                 os.remove(mtl_abspath)
             write_mtl(mtl_abspath, texture_im=texture_relpath)

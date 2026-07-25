@@ -102,14 +102,10 @@ def zoomout_refine(
         step1 = step
         step2 = step
 
-    assert k1_0 + nit * step1 <= evects1.shape[1], (
-        f"Not enough eigenvectors on source : \
+    assert k1_0 + nit * step1 <= evects1.shape[1], f"Not enough eigenvectors on source : \
         {k1_0 + nit * step1} are needed when {evects1.shape[1]} are provided"
-    )
-    assert k2_0 + nit * step2 <= evects2.shape[1], (
-        f"Not enough eigenvectors on target : \
+    assert k2_0 + nit * step2 <= evects2.shape[1], f"Not enough eigenvectors on target : \
         {k2_0 + nit * step2} are needed when {evects2.shape[1]} are provided"
-    )
 
     use_subsample = False
     if subsample is not None:
@@ -136,9 +132,7 @@ def zoomout_refine(
             )
 
     if return_p2p:
-        p2p_21_zo = spectral.FM_to_p2p(
-            FM_12_zo, evects1, evects2, n_jobs=n_jobs
-        )  # (n2,)
+        p2p_21_zo = spectral.FM_to_p2p(FM_12_zo, evects1, evects2, n_jobs=n_jobs)  # (n2,)
         return FM_12_zo, p2p_21_zo
 
     return FM_12_zo
@@ -280,13 +274,9 @@ def mesh_zoomout_refine_p2p(
         subsample = (sub1, sub2)
 
     if p2p_on_sub:
-        FM_12_init = spectral.mesh_p2p_to_FM(
-            p2p_21, mesh1, mesh2, dims=k_init, subsample=subsample
-        )
+        FM_12_init = spectral.mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=k_init, subsample=subsample)
     else:
-        FM_12_init = spectral.mesh_p2p_to_FM(
-            p2p_21, mesh1, mesh2, dims=k_init, subsample=None
-        )
+        FM_12_init = spectral.mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=k_init, subsample=None)
 
     result = zoomout_refine(
         FM_12_init,

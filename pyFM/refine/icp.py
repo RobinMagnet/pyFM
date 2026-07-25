@@ -97,9 +97,7 @@ def icp_refine(
     n_iter = 0
     for i in tqdm(myrange, disable=not verbose or use_tol):
         n_iter = i + 1
-        FM_12_icp = icp_iteration(
-            FM_12_curr, evects1, evects2, use_adj=use_adj, n_jobs=n_jobs
-        )
+        FM_12_icp = icp_iteration(FM_12_curr, evects1, evects2, use_adj=use_adj, n_jobs=n_jobs)
 
         if use_tol:
             if verbose:
@@ -235,9 +233,7 @@ def mesh_icp_refine_p2p(
         from basis 2 to basis 1.
     """
 
-    FM_12_init = spectral.mesh_p2p_to_FM(
-        p2p_21, mesh1, mesh2, dims=k_init, subsample=None
-    )
+    FM_12_init = spectral.mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=k_init, subsample=None)
 
     result = mesh_icp_refine(
         FM_12_init,

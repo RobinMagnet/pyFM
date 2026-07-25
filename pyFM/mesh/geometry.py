@@ -154,9 +154,7 @@ def per_vertex_normal(vertices, faces, face_normals=None, weighting="uniform"):
         Array of per-vertex normals.
     """
     if weighting.lower() == "uniform":
-        vert_normals = per_vertex_normal_uniform(
-            vertices, faces, face_normals=face_normals
-        )
+        vert_normals = per_vertex_normal_uniform(vertices, faces, face_normals=face_normals)
 
     elif weighting.lower() == "area":
         vert_normals = per_vertex_normal_area(vertices, faces)
@@ -194,9 +192,7 @@ def per_vertex_normal_area(vertices, faces):
     face_normals_weighted = np.cross(1e3 * (v2 - v1), 1e3 * (v3 - v1))  # (m,3)
 
     vert_normals = np.zeros((n_vertices, 3))
-    np.add.at(
-        vert_normals, faces.flatten(), np.repeat(face_normals_weighted, 3, axis=0)
-    )
+    np.add.at(vert_normals, faces.flatten(), np.repeat(face_normals_weighted, 3, axis=0))
     vert_normals /= 1e-6 + np.linalg.norm(vert_normals, axis=1, keepdims=True)
 
     return vert_normals
@@ -409,9 +405,9 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False, grads=No
         if f.ndim == 1:
             gradient = (f2 - f1)[:, None] * grad2 + (f3 - f1)[:, None] * grad3  # (m,3)
         else:
-            gradient = (f2 - f1)[:, :, None] * grad2[:, None, :] + (f3 - f1)[
-                :, :, None
-            ] * grad3[:, None, :]  # (m,3)
+            gradient = (f2 - f1)[:, :, None] * grad2[:, None, :] + (f3 - f1)[:, :, None] * grad3[
+                :, None, :
+            ]  # (m,3)
 
     else:
         if grads is None:
@@ -420,9 +416,7 @@ def grad_f(f, vertices, faces, normals, face_areas=None, use_sym=False, grads=No
             grad3 = np.cross(normals, v2 - v1) / (2 * face_areas[:, None])  # (m,3)
 
         if f.ndim == 1:
-            gradient = (
-                f1[:, None] * grad1 + f2[:, None] * grad2 + f3[:, None] * grad3
-            )  # (m,3)
+            gradient = f1[:, None] * grad1 + f2[:, None] * grad2 + f3[:, None] * grad3  # (m,3)
         else:
             gradient = (
                 f1[:, :, None] * grad1[:, None, :]
@@ -479,9 +473,7 @@ def div_f(f, vertices, faces, normals, vert_areas=None, grads=None, face_areas=N
         grad3_n = np.cross(normals, v2 - v1) / 2
     else:
         if face_areas is None:
-            face_areas = 0.5 * np.linalg.norm(
-                np.cross(v2 - v1, v3 - v1), axis=1
-            )  # (m,)
+            face_areas = 0.5 * np.linalg.norm(np.cross(v2 - v1, v3 - v1), axis=1)  # (m,)
         grad1_n = face_areas[:, None] * grads[0]
         grad2_n = face_areas[:, None] * grads[1]
         grad3_n = face_areas[:, None] * grads[2]
@@ -720,9 +712,7 @@ def heat_geodesic_from(
         vert_areas = compute_vertex_areas(vertices, faces)
 
     if grads is None:
-        grads = _get_grad_dir(
-            vertices, faces, normals, face_areas=face_areas
-        )  # (3,m,3)
+        grads = _get_grad_dir(vertices, faces, normals, face_areas=face_areas)  # (3,m,3)
     # grads = None
 
     # Define the dirac function  d on the given index. Not that the area normalization
@@ -738,15 +728,11 @@ def heat_geodesic_from(
         u = sparse.linalg.spsolve(A + t * W, delta)  # (n,) or (n,p)
 
     # Compute and normalize the gradient of the solution
-    g = grad_f(
-        u, vertices, faces, normals, face_areas=face_areas, grads=grads
-    )  # (m,3) or (m,p,3)
+    g = grad_f(u, vertices, faces, normals, face_areas=face_areas, grads=grads)  # (m,3) or (m,p,3)
     h = -g / np.linalg.norm(g, axis=-1, keepdims=True)  # (m,3) or (m,p,3)
 
     # Solve L*phi = div(h). Actually W*phi = A*div(h)
-    div_h = div_f(
-        h, vertices, faces, normals, vert_areas=vert_areas, grads=grads
-    )  # (n,) or (n,p)
+    div_h = div_f(h, vertices, faces, normals, vert_areas=vert_areas, grads=grads)  # (n,) or (n,p)
 
     if solver_lap is not None:
         phi = solver_lap(A @ div_h)  # (n,) or (n,p)
@@ -834,9 +820,7 @@ def heat_geodmat(
     for batch_ind in ind_list:
         # Handle batch size of 1 (and possibly the last batcg of size 1)
         if batch_size > 1:
-            batch = np.arange(
-                batch_ind * batch_size, min(n_vertices, (1 + batch_ind) * batch_size)
-            )
+            batch = np.arange(batch_ind * batch_size, min(n_vertices, (1 + batch_ind) * batch_size))
         else:
             batch = batch_ind
         if batch_ind == n_batches - 1 and n_vertices % batch_size == 1:
@@ -892,13 +876,9 @@ def farthest_point_sampling(d, k, random_init=True, n_points=None, verbose=False
 
     else:
         if d.shape[0] != d.shape[1]:
-            raise ValueError(
-                f"D should be a n x n matrix not a {d.shape[0]} x {d.shape[1]}"
-            )
+            raise ValueError(f"D should be a n x n matrix not a {d.shape[0]} x {d.shape[1]}")
 
-        return farthest_point_sampling_distmat(
-            d, k, random_init=random_init, verbose=verbose
-        )
+        return farthest_point_sampling_distmat(d, k, random_init=random_init, verbose=verbose)
 
 
 def farthest_point_sampling_distmat(D, k, random_init=True, verbose=False):
@@ -1056,9 +1036,7 @@ def farthest_point_sampling_call_sub(
     return np.asarray(inds)
 
 
-def get_orientation_op(
-    grad_field, vertices, faces, normals, per_vert_area, rotated=False
-):
+def get_orientation_op(grad_field, vertices, faces, normals, per_vert_area, rotated=False):
     """
     Compute the linear orientation operator associated to a gradient field grad(f).
 
@@ -1139,8 +1117,6 @@ def get_orientation_op(
     Sn = np.concatenate([Sij, Sji, -Sij, -Sji])
 
     W = sparse.coo_matrix((Sn, (In, Jn)), shape=(n_vertices, n_vertices)).tocsc()
-    inv_area = sparse.diags(
-        1 / per_vert_area, shape=(n_vertices, n_vertices), format="csc"
-    )
+    inv_area = sparse.diags(1 / per_vert_area, shape=(n_vertices, n_vertices), format="csc")
 
     return inv_area @ W
