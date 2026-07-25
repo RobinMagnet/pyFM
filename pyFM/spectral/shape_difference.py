@@ -10,14 +10,14 @@ def area_SD(FM):
     Return the area shape difference computed from a functional map.
 
     Parameters
-    ---------------------------
-    FM :
-        (k2,k1) functional map between two meshes
+    ----------
+    FM : (k2, k1) np.ndarray
+        Functional map between two meshes.
 
     Returns
-    ----------------------------
-    SD : np.ndarray
-        k1,k1) - Area based shape difference operator
+    -------
+    SD : (k1, k1) np.ndarray
+        Area based shape difference operator.
     """
     SD = FM.T @ FM
     return SD
@@ -28,18 +28,18 @@ def conformal_SD(FM, evals1, evals2):
     Return the conformal shape difference operator computed from a functional map.
 
     Parameters
-    ---------------------------
-    FM     :
-        (k2,k1) functional map between two meshes
-    evals1 :
-        eigenvalues of the LBO on the source mesh (at least k1)
-    evals2 :
-        eigenvalues of the LBO on the target mesh (at least k2)
+    ----------
+    FM : (k2, k1) np.ndarray
+        Functional map between two meshes.
+    evals1 : (k1,) np.ndarray
+        Eigenvalues of the LBO on the source mesh (at least k1).
+    evals2 : (k2,) np.ndarray
+        Eigenvalues of the LBO on the target mesh (at least k2).
 
     Returns
-    ----------------------------
-    SD : np.ndarray
-        (k1,k1) - Conformal shape difference operator
+    -------
+    SD : (k1, k1) np.ndarray
+        Conformal shape difference operator.
     """
     k2, k1 = FM.shape
 
@@ -49,32 +49,31 @@ def conformal_SD(FM, evals1, evals2):
 
 def compute_SD(mesh1, mesh2, k1=None, k2=None, p2p=None, SD_type="spectral"):
     """
-    Computes shape difference operators from a vertex to vertex map.
+    Compute shape difference operators from a vertex to vertex map.
 
     Parameters
-    -----------------------------
-    mesh1   : pyFM.mesh.TriMesh
+    ----------
+    mesh1 : pyFM.mesh.TriMesh
         Source mesh with computed eigenvectors.
-    mesh2   : pyFM.mesh.TriMesh
+    mesh2 : pyFM.mesh.TriMesh
         Target mesh object with computed eigenvectors.
-    k1      :
-        Dimension to use on the source basis. If None, use all the computed eigenvectors
-    k2      :
-        Dimension to use on the source basis if SD_type is 'spectral'.
-              If None and SD_type is spectral, uses 3*k1
-    p2p     :
-        (n2,) vertex to vertex map between the two meshes.
-              If None, set to the identity mapping
-    SD_type :
-        'spectral' | 'semican' : first option uses the LB basis on the target shape.
-              Second option uses the canonical basis on the target shape
+    k1 : int, optional
+        Dimension to use on the source basis. If None, use all the computed eigenvectors.
+    k2 : int, optional
+        Dimension to use on the source basis if SD_type is 'spectral'. If None and
+        SD_type is 'spectral', uses 3*k1.
+    p2p : (n2,) np.ndarray, optional
+        Vertex to vertex map between the two meshes. If None, set to the identity mapping.
+    SD_type : {'spectral', 'semican'}, optional
+        The first option uses the LB basis on the target shape. The second option
+        uses the canonical basis on the target shape.
 
     Returns
-    ----------------------------
-    SD_a : np.ndarray
-        (k1,k1) Area based shape difference operator
-    SD_c : np.ndarray
-        (k1,k1) Conformal shape difference operator
+    -------
+    SD_a : (k1, k1) np.ndarray
+        Area based shape difference operator.
+    SD_c : (k1, k1) np.ndarray
+        Conformal shape difference operator.
     """
     assert SD_type in [
         "spectral",

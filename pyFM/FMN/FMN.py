@@ -15,15 +15,15 @@ from .. import spectral
 
 class FMN:
     """
-    Functional Map Network Class
+    Functional Map Network.
 
     Parameters
-    --------------------------
-    meshlist  : list
-        list of TriMesh objects
+    ----------
+    meshlist : list
+        List of TriMesh objects.
     maps_dict : dict, optional
-        dictionnary of functional maps between each pair of meshes.
-        Keys are (i,j) with i,j indices of the meshes in the list.
+        Dictionary of functional maps between each pair of meshes.
+        Keys are (i, j) with i, j indices of the meshes in the list.
     """
 
     def __init__(self, meshlist, maps_dict=None):
@@ -31,13 +31,13 @@ class FMN:
         self.meshlist = copy.deepcopy(meshlist)  # List of n TriMesh
 
         # Edges are determined by (i,j) pair of indices
-        # A map is associated to each edge (via dictionnary)
+        # A map is associated to each edge (via dictionary)
         # Weights of edges are stored in a sparse (n,n) matrix
-        # For computation, an arbitraty ordering of edges is stored.
+        # For computation, an arbitrary ordering of edges is stored.
 
         # Network attribute
         self.edges = None  # List of couples (i,j)
-        self.maps = None  # Dictionnary of maps
+        self.maps = None  # Dictionary of maps
         self.weights = None  # (n,n) sparse matrix of weights
         self.edge2ind = None  # Ordering of edges
 
@@ -50,8 +50,8 @@ class FMN:
         self.A_sub = None  # (n_edge_in_cycle,) indices of edges contained in a 3-cycle
 
         self.use_icsm = False  # Whether icsm or adjacency weights are used.
-        self.cycle_weight = None  # Weights of each 3-cycle (map-dependant)
-        self.edge_weights = None  # Weight of each edge (map-dependant)
+        self.cycle_weight = None  # Weights of each 3-cycle (map-dependent)
+        self.edge_weights = None  # Weight of each edge (map-dependent)
 
         # CLB and CCLB attributes
         self.W = None  # (n*M, n*M) sparse matrix. Quadratic form for CLB computation.
@@ -62,7 +62,7 @@ class FMN:
         self.cclb_eigenvalues = None  # (m,) eigenvalues of the CCLB
 
         # Extra information
-        self.p2p = None  # Dictionnary of pointwise maps associated to each edge
+        self.p2p = None  # Dictionary of pointwise maps associated to each edge
         self._M = None
 
         if maps_dict is not None:
@@ -70,6 +70,14 @@ class FMN:
 
     @property
     def n_meshes(self):
+        """
+        Return the number of meshes (nodes) in the network.
+
+        Returns
+        -------
+        n_meshes : int
+            Number of meshes in the network.
+        """
         return len(self.meshlist)
 
     @property
@@ -78,12 +86,12 @@ class FMN:
         Return the current shared dimension for functional maps
         (which are square matrices).
 
-        If not specified, returns the sized of the first found map.
+        If not specified, returns the size of the first found map.
 
         Returns
-        -------------------
+        -------
         M : int
-            size of the functional maps
+            Size of the functional maps.
         """
         if self._M is not None:
             return self._M
@@ -97,27 +105,27 @@ class FMN:
     @property
     def m_cclb(self):
         """
-        Return the dimension of the Canonical Consistent Latent Basis
+        Return the dimension of the Canonical Consistent Latent Basis.
 
         Returns
-        -------------------
+        -------
         m : int
-            size of the CCLB
+            Size of the CCLB.
         """
         return self.CCLB.shape[2]
 
     def _reset_map_attributes(self):
         """
-        Resets all attributes depending on the Functional Maps
+        Reset all attributes depending on the functional maps.
         """
         # Resets icsm weights variables
         if self.use_icsm:
             self.use_icsm = False  # Whether icsm or adjacency weights are used.
-            self.cycle_weight = None  # Weights of each 3-cycle (map-dependant)
-            self.edge_weights = None  # Weight of each edge (map-dependant)
+            self.cycle_weight = None  # Weights of each 3-cycle (map-dependent)
+            self.edge_weights = None  # Weight of each edge (map-dependent)
             self.weights = None  # (n,n) sparse matrix of weights
 
-        # Reset map-dependant attributes
+        # Reset map-dependent attributes
         self.W = None  # (n*M, n*M) sparse matrix. Quadratic form for CLB computation.
         self.CLB = (
             None  # (n,M,M) array containing the Consistent Latent Basis for each mesh.
@@ -126,18 +134,26 @@ class FMN:
             None  # (n,M,m) array of Canonical Consistent Latent Basis for each mesh
         )
         self.cclb_eigenvalues = None  # (m,) eigenvalues of the CCLB
-        self.p2p = None  # Dictionnary of pointwise
+        self.p2p = None  # Dictionary of pointwise
 
     def set_maps(self, maps_dict, verbose=False):
         """
         Set the edges of the graph with maps.
+
         Saves extra information about the edges.
 
         Parameters
-        --------------------------
+        ----------
         maps_dict : dict
-            dictionnary, key (i,j) gives functional map FM between mesh i and j.
-            FM can be of different size depending on the edge
+            Dictionary where key (i, j) gives the functional map FM between mesh
+            i and j. FM can be of different size depending on the edge.
+        verbose : bool, optional
+            Whether to print information about the edges being set.
+
+        Returns
+        -------
+        self : FMN
+            The current object, with edges set.
         """
         self.maps = copy.deepcopy(maps_dict)
 
@@ -155,12 +171,17 @@ class FMN:
 
     def set_subsample(self, subsample):
         """
-        Set subsamples an all shapes in the network
+        Set the subsample of vertices on all shapes in the network.
 
         Parameters
-        -----------------------------------
-        subsample :
-            (n, size) array of indices of vertices to subsample on each shape
+        ----------
+        subsample : (n, size) np.ndarray
+            Array of indices of vertices to subsample on each shape.
+
+        Returns
+        -------
+        self : FMN
+            The current object, with the subsample set.
         """
         self.subsample = subsample
 
@@ -169,12 +190,22 @@ class FMN:
     def compute_subsample(self, size=1000, geodesic=False, verbose=False):
         """
         Subsample vertices on each shape using farthest point sampling.
-        Store in an (n,size) array of indices
+
+        Store the result in an (n, size) array of indices.
 
         Parameters
-        ---------------------------------
+        ----------
         size : int
-            number of vertices to subsample on each shape
+            Number of vertices to subsample on each shape.
+        geodesic : bool, optional
+            Whether to use geodesic distances for farthest point sampling.
+        verbose : bool, optional
+            Whether to print information during computation.
+
+        Returns
+        -------
+        None
+            The subsample is stored in ``self.subsample`` in place.
         """
         if verbose:
             print(f"Computing a {size}-sized subsample for each mesh")
@@ -186,16 +217,24 @@ class FMN:
 
     def set_weights(self, weights=None, weight_type="icsm", verbose=False):
         """
-        Set weights for each edge in the graph
+        Set weights for each edge in the graph.
 
         Parameters
-        -------------------------
-        weights     : sparse
-                    (n,n) matrix. If not specified, sets weights according to 'weight_type' argument
-        weight_type :
-            'icsm' | 'adjacency' : if 'weights' is not specified, computes weights
-            according to the Consistent Zoomout adaptation of icsm or using the adjacency
-            matrix of the graph.
+        ----------
+        weights : (n, n) sparse matrix, optional
+            Matrix of edge weights. If not specified, sets weights according to
+            the ``weight_type`` argument.
+        weight_type : str, optional
+            'icsm' | 'adjacency'. If ``weights`` is not specified, computes
+            weights according to the Consistent Zoomout adaptation of icsm or
+            using the adjacency matrix of the graph.
+        verbose : bool, optional
+            Whether to print information during computation.
+
+        Returns
+        -------
+        self : FMN
+            The current object, with weights set.
         """
         if weights is not None:
             self.use_icsm = False
@@ -246,19 +285,26 @@ class FMN:
 
     def set_isometries(self, M=None):
         """
-        For each edge (i,j), if (j,i) is also an edge then,
-        the corresponding functional maps are set as transpose of each other
-        chosing the closest to orthogonal of both.
+        Symmetrize functional maps of reciprocal edges.
 
-        Since this modifies the maps, icsm weights are deleted
+        For each edge (i, j), if (j, i) is also an edge, the corresponding
+        functional maps are set as the transpose of each other, choosing the
+        closest to orthogonal of both.
+
+        Since this modifies the maps, icsm weights are deleted.
 
         Parameters
-        -----------------------
-        M : int
-            dimension with wich to compare the functional maps.
-            If None, uses the current self.M
+        ----------
+        M : int, optional
+            Dimension with which to compare the functional maps.
+            If None, uses the current ``self.M``.
+
+        Returns
+        -------
+        None
+            The maps are modified in place and map-dependent attributes reset.
         """
-        # Dictionnary with False as a default value for any key
+        # Dictionary with False as a default value for any key
         visited = defaultdict(bool)
 
         if M is None:
@@ -279,18 +325,26 @@ class FMN:
 
                 visited[(j, i)] = True
 
-        # Reset all map-dependant attributes
+        # Reset all map-dependent attributes
         self._reset_map_attributes()
 
     def compute_W(self, M=None, verbose=False):
         """
-        Computes the quadratic form for Consistent Latent Basis (CLB) computation.
+        Compute the quadratic form for Consistent Latent Basis (CLB) computation.
 
         Parameters
-        ---------------------------
+        ----------
         M : int, optional
-            size of the functional maps to use, uses projection of FM on this dimension.
-            If not specified, used the size of the first found functional map
+            Size of the functional maps to use; uses the projection of each FM
+            on this dimension. If not specified, uses the size of the first
+            found functional map.
+        verbose : bool, optional
+            Whether to print information during computation.
+
+        Returns
+        -------
+        None
+            The quadratic form is stored in ``self.W`` in place.
         """
         if self.maps is None:
             raise ValueError("Functional maps should be set")
@@ -305,15 +359,22 @@ class FMN:
 
     def compute_CLB(self, equals_id=False, verbose=False):
         """
-        Computes the Consistent Latent Basis CLB using the quadratic form
-        associated to the problem.
+        Compute the Consistent Latent Basis (CLB) using the quadratic form.
+
         The first M vectors for each basis are computed in order.
 
         Parameters
-        --------------------------
-        equals_id : bool
-            If False, the sum of Y.T@Y are expected to give n*Id.
-            If True,  the sum of Y.T@Y are expected to give Id.
+        ----------
+        equals_id : bool, optional
+            If False, the sum of Y.T @ Y is expected to give n * Id.
+            If True, the sum of Y.T @ Y is expected to give Id.
+        verbose : bool, optional
+            Whether to print information during computation.
+
+        Returns
+        -------
+        None
+            The CLB is stored in ``self.CLB`` in place.
         """
         if self.W is None:
             self.compute_W(verbose=verbose)
@@ -350,12 +411,19 @@ class FMN:
 
     def compute_CCLB(self, m, verbose=True):
         """
-        Compute the Canonical Consistent Latent Basis CCLB from the CLB.
+        Compute the Canonical Consistent Latent Basis (CCLB) from the CLB.
 
         Parameters
-        ------------------------------
+        ----------
         m : int
-            size of the CCLB to compute.
+            Size of the CCLB to compute.
+        verbose : bool, optional
+            Whether to print information during computation.
+
+        Returns
+        -------
+        self : FMN
+            The current object, with the CCLB computed.
         """
         if self.CLB is None:
             self.compute_CLB(verbose=verbose)
@@ -387,19 +455,19 @@ class FMN:
 
     def get_CSD(self, i):
         """
-        Returns the Characterisic Shape Difference operators CSD for mesh i
+        Return the Characteristic Shape Difference (CSD) operators for mesh i.
 
         Parameters
-        --------------------------
+        ----------
         i : int
-            index of the mesh on which to returns the two CSD
+            Index of the mesh on which to return the two CSD.
 
         Returns
-        --------------------------
-        CSD_a: np.ndarray
-            (m,m) array of area CSD expressed in the Latent Space
-        CSD_c: np.ndarray
-            (m,m) array of conformal CSD expressed in the Latent Space
+        -------
+        CSD_a : (m, m) np.ndarray
+            Area-based CSD expressed in the latent space.
+        CSD_c : (m, m) np.ndarray
+            Conformal CSD expressed in the latent space.
         """
         # Functional map from the Limit Shape to shape i
         FM = self.CCLB[i]
@@ -415,19 +483,19 @@ class FMN:
 
     def get_LB(self, i, complete=True):
         """
-        Returns the latent basis LB for mesh i
+        Return the latent basis (LB) for mesh i.
 
         Parameters
-        --------------------------
-        i        : int
-            index of the mesh on which to returns the LB
-        complete : bool
-            If False, only computes values on the self.subsample[i] vertices
+        ----------
+        i : int
+            Index of the mesh on which to return the LB.
+        complete : bool, optional
+            If False, only computes values on the ``self.subsample[i]`` vertices.
 
         Returns
-        --------------------------
-        latent_basis: np.ndarray
-            (n_i,m) latent basis on mesh i
+        -------
+        latent_basis : (n_i, m) np.ndarray
+            Latent basis on mesh i.
         """
         cclb = self.CCLB[
             i
@@ -443,16 +511,25 @@ class FMN:
 
     def compute_p2p(self, complete=True, n_jobs=1):
         """
-        Computes vertex to vertex maps for each (directed) edge using the factorization of
-        functional maps CCLB. Only maps related to existing edges are computed.
-        Vertex to vertex maps are saved in a dictionnary the same way as functional maps,
-        although their direction are reversed.
+        Compute vertex-to-vertex maps for each (directed) edge from the CCLB.
+
+        Uses the factorization of functional maps through the CCLB. Only maps
+        related to existing edges are computed. Vertex-to-vertex maps are saved
+        in a dictionary the same way as functional maps, although their
+        direction is reversed.
 
         Parameters
-        --------------------------
-        complete : bool
-            If False, uses self.subsample to obtain pointwise maps between
-            subsamples of vertices for each shape
+        ----------
+        complete : bool, optional
+            If False, uses ``self.subsample`` to obtain pointwise maps between
+            subsamples of vertices for each shape.
+        n_jobs : int, optional
+            Number of parallel jobs used for the nearest-neighbor queries.
+
+        Returns
+        -------
+        None
+            The pointwise maps are stored in ``self.p2p`` in place.
         """
 
         self.p2p = dict()
@@ -478,12 +555,21 @@ class FMN:
 
     def compute_maps(self, M, complete=True):
         """
-        Convert pointwise maps into Functional Maps of size M.
+        Convert pointwise maps into functional maps of size M.
 
         Parameters
-        ------------------------
+        ----------
         M : int
-            size of the functional map to compute
+            Size of the functional map to compute.
+        complete : bool, optional
+            If False and a subsample is set, uses the subsample of vertices to
+            convert the pointwise maps.
+
+        Returns
+        -------
+        None
+            The functional maps are stored in ``self.maps`` in place and
+            map-dependent attributes are reset.
         """
         self.M = M
         for i, j in self.edges:
@@ -501,12 +587,17 @@ class FMN:
             )
             self.maps[(i, j)] = FM
 
-        # Reset map-dependant variables
+        # Reset map-dependent variables
         self._reset_map_attributes()
 
     def extract_3_cycles(self):
         """
-        Extract all 3-cycles from the graph in a list of 3-uple (i,j,k)
+        Extract all 3-cycles from the graph as a list of 3-tuples (i, j, k).
+
+        Returns
+        -------
+        None
+            The cycles are stored in ``self.cycles`` in place.
         """
         self.cycles = []
 
@@ -533,9 +624,16 @@ class FMN:
 
     def compute_Amat(self):
         """
-        Compute matrix A for icsm weights optimization.  Binary matrix telling which edge
-        belongs to which cycle.
-        Uses the arbitraty edge ordering createede in the self.set_maps method
+        Compute matrix A for icsm weights optimization.
+
+        Binary matrix telling which edge belongs to which cycle. Uses the
+        arbitrary edge ordering created in the ``self.set_maps`` method.
+
+        Returns
+        -------
+        None
+            The matrix is stored in ``self.A`` and the indices of edges in a
+            cycle in ``self.A_sub``, in place.
         """
         self.A = np.zeros((len(self.cycles), len(self.edges)))  # (n_cycles, n_edges)
 
@@ -549,13 +647,21 @@ class FMN:
     def compute_3cycle_weights(self, M=None):
         """
         Compute per-cycle costs and per-edge costs for icsm optimization.
-        Cycle weights are given by the self.get_cycle_weight method (deviation from Id map)
-        Edge weight is the inverse of the sum of all weights of the cycles the edge belongs to.
+
+        Cycle weights are given by the ``self.get_cycle_weight`` method
+        (deviation from the identity map). Each edge weight is the inverse of
+        the sum of all weights of the cycles the edge belongs to.
 
         Parameters
-        -----------------------
-        M : int
-            Dimension of functional maps to use. If None, uses self.M
+        ----------
+        M : int, optional
+            Dimension of functional maps to use. If None, uses ``self.M``.
+
+        Returns
+        -------
+        None
+            Cycle weights are stored in ``self.cycle_weight`` and edge weights
+            in ``self.edge_weights``, in place.
         """
         if M is None:
             M = self.M
@@ -571,16 +677,20 @@ class FMN:
 
     def optimize_icsm(self, verbose=False):
         r"""
-        Solves the linear problem for icsm weights computation
-        $\min w^{\top}  x$
-        s.t.  $A x \geq C_{\gamma}$ and $x \geq 0$
+        Solve the linear problem for icsm weights computation.
 
-        Edges which are not part of a cycle are given 0-weigths
+        Solves $\min w^{\top}  x$ subject to $A x \geq C_{\gamma}$ and
+        $x \geq 0$. Edges which are not part of a cycle are given zero weights.
+
+        Parameters
+        ----------
+        verbose : bool, optional
+            Whether to print information during optimization.
 
         Returns
-        ------------------------
-        opt_weights : np.ndarray
-            (n_edges,) (positive) weights for each edge.
+        -------
+        opt_weights : (n_edges,) np.ndarray
+            (positive) weights for each edge.
         """
         self.compute_3cycle_weights(M=self.M)
 
@@ -605,21 +715,22 @@ class FMN:
 
     def get_cycle_weight(self, cycle, M=None):
         """
-        Given a cycle (i,j,k), compute its cost using the functional maps.
-        Cost is given as the maximum deviation to the identity map when
-        going through the complete cycle (3 possibilities)
+        Compute the cost of a cycle (i, j, k) using the functional maps.
+
+        Cost is given as the maximum deviation to the identity map when going
+        through the complete cycle (3 possibilities).
 
         Parameters
-        -----------------------
-        cycle :
-            3-uple with node indices creating a cycle
-        M     : int
-            Dimension of functional maps to use. If None use self.M
+        ----------
+        cycle : tuple
+            3-tuple with node indices creating a cycle.
+        M : int, optional
+            Dimension of functional maps to use. If None, uses ``self.M``.
 
         Returns
-        -----------------------
+        -------
         cost : float
-            cost of the cycle
+            Cost of the cycle.
         """
         if M is None:
             M = self.M
@@ -652,25 +763,32 @@ class FMN:
         complete=False,
     ):
         """
-        Performs an iteration of Consistent Zoomout refinement
+        Perform an iteration of Consistent Zoomout refinement.
 
         Parameters
-        -----------------------------
-        cclb_size   :
-            size of the CCLB to compute
-        M_init      :
-            initial dimension of maps
-        M_final     :
-            dimension at the end of the iteration
-        isometric   :
-            whether to use the reduced space strategy of ConsistentZoomout-iso
-        weight_type :
-            'icsm' or 'adjacency', type of weights to use
-        equals_id   :
-            Whether the CLB optimization uses Id or n*Id as a constraint
-        complete    :
-            If vertex-to-vertex and functional maps should be computed with all vertices
-                      instead of the subsampling.
+        ----------
+        cclb_size : int
+            Size of the CCLB to compute.
+        M_init : int
+            Initial dimension of maps.
+        M_final : int
+            Dimension at the end of the iteration.
+        isometric : bool, optional
+            Whether to use the reduced space strategy of ConsistentZoomout-iso.
+        weight_type : str, optional
+            'icsm' or 'adjacency', type of weights to use.
+        n_jobs : int, optional
+            Number of parallel jobs used for the nearest-neighbor queries.
+        equals_id : bool, optional
+            Whether the CLB optimization uses Id or n * Id as a constraint.
+        complete : bool, optional
+            Whether vertex-to-vertex and functional maps should be computed with
+            all vertices instead of the subsampling.
+
+        Returns
+        -------
+        None
+            The maps are refined in place.
         """
         if isometric:
             self.set_isometries(M=M_init)
@@ -701,26 +819,35 @@ class FMN:
         verbose=False,
     ):
         """
-        Refines the functional maps using Consistent Zoomout refinement
+        Refine the functional maps using Consistent Zoomout refinement.
 
         Parameters
-        -----------------------------
-        nit         :
-            number of zoomout iterations
-        step        :
-            dimension increase at each iteration
-        subsample   :
-            size of vertices subsample. If set to 0 or None, all vertices are used.
-        isometric   :
-            whether to use the reduced space strategy of ConsistentZoomout-iso
-        weight_type :
-            'icsm' or 'adjacency', type of weights to use
-        M_init      :
-            original size of functional maps. If None, uses self.M
-        cclb_ratio  :
-            size of CCLB as a ratio of the current dimension M
-        equals_id   :
-            Whether the CLB optimization uses Id or n*Id as a constraint
+        ----------
+        nit : int, optional
+            Number of zoomout iterations.
+        step : int, optional
+            Dimension increase at each iteration.
+        subsample : int or np.ndarray, optional
+            Size of vertices subsample. If set to 0 or None, all vertices are used.
+        isometric : bool, optional
+            Whether to use the reduced space strategy of ConsistentZoomout-iso.
+        weight_type : str, optional
+            'icsm' or 'adjacency', type of weights to use.
+        M_init : int, optional
+            Original size of functional maps. If None, uses ``self.M``.
+        cclb_ratio : float, optional
+            Size of CCLB as a ratio of the current dimension M.
+        n_jobs : int, optional
+            Number of parallel jobs used for the nearest-neighbor queries.
+        equals_id : bool, optional
+            Whether the CLB optimization uses Id or n * Id as a constraint.
+        verbose : bool, optional
+            Whether to print information during refinement.
+
+        Returns
+        -------
+        None
+            The maps are refined in place.
         """
         if (
             np.issubdtype(type(subsample), np.integer) and subsample == 0
@@ -759,22 +886,22 @@ class FMN:
 
 def CLB_quad_form(maps, weights, M=None):
     """
-    Computes the quadratic form associated to a Functional Maps Network, for Consistent Latent Basis
-    computation.
+    Compute the quadratic form of a Functional Maps Network for CLB computation.
 
     Parameters
-    -----------------------------
-    maps    : dict
-            dictionnary of functional maps associated to key (i,j) representing an edge
-    weights :
-            (n,n) sparse matrix of weights. Entry (i,j) represent the weight of edge (i,j)
-    M       :
-            Dimension of Functional maps to consider
+    ----------
+    maps : dict
+        Dictionary of functional maps, keyed by (i, j) representing an edge.
+    weights : (n, n) sparse matrix
+        Matrix of weights. Entry (i, j) represents the weight of edge (i, j).
+    M : int, optional
+        Dimension of functional maps to consider.
 
     Returns
-    -----------------------------
+    -------
     W : scipy.sparse.csr_matrix
-        (N*M,N*M) sparse matrix representing the quadratic form for CLB computation.
+        (N*M, N*M) sparse matrix representing the quadratic form for CLB
+        computation.
     """
     edges = list(maps.keys())
     N = 1 + np.max(edges)

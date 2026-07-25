@@ -21,65 +21,65 @@ __all__ = [
 
 def descr_preservation(C, descr1_red, descr2_red):
     """
-    Compute the descriptor preservation constraint
+    Compute the descriptor preservation constraint.
 
     Parameters
-    ---------------------
-    C      :
-        (K2,K1) Functional map
-    descr1 :
-        (K1,p) descriptors on first basis
-    descr2 :
-        (K2,p) descriptros on second basis
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    descr1_red : (K1, p) np.ndarray
+        Descriptors on the first basis.
+    descr2_red : (K2, p) np.ndarray
+        Descriptors on the second basis.
 
     Returns
-    ---------------------
+    -------
     energy : float
-        descriptor preservation squared norm
+        Descriptor preservation squared norm.
     """
     return 0.5 * np.square(C @ descr1_red - descr2_red).sum()
 
 
 def descr_preservation_grad(C, descr1_red, descr2_red):
     """
-    Compute the gradient of the descriptor preservation constraint
+    Compute the gradient of the descriptor preservation constraint.
 
     Parameters
-    ---------------------
-    C      :
-        (K2,K1) Functional map
-    descr1 :
-        (K1,p) descriptors on first basis
-    descr2 :
-        (K2,p) descriptros on second basis
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    descr1_red : (K1, p) np.ndarray
+        Descriptors on the first basis.
+    descr2_red : (K2, p) np.ndarray
+        Descriptors on the second basis.
 
     Returns
-    ---------------------
-    gradient : np.ndarray
-        gradient of the descriptor preservation squared norm
+    -------
+    gradient : (K2, K1) np.ndarray
+        Gradient of the descriptor preservation squared norm.
     """
     return (C @ descr1_red - descr2_red) @ descr1_red.T
 
 
 def descr_preservation_and_grad(C, descr1_red, descr2_red):
     """
-    Compute the descriptor preservation constraint and its gradient
+    Compute the descriptor preservation constraint and its gradient.
 
     Parameters
-    ---------------------
-    C      :
-        (K2,K1) Functional map
-    descr1 :
-        (K1,p) descriptors on first basis
-    descr2 :
-        (K2,p) descriptros on second basis
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    descr1_red : (K1, p) np.ndarray
+        Descriptors on the first basis.
+    descr2_red : (K2, p) np.ndarray
+        Descriptors on the second basis.
 
     Returns
-    ---------------------
+    -------
     energy : float
-        descriptor preservation squared norm
-    gradient : np.ndarray
-        gradient of the descriptor preservation squared norm
+        Descriptor preservation squared norm.
+    gradient : (K2, K1) np.ndarray
+        Gradient of the descriptor preservation squared norm.
     """
     diff = C @ descr1_red - descr2_red
     energy = 0.5 * np.square(diff).sum()
@@ -89,58 +89,59 @@ def descr_preservation_and_grad(C, descr1_red, descr2_red):
 
 def LB_commutation(C, ev_sqdiff):
     """
-    Compute the LB commutativity constraint
+    Compute the LB commutativity constraint.
 
     Parameters
-    ---------------------
-    C      :
-        (K2,K1) Functional map
-    ev_sqdiff :
-        (K2,K1) [normalized] matrix of squared eigenvalue differences
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    ev_sqdiff : (K2, K1) np.ndarray
+        [normalized] matrix of squared eigenvalue differences.
 
     Returns
-    ---------------------
+    -------
     energy : float
-        (float) LB commutativity squared norm
+        LB commutativity squared norm.
     """
     return 0.5 * (np.square(C) * ev_sqdiff).sum()
 
 
 def LB_commutation_grad(C, ev_sqdiff):
     """
-    Compute the gradient of the LB commutativity constraint
+    Compute the gradient of the LB commutativity constraint.
 
     Parameters
-    ---------------------
-    C         :
-        (K2,K1) Functional map
-    ev_sqdiff :
-        (K2,K1) [normalized] matrix of squared eigenvalue differences
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    ev_sqdiff : (K2, K1) np.ndarray
+        [normalized] matrix of squared eigenvalue differences.
 
     Returns
-    ---------------------
-    gradient : np.ndarray
-        (K2,K1) gradient of the LB commutativity squared norm
+    -------
+    gradient : (K2, K1) np.ndarray
+        Gradient of the LB commutativity squared norm.
     """
     return C * ev_sqdiff
 
 
 def LB_commutation_and_grad(C, ev_sqdiff):
     """
-    Compute the LB commutativity constraint and its gradient
+    Compute the LB commutativity constraint and its gradient.
 
     Parameters
-    ---------------------
-    C         :
-        (K2,K1) Functional map
-    ev_sqdiff :
-        (K2,K1) [normalized] matrix of squared eigenvalue differences
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    ev_sqdiff : (K2, K1) np.ndarray
+        [normalized] matrix of squared eigenvalue differences.
+
     Returns
-    ---------------------
+    -------
     energy : float
-        (float) LB commutativity squared norm
-    gradient : np.ndarray
-        (K2,K1) gradient of the LB commutativity squared norm
+        LB commutativity squared norm.
+    gradient : (K2, K1) np.ndarray
+        Gradient of the LB commutativity squared norm.
     """
     energy = 0.5 * (np.square(C) * ev_sqdiff).sum()
     gradient = C * ev_sqdiff
@@ -150,21 +151,22 @@ def LB_commutation_and_grad(C, ev_sqdiff):
 def op_commutation(C, op1, op2):
     """
     Compute the operator commutativity constraint.
-    Can be used with descriptor multiplication operator
+
+    Can be used with a descriptor multiplication operator.
 
     Parameters
-    ---------------------
-    C   :
-        (K2,K1) Functional map
-    op1 :
-        (K1,K1) operator on first basis
-    op2 :
-        (K2,K2) descriptros on second basis
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    op1 : (K1, K1) np.ndarray
+        Operator on the first basis.
+    op2 : (K2, K2) np.ndarray
+        Operator on the second basis.
 
     Returns
-    ---------------------
+    -------
     energy : float
-        (float) operator commutativity squared norm
+        Operator commutativity squared norm.
     """
     return 0.5 * np.square(C @ op1 - op2 @ C).sum()
 
@@ -172,21 +174,22 @@ def op_commutation(C, op1, op2):
 def op_commutation_grad(C, op1, op2):
     """
     Compute the gradient of the operator commutativity constraint.
-    Can be used with descriptor multiplication operator
+
+    Can be used with a descriptor multiplication operator.
 
     Parameters
-    ---------------------
-    C   :
-        (K2,K1) Functional map
-    op1 :
-        (K1,K1) operator on first basis
-    op2 :
-        (K2,K2) descriptros on second basis
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    op1 : (K1, K1) np.ndarray
+        Operator on the first basis.
+    op2 : (K2, K2) np.ndarray
+        Operator on the second basis.
 
     Returns
-    ---------------------
-    gardient : np.ndarray
-        (K2,K1) gradient of the operator commutativity squared norm
+    -------
+    gradient : (K2, K1) np.ndarray
+        Gradient of the operator commutativity squared norm.
     """
     return op2.T @ (op2 @ C - C @ op1) - (op2 @ C - C @ op1) @ op1.T
 
@@ -194,22 +197,24 @@ def op_commutation_grad(C, op1, op2):
 def op_commutation_and_grad(C, op1, op2):
     """
     Compute the operator commutativity constraint and its gradient.
-    Can be used with descriptor multiplication operator
+
+    Can be used with a descriptor multiplication operator.
 
     Parameters
-    ---------------------
-    C   :
-        (K2,K1) Functional map
-    op1 :
-        (K1,K1) operator on first basis
-    op2 :
-        (K2,K2) descriptros on second basis
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    op1 : (K1, K1) np.ndarray
+        Operator on the first basis.
+    op2 : (K2, K2) np.ndarray
+        Operator on the second basis.
+
     Returns
-    ---------------------
+    -------
     energy : float
-        (float) operator commutativity squared norm
-    gardient : np.ndarray
-        (K2,K1) gradient of the operator commutativity squared norm
+        Operator commutativity squared norm.
+    gradient : (K2, K1) np.ndarray
+        Gradient of the operator commutativity squared norm.
     """
     diff = C @ op1 - op2 @ C
     energy = 0.5 * np.square(diff).sum()
@@ -220,20 +225,22 @@ def op_commutation_and_grad(C, op1, op2):
 
 def oplist_commutation(C, op_list):
     """
-    Compute the operator commutativity constraint for a list of pairs of operators
-    Can be used with a list of descriptor multiplication operator
+    Compute the operator commutativity constraint for a list of pairs of operators.
+
+    Can be used with a list of descriptor multiplication operators.
 
     Parameters
-    ---------------------
-    C   :
-        (K2,K1) Functional map
-    op_list :
-        list of tuple( (K1,K1), (K2,K2) ) operators on first and second basis
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    op_list : list of tuple
+        Each element is a tuple ((K1, K1) np.ndarray, (K2, K2) np.ndarray) of
+        operators on the first and second basis.
 
     Returns
-    ---------------------
+    -------
     energy : float
-        (float) sum of operators commutativity squared norm
+        Sum of the operators commutativity squared norms.
     """
     energy = 0
     for op1, op2 in zip(*op_list):
@@ -244,20 +251,22 @@ def oplist_commutation(C, op_list):
 
 def oplist_commutation_grad(C, op_list):
     """
-    Compute the gradient of the operator commutativity constraint for a list of pairs of operators
-    Can be used with a list of descriptor multiplication operator
+    Compute the gradient of the operator commutativity constraint for a list of pairs of operators.
+
+    Can be used with a list of descriptor multiplication operators.
 
     Parameters
-    ---------------------
-    C   :
-        (K2,K1) Functional map
-    op_list :
-        list of tuple( (K1,K1), (K2,K2) ) operators on first and second basis
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    op_list : list of tuple
+        Each element is a tuple ((K1, K1) np.ndarray, (K2, K2) np.ndarray) of
+        operators on the first and second basis.
 
     Returns
-    ---------------------
-    gradient : np.ndarray
-        (K2,K1) gradient of the sum of operators commutativity squared norm
+    -------
+    gradient : (K2, K1) np.ndarray
+        Gradient of the sum of the operators commutativity squared norms.
     """
     gradient = 0
     for op1, op2 in zip(*op_list):
@@ -267,21 +276,24 @@ def oplist_commutation_grad(C, op_list):
 
 def oplist_commutation_and_grad(C, op_list):
     """
-    Compute the operator commutativity constraint and its gradient for a list of pairs of operators
-    Can be used with a list of descriptor multiplication operator
+    Compute the operator commutativity constraint and its gradient for a list of pairs of operators.
+
+    Can be used with a list of descriptor multiplication operators.
 
     Parameters
-    ---------------------
-    C   :
-        (K2,K1) Functional map
-    op_list :
-        list of tuple( (K1,K1), (K2,K2) ) operators on first and second basis
+    ----------
+    C : (K2, K1) np.ndarray
+        Functional map.
+    op_list : list of tuple
+        Each element is a tuple ((K1, K1) np.ndarray, (K2, K2) np.ndarray) of
+        operators on the first and second basis.
+
     Returns
-    ---------------------
+    -------
     energy : float
-        (float) sum of operators commutativity squared norm
-    gradient : np.ndarray
-        (K2,K1) gradient of the sum of operators commutativity squared norm
+        Sum of the operators commutativity squared norms.
+    gradient : (K2, K1) np.ndarray
+        Gradient of the sum of the operators commutativity squared norms.
     """
 
     energy = 0
@@ -306,37 +318,38 @@ def energy_func_std(
     ev_sqdiff,
 ):
     """
-    Evaluation of the energy for standard FM computation
+    Evaluate the energy for standard FM computation.
 
-    Parameters:
-    ----------------------
-    C               :
-        (K2*K1) or (K2,K1) Functional map
-    descr_mu        :
-        scaling of the descriptor preservation term
-    lap_mu          :
-        scaling of the laplacian commutativity term
-    descr_comm_mu   :
-        scaling of the descriptor commutativity term
-    orient_mu       :
-        scaling of the orientation preservation term
-    descr1          :
-        (K1,p) descriptors on first basis
-    descr2          :
-        (K2,p) descriptros on second basis
-    list_descr      :
-        p-uple( (K1,K1), (K2,K2) ) operators on first and second basis
-                      related to descriptors.
-    orient_op       :
-        p-uple( (K1,K1), (K2,K2) ) operators on first and second basis
-                      related to orientation preservation operators.
-    ev_sqdiff       :
-        (K2,K1) [normalized] matrix of squared eigenvalue differences
+    Parameters
+    ----------
+    C : (K2*K1,) or (K2, K1) np.ndarray
+        Functional map.
+    descr_mu : float
+        Scaling of the descriptor preservation term.
+    lap_mu : float
+        Scaling of the Laplacian commutativity term.
+    descr_comm_mu : float
+        Scaling of the descriptor commutativity term.
+    orient_mu : float
+        Scaling of the orientation preservation term.
+    descr1_red : (K1, p) np.ndarray
+        Descriptors on the first basis.
+    descr2_red : (K2, p) np.ndarray
+        Descriptors on the second basis.
+    list_descr : list of tuple
+        Each element is a tuple ((K1, K1) np.ndarray, (K2, K2) np.ndarray) of
+        operators on the first and second basis related to the descriptors.
+    orient_op : list of tuple
+        Each element is a tuple ((K1, K1) np.ndarray, (K2, K2) np.ndarray) of
+        operators on the first and second basis related to orientation
+        preservation.
+    ev_sqdiff : (K2, K1) np.ndarray
+        [normalized] matrix of squared eigenvalue differences.
 
     Returns
-    ------------------------
+    -------
     energy : float
-        value of the energy
+        Value of the energy.
     """
     k1 = descr1_red.shape[0]
     k2 = descr2_red.shape[0]
@@ -372,37 +385,38 @@ def grad_energy_std(
     ev_sqdiff,
 ):
     """
-    Evaluation of the gradient of the energy for standard FM computation
+    Evaluate the gradient of the energy for standard FM computation.
 
-    Parameters:
-    ----------------------
-    C               :
-        (K2*K1) or (K2,K1) Functional map
-    descr_mu        :
-        scaling of the descriptor preservation term
-    lap_mu          :
-        scaling of the laplacian commutativity term
-    descr_comm_mu   :
-        scaling of the descriptor commutativity term
-    orient_mu       :
-        scaling of the orientation preservation term
-    descr1          :
-        (K1,p) descriptors on first basis
-    descr2          :
-        (K2,p) descriptros on second basis
-    list_descr      :
-        p-uple( (K1,K1), (K2,K2) ) operators on first and second basis
-                      related to descriptors.
-    orient_op       :
-        p-uple( (K1,K1), (K2,K2) ) operators on first and second basis
-                      related to orientation preservation operators.
-    ev_sqdiff       :
-        (K2,K1) [normalized] matrix of squared eigenvalue differences
+    Parameters
+    ----------
+    C : (K2*K1,) or (K2, K1) np.ndarray
+        Functional map.
+    descr_mu : float
+        Scaling of the descriptor preservation term.
+    lap_mu : float
+        Scaling of the Laplacian commutativity term.
+    descr_comm_mu : float
+        Scaling of the descriptor commutativity term.
+    orient_mu : float
+        Scaling of the orientation preservation term.
+    descr1_red : (K1, p) np.ndarray
+        Descriptors on the first basis.
+    descr2_red : (K2, p) np.ndarray
+        Descriptors on the second basis.
+    list_descr : list of tuple
+        Each element is a tuple ((K1, K1) np.ndarray, (K2, K2) np.ndarray) of
+        operators on the first and second basis related to the descriptors.
+    orient_op : list of tuple
+        Each element is a tuple ((K1, K1) np.ndarray, (K2, K2) np.ndarray) of
+        operators on the first and second basis related to orientation
+        preservation.
+    ev_sqdiff : (K2, K1) np.ndarray
+        [normalized] matrix of squared eigenvalue differences.
 
     Returns
-    ------------------------
-    gradient : float
-        (K2*K1) - gradient of the energy
+    -------
+    gradient : (K2*K1,) np.ndarray
+        Gradient of the energy.
     """
     k1 = descr1_red.shape[0]
     k2 = descr2_red.shape[0]
@@ -439,36 +453,40 @@ def energy_and_grad_std(
     ev_sqdiff,
 ):
     """
-    Evaluation of the energy and its gradient for standard FM computation
+    Evaluate the energy and its gradient for standard FM computation.
 
-    Parameters:
-    ----------------------
-    C               :
-        (K2*K1) or (K2,K1) Functional map
-    descr_mu        :
-        scaling of the descriptor preservation term
-    lap_mu          :
-        scaling of the laplacian commutativity term
-    descr_comm_mu   :
-        scaling of the descriptor commutativity term
-    orient_mu       :
-        scaling of the orientation preservation term
-    descr1          :
-        (K1,p) descriptors on first basis
-    descr2          :
-        (K2,p) descriptros on second basis
-    list_descr      :
-        p-uple( (K1,K1), (K2,K2) ) operators on first and second basis related to descriptors.
-    orient_op       :
-        p-uple( (K1,K1), (K2,K2) ) operators on first and second basis related to orientation preservation operators.
-    ev_sqdiff       :
-        (K2,K1) [normalized] matrix of squared eigenvalue differences
+    Parameters
+    ----------
+    C : (K2*K1,) or (K2, K1) np.ndarray
+        Functional map.
+    descr_mu : float
+        Scaling of the descriptor preservation term.
+    lap_mu : float
+        Scaling of the Laplacian commutativity term.
+    descr_comm_mu : float
+        Scaling of the descriptor commutativity term.
+    orient_mu : float
+        Scaling of the orientation preservation term.
+    descr1_red : (K1, p) np.ndarray
+        Descriptors on the first basis.
+    descr2_red : (K2, p) np.ndarray
+        Descriptors on the second basis.
+    list_descr : list of tuple
+        Each element is a tuple ((K1, K1) np.ndarray, (K2, K2) np.ndarray) of
+        operators on the first and second basis related to the descriptors.
+    orient_op : list of tuple
+        Each element is a tuple ((K1, K1) np.ndarray, (K2, K2) np.ndarray) of
+        operators on the first and second basis related to orientation
+        preservation.
+    ev_sqdiff : (K2, K1) np.ndarray
+        [normalized] matrix of squared eigenvalue differences.
+
     Returns
-    ------------------------
+    -------
     energy : float
-        value of the energy
-    gradient : float
-        (K2*K1) gradient
+        Value of the energy.
+    gradient : (K2*K1,) np.ndarray
+        Gradient of the energy.
     """
 
     k1 = descr1_red.shape[0]

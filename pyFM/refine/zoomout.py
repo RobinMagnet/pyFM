@@ -5,29 +5,30 @@ from .. import spectral
 
 
 def zoomout_iteration(FM_12, evects1, evects2, step=1, A2=None, n_jobs=1):
-    """
-    Performs an iteration of ZoomOut.
+    """Perform an iteration of ZoomOut.
 
     Parameters
-    --------------------
-    FM_12    :
-        (k2,k1) Functional map from evects1[:,:k1] to evects2[:,:k2]
-    evects1  :
-        (n1,k1') eigenvectors on source shape with k1' >= k1 + step.
-                 Can be a subsample of the original ones on the first dimension.
-    evects2  :
-        (n2,k2') eigenvectors on target shape with k2' >= k2 + step.
-                 Can be a subsample of the original ones on the first dimension.
-    step     : int
-        step of increase of dimension.
-    A2       :
-        (n2,n2) sparse area matrix on target mesh, for vertex to vertex computation.
-                 If specified, the eigenvectors can't be subsampled !
+    ----------
+    FM_12 : (k2, k1) np.ndarray
+        Functional map from evects1[:, :k1] to evects2[:, :k2].
+    evects1 : (n1, k1') np.ndarray
+        Eigenvectors on source shape with k1' >= k1 + step.
+        Can be a subsample of the original ones on the first dimension.
+    evects2 : (n2, k2') np.ndarray
+        Eigenvectors on target shape with k2' >= k2 + step.
+        Can be a subsample of the original ones on the first dimension.
+    step : int or tuple, optional
+        Step of increase of dimension. A tuple gives separate steps for each shape.
+    A2 : (n2, n2) scipy.sparse, optional
+        Area matrix on target mesh, for vertex to vertex computation.
+        If specified, the eigenvectors can't be subsampled !
+    n_jobs : int, optional
+        Number of parallel jobs. Use -1 to use all processes.
 
     Returns
-    --------------------
-    FM_zo : np.ndarray
-        zoomout-refined functional map
+    -------
+    FM_zo : (k2 + step, k1 + step) np.ndarray
+        ZoomOut-refined functional map.
     """
     k2, k1 = FM_12.shape
     try:
@@ -56,36 +57,43 @@ def zoomout_refine(
     n_jobs=1,
     verbose=False,
 ):
-    """
-    Refine a functional map with ZoomOut.
-    Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
+    """Refine a functional map with ZoomOut.
+
+    Supports subsampling for each mesh, different step size, and approximate
+    nearest neighbor.
 
     Parameters
-    --------------------
-    eigvects1  :
-        (n1,k1) eigenvectors on source shape with k1 >= K + nit
-    eigvects2  :
-        (n2,k2) eigenvectors on target shape with k2 >= K + nit
-    FM_12      :
-        (K,K) Functional map from from shape 1 to shape 2
-    nit        : int
-        number of iteration of zoomout
-    step       :
-        increase in dimension at each Zoomout Iteration
-    A2         :
-        (n2,n2) sparse area matrix on target mesh.
-    subsample  : tuple or iterable of size 2
-        Each gives indices of vertices to sample
-                 for faster optimization. If not specified, no subsampling is done.
-    return_p2p : bool
-        if True returns the vertex to vertex map.
+    ----------
+    FM_12 : (k2, k1) np.ndarray
+        Functional map from shape 1 to shape 2.
+    evects1 : (n1, k1') np.ndarray
+        Eigenvectors on source shape with k1' >= k1 + nit * step.
+    evects2 : (n2, k2') np.ndarray
+        Eigenvectors on target shape with k2' >= k2 + nit * step.
+    nit : int, optional
+        Number of iterations of ZoomOut.
+    step : int or tuple, optional
+        Increase in dimension at each ZoomOut iteration. A tuple gives separate
+        steps for each shape.
+    A2 : (n2, n2) scipy.sparse, optional
+        Area matrix on target mesh.
+    subsample : tuple or iterable of size 2, optional
+        Each element gives indices of vertices to sample for faster optimization.
+        If not specified, no subsampling is done.
+    return_p2p : bool, optional
+        If True, also return the vertex to vertex map.
+    n_jobs : int, optional
+        Number of parallel jobs. Use -1 to use all processes.
+    verbose : bool, optional
+        Whether to display a progress bar.
 
     Returns
-    --------------------
-    FM_12_zo  : np.ndarray
-        zoomout-refined functional map from basis 1 to 2
-    p2p_21_zo : np.ndarray
-        only if return_p2p is set to True - the refined pointwise map from basis 2 to basis 1
+    -------
+    FM_12_zo : (k2 + nit * step, k1 + nit * step) np.ndarray
+        ZoomOut-refined functional map from basis 1 to 2.
+    p2p_21_zo : (n2,) np.ndarray
+        Only if return_p2p is set to True - the refined pointwise map
+        from basis 2 to basis 1.
     """
     k2_0, k1_0 = FM_12.shape
     try:
@@ -147,34 +155,41 @@ def mesh_zoomout_refine(
     n_jobs=1,
     verbose=False,
 ):
-    """
-    Refine a functional map between meshes with ZoomOut.
-    Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
+    """Refine a functional map between meshes with ZoomOut.
+
+    Supports subsampling for each mesh, different step size, and approximate
+    nearest neighbor.
 
     Parameters
-    --------------------
-    mesh1      : TriMesh
-        Source mesh
-    mesh2      : TriMesh
-        Target mesh
-    FM         :
-        (K,K) Functional map between
-    nit        : int
-        number of iteration of zoomout
-    step       :
-        increase in dimension at each Zoomout Iteration
-    A2         :
-        (n2,n2) sparse area matrix on target mesh.
-    subsample  : int or tuple or iterable of size 2
-        Each gives indices of vertices so sample
-                 for faster optimization. If not specified, no subsampling is done.
-    return_p2p : bool
-        if True returns the vertex to vertex map.
+    ----------
+    FM_12 : (k2, k1) np.ndarray
+        Functional map from mesh1 to mesh2.
+    mesh1 : TriMesh
+        Source mesh.
+    mesh2 : TriMesh
+        Target mesh.
+    nit : int, optional
+        Number of iterations of ZoomOut.
+    step : int or tuple, optional
+        Increase in dimension at each ZoomOut iteration. A tuple gives separate
+        steps for each shape.
+    subsample : int or tuple or iterable of size 2, optional
+        If an int, size of the farthest point sampling to compute on each mesh.
+        Otherwise, each element gives indices of vertices to sample for faster
+        optimization. If not specified, no subsampling is done.
+    return_p2p : bool, optional
+        If True, also return the vertex to vertex map.
+    n_jobs : int, optional
+        Number of parallel jobs. Use -1 to use all processes.
+    verbose : bool, optional
+        Whether to display progress.
 
     Returns
-    --------------------
-    FM_zo : zoomout-refined functional map
-    p2p   : only if return_p2p is set to True - the refined pointwise map
+    -------
+    FM_zo : np.ndarray
+        ZoomOut-refined functional map.
+    p2p : np.ndarray
+        Only if return_p2p is set to True - the refined pointwise map.
     """
 
     if np.issubdtype(type(subsample), np.integer):
@@ -213,36 +228,46 @@ def mesh_zoomout_refine_p2p(
     p2p_on_sub=False,
     verbose=False,
 ):
-    """
-    Refine a functional map between meshes with ZoomOut.
-    Supports subsampling for each mesh, different step size, and approximate nearest neighbor.
+    """Refine a functional map between meshes with ZoomOut, starting from a p2p map.
+
+    This algorithm starts from an initial pointwise map, which it first converts
+    to a functional map before running ZoomOut. Supports subsampling for each mesh,
+    different step size, and approximate nearest neighbor.
 
     Parameters
-    --------------------
-    mesh1      : TriMesh
-        Source mesh
-    mesh2      : TriMesh
-        Target mesh
-    FM         :
-        (K,K) Functional map between
-    nit        : int
-        number of iteration of zoomout
-    step       :
-        increase in dimension at each Zoomout Iteration
-    A2         :
-        (n2,n2) sparse area matrix on target mesh.
-    subsample  : int or tuple or iterable of size 2
-        Each gives indices of vertices so sample
-                 for faster optimization. If not specified, no subsampling is done.
-    return_p2p : bool
-        if True returns the vertex to vertex map.
+    ----------
+    p2p_21 : (n2,) np.ndarray
+        Initial pointwise map from mesh2 to mesh1.
+    mesh1 : TriMesh
+        Source mesh.
+    mesh2 : TriMesh
+        Target mesh.
+    k_init : int
+        Initial number of eigenvectors to use for the functional map.
+    nit : int, optional
+        Number of iterations of ZoomOut.
+    step : int or tuple, optional
+        Increase in dimension at each ZoomOut iteration. A tuple gives separate
+        steps for each shape.
+    subsample : int or tuple or iterable of size 2, optional
+        If an int, size of the farthest point sampling to compute on each mesh.
+        Otherwise, each element gives indices of vertices to sample for faster
+        optimization. If not specified, no subsampling is done.
+    return_p2p : bool, optional
+        If True, also return the vertex to vertex map.
+    n_jobs : int, optional
+        Number of parallel jobs. Use -1 to use all processes.
+    p2p_on_sub : bool, optional
+        Whether the initial p2p map is defined on the subsampled vertices.
+    verbose : bool, optional
+        Whether to display progress.
 
     Returns
-    --------------------
+    -------
     FM_zo : np.ndarray
-        zoomout-refined functional map
-    p2p   : np.ndarray
-        only if return_p2p is set to True - the refined pointwise map
+        ZoomOut-refined functional map.
+    p2p : np.ndarray
+        Only if return_p2p is set to True - the refined pointwise map.
     """
 
     if np.issubdtype(type(subsample), np.integer):

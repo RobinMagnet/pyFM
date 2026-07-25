@@ -312,8 +312,8 @@ def read_vert(filepath):
 
     Returns
     ----------------------
-        vertices : np.ndarray
-            (n,3) array of vertices coordinates
+    vertices : np.ndarray
+        (n,3) array of vertices coordinates
     """
     vertices = [
         [float(x) for x in line.strip().split()] for line in open(filepath, "r")
@@ -390,7 +390,7 @@ def get_uv(vertices, ind1, ind2, mult_const=1):
 
     Parameters
     ----------
-    vertices   :
+    vertices   : np.ndarray
         (n,3) coordinates of vertices
     ind1       : int
         column index to use as first coordinate
@@ -401,9 +401,8 @@ def get_uv(vertices, ind1, ind2, mult_const=1):
 
     Returns
     -------
-    uv : float
+    uv : np.ndarray
         (n,2) UV coordinates of each vertex
-
     """
 
     vt = vertices[:, [ind1, ind2]]

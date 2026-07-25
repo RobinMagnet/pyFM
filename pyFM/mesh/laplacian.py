@@ -4,23 +4,24 @@ import scipy.sparse as sparse
 
 def dia_area_mat(vertices, faces, faces_areas=None):
     """
-    Compute the diagonal matrix of lumped vertex area for mesh laplacian.
+    Compute the diagonal matrix of lumped vertex areas for the mesh Laplacian.
+
     Entry i on the diagonal is the area of vertex i, approximated as one third
-    of adjacent triangles
+    of the sum of the areas of its adjacent triangles.
 
     Parameters
-    -----------------------------
-    vertices   :
-        (n,3) array of vertices coordinates
-    faces      :
-        (m,3) array of vertex indices defining faces
-    faces_area :
-        (m,) - Optional, array of per-face area
+    ----------
+    vertices : (n, 3) np.ndarray
+        Coordinates of the mesh vertices.
+    faces : (m, 3) np.ndarray
+        Vertex indices defining the faces.
+    faces_areas : (m,) np.ndarray, optional
+        Per-face areas. Computed from the mesh if not provided.
 
     Returns
-    -----------------------------
-    A : scipy.sparse.dia_matrix
-        (n,n) sparse diagonal matrix of vertex areas in dia format
+    -------
+    A : (n, n) scipy.sparse.dia_matrix
+        Sparse diagonal matrix of vertex areas in dia format.
     """
     N = vertices.shape[0]
 
@@ -41,24 +42,24 @@ def dia_area_mat(vertices, faces, faces_areas=None):
 
 def fem_area_mat(vertices, faces, faces_areas=None):
     """
-    Compute the area matrix for mesh laplacian using finite elements method.
+    Compute the area matrix for the mesh Laplacian using the finite elements method.
 
-    Entry (i,i) is 1/6 of the sum of the area of surrounding triangles
-    Entry (i,j) is 1/12 of the sum of the area of triangles using edge (i,j)
+    Entry (i, i) is 1/6 of the sum of the areas of the surrounding triangles.
+    Entry (i, j) is 1/12 of the sum of the areas of the triangles using edge (i, j).
 
     Parameters
-    -----------------------------
-    vertices   :
-        (n,3) array of vertices coordinates
-    faces      :
-        (m,3) array of vertex indices defining faces
-    faces_area :
-        (m,) - Optional, array of per-face area
+    ----------
+    vertices : (n, 3) np.ndarray
+        Coordinates of the mesh vertices.
+    faces : (m, 3) np.ndarray
+        Vertex indices defining the faces.
+    faces_areas : (m,) np.ndarray, optional
+        Per-face areas. Computed from the mesh if not provided.
 
     Returns
-    -----------------------------
-    A : scipy.sparse.csc_matrix
-        (n,n) sparse area matrix in csc format
+    -------
+    A : (n, n) scipy.sparse.csc_matrix
+        Sparse area matrix in csc format.
     """
     N = vertices.shape[0]
 
@@ -84,24 +85,23 @@ def fem_area_mat(vertices, faces, faces_areas=None):
 
 def cotangent_weights(vertices, faces):
     """
-    Compute the cotengenant weights matrix for mesh laplacian.
+    Compute the cotangent weight (stiffness) matrix W for the mesh Laplacian.
 
-    Entry (i,i) is 1/6 of the sum of the area of surrounding triangles
-    Entry (i,j) is 1/12 of the sum of the area of triangles using edge (i,j)
+    Off-diagonal entry (i, j) accumulates half the sum of the cotangents of the
+    angles opposite edge (i, j), and each diagonal entry holds the negative sum
+    of the off-diagonal weights on its row.
 
     Parameters
-    -----------------------------
-    vertices   :
-        (n,3) array of vertices coordinates
-    faces      :
-        (m,3) array of vertex indices defining faces
-    faces_area :
-        (m,) - Optional, array of per-face area
+    ----------
+    vertices : (n, 3) np.ndarray
+        Coordinates of the mesh vertices.
+    faces : (m, 3) np.ndarray
+        Vertex indices defining the faces.
 
     Returns
-    -----------------------------
-    A : scipy.sparse.csc_matrix
-        (n,n) sparse area matrix in csc format
+    -------
+    W : (n, n) scipy.sparse.csc_matrix
+        Sparse cotangent weight matrix in csc format.
     """
     N = vertices.shape[0]
 
@@ -139,24 +139,25 @@ def cotangent_weights(vertices, faces):
 
 def laplacian_spectrum(W, A, spectrum_size=200):
     """
-    Solves the generalized eigenvalue problem.
-    Change solver if necessary
+    Solve the generalized eigenvalue problem W @ x = lambda * A @ x.
+
+    Change solver if necessary.
 
     Parameters
-    -----------------------------
-    W             :
-        (n,n) - sparse matrix of cotangent weights
-    A             :
-        (n,n) - sparse matrix of area weights
-    spectrum_size :
-        int - number of eigenvalues to compute
+    ----------
+    W : (n, n) scipy.sparse
+        Sparse matrix of cotangent weights.
+    A : (n, n) scipy.sparse
+        Sparse matrix of area weights.
+    spectrum_size : int
+        Number of eigenvalues to compute.
 
     Returns
-    -----------------------------
-    eigenvalues   : np.ndarray
-        (spectrum_size,) - array of eigenvalues
-    eigenvectors  : np.ndarray
-        (n, spectrum_size) - array of eigenvectors
+    -------
+    eigenvalues : (spectrum_size,) np.ndarray
+        Array of eigenvalues.
+    eigenvectors : (n, spectrum_size) np.ndarray
+        Array of eigenvectors.
     """
     try:
         eigenvalues, eigenvectors = sparse.linalg.eigsh(

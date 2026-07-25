@@ -37,7 +37,7 @@ class TriMesh:
     Attributes
     ------------------
     path         : str
-        path the the loaded .off file. Set to None if the geometry is modified.
+        path to the loaded .off file. Set to None if the geometry is modified.
     meshname     : str
         name of the .off file. Remains even when geometry is modified. '_n' is
                    added at the end if the mesh was normalized.
@@ -56,7 +56,7 @@ class TriMesh:
         # area_normalize=False, center=False, rotation=None, translation=None):
         """
         Read the mesh. Give either the path to a .off file or a list of vertices
-        and corrresponding triangles
+        and corresponding triangles
 
         Parameters
         ------------------
@@ -80,7 +80,7 @@ class TriMesh:
 
         rotation, translation, area_normalize, center = self._read_init_kwargs(kwargs)
 
-        # Differnetiate between [path] or [vertex] or [vertex, faces]
+        # Differentiate between [path] or [vertex] or [vertex, faces]
         if len(args) == 1 and type(args[0]) is str:
             self._load_mesh(args[0])
         elif len(args) == 1:
@@ -466,14 +466,16 @@ class TriMesh:
 
         Parameters
         -------------------------
-        K               : int
+        k               : int
             number of eigenvalues to compute
         intrinsic       : bool, optional
             Use intrinsic triangulation. Defaults to false
-        robust          : bool, optional
-            use tufted laplacian, defaults to False
         return_spectrum : bool, optional
             Whether to return the computed spectrum, defaults to True
+        robust          : bool, optional
+            use tufted laplacian, defaults to False
+        verbose         : bool, optional
+            print progress. Defaults to False
 
         Returns
         -------------------------
@@ -626,6 +628,8 @@ class TriMesh:
 
         Returns
         -----------------------
+        func : np.ndarray
+            (n,p) or (n,) reconstructed function on the vertices
         """
         return self.decode(projection)
 
@@ -664,12 +668,14 @@ class TriMesh:
         -----------------
         method        : str, optional
             Method to use to compute geodesic distances. One of:
-              - "heat"          : potpourri3d robust heat method (default)
-              - "heat_pure"     : pure-python heat method (falls back to "heat" if the mesh
-                                   uses an intrinsic triangulation, since the pure-python path
-                                   needs faces/normals that intrinsic meshes may lack)
-              - "dijkstra"      : graph-based Dijkstra algorithm
-              - "fast_marching" : potpourri3d fast marching method
+
+            - "heat" : potpourri3d robust heat method (default)
+            - "heat_pure" : pure-python heat method (falls back to "heat" if the mesh
+              uses an intrinsic triangulation, since the pure-python path
+              needs faces/normals that intrinsic meshes may lack)
+            - "dijkstra" : graph-based Dijkstra algorithm
+            - "fast_marching" : potpourri3d fast marching method
+
             Defaults to "heat".
         save          : bool, optional
             If True, save the resulting distance matrix at '{path}/geod_cache/{meshname}.npy' with 'path/meshname.{ext}' path of the
@@ -776,12 +782,14 @@ class TriMesh:
             index (or indices) of the source vertex/vertices
         method : str, optional
             Method to use to compute geodesic distances. One of:
-              - "heat"          : potpourri3d robust heat method (default)
-              - "heat_pure"     : pure-python heat method (falls back to "heat" if the mesh
-                                   uses an intrinsic triangulation, since the pure-python path
-                                   needs faces/normals that intrinsic meshes may lack)
-              - "dijkstra"      : graph-based Dijkstra algorithm
-              - "fast_marching" : potpourri3d fast marching method
+
+            - "heat" : potpourri3d robust heat method (default)
+            - "heat_pure" : pure-python heat method (falls back to "heat" if the mesh
+              uses an intrinsic triangulation, since the pure-python path
+              needs faces/normals that intrinsic meshes may lack)
+            - "dijkstra" : graph-based Dijkstra algorithm
+            - "fast_marching" : potpourri3d fast marching method
+
             Defaults to "heat".
 
         Returns
@@ -1043,7 +1051,7 @@ class TriMesh:
             Whether to sample the first point randomly or to take the furthest away from all the other ones.
             This is only done if the geodesic matrix is accessible from cache. defaults to True
         geodesic    : bool, optional
-            If True perform geodesic fps, else eucliden. Defaults to True
+            If True perform geodesic fps, else euclidean. Defaults to True
         no_load     : bool
             if True never loads cache. Defaults to False
         verbose     : bool
@@ -1241,12 +1249,16 @@ class TriMesh:
         ------------------------------
         filename   : str
             path to the .obj file to write
-        uv         :
+        uv         : np.ndarray
             (n,2) uv coordinates of each vertex
         mtl_file   : str
             name of the .mtl file
         texture_im : str
-            name of the .jpg file definig texture
+            name of the .jpg file defining texture
+        precision  : int, optional
+            number of significant digits to write for each float
+        verbose    : bool, optional
+            whether to print information
         """
         if os.path.splitext(filename)[1] != ".obj":
             filename += ".obj"
@@ -1278,6 +1290,11 @@ class TriMesh:
     def set_vertex_normal_weighting(self, weight_type):
         """
         Set weighting type for vertex normals between 'area' and 'uniform'
+
+        Parameters
+        -----------------
+        weight_type : str
+            weighting scheme for vertex normals, either 'area' or 'uniform'
         """
         weight_type = weight_type.lower()
         assert weight_type in [
@@ -1365,9 +1382,10 @@ class TriMesh:
         """
         Load a mesh from a file
 
-        Parameters:
+        Parameters
         --------------------------
-        meshpath : path to file
+        meshpath : str
+            path to the mesh file (.off or .obj)
         """
 
         if os.path.splitext(meshpath)[1] == ".off":
