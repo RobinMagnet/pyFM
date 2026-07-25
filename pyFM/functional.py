@@ -420,8 +420,7 @@ class FunctionalMapping:
                     print(f"\tOrientation weight scaled by {scale:.2e}")
             elif verbose:
                 print(
-                    "\tOrientation operator has zero energy; "
-                    "skipping orientation weight rescaling"
+                    "\tOrientation operator has zero energy; skipping orientation weight rescaling"
                 )
 
         args = (

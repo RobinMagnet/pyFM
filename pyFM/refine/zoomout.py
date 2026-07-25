@@ -102,10 +102,14 @@ def zoomout_refine(
         step1 = step
         step2 = step
 
-    assert k1_0 + nit * step1 <= evects1.shape[1], f"Not enough eigenvectors on source : \
+    assert k1_0 + nit * step1 <= evects1.shape[1], (
+        f"Not enough eigenvectors on source : \
         {k1_0 + nit * step1} are needed when {evects1.shape[1]} are provided"
-    assert k2_0 + nit * step2 <= evects2.shape[1], f"Not enough eigenvectors on target : \
+    )
+    assert k2_0 + nit * step2 <= evects2.shape[1], (
+        f"Not enough eigenvectors on target : \
         {k2_0 + nit * step2} are needed when {evects2.shape[1]} are provided"
+    )
 
     use_subsample = False
     if subsample is not None:

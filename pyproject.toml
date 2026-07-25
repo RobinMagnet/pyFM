@@ -60,7 +60,7 @@ include = ["pyFM*"]
 version_file = "pyFM/_version.py"
 
 [tool.ruff]
-line-length = 88
+line-length = 100
 target-version = "py38"
 # Lint the library; sphinx config and teaching notebooks follow their own style.
 extend-exclude = ["docs", "examples", "build"]

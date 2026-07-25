@@ -137,12 +137,12 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
     """
     k2, k1 = FM_12.shape
 
-    assert (
-        k1 <= evects1.shape[1]
-    ), f"At least {k1} should be provided, here only {evects1.shape[1]} are given"
-    assert (
-        k2 <= evects2.shape[1]
-    ), f"At least {k2} should be provided, here only {evects2.shape[1]} are given"
+    assert k1 <= evects1.shape[1], (
+        f"At least {k1} should be provided, here only {evects1.shape[1]} are given"
+    )
+    assert k2 <= evects2.shape[1], (
+        f"At least {k2} should be provided, here only {evects2.shape[1]} are given"
+    )
 
     if use_adj:
         emb1 = evects1[:, :k1]
