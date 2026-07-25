@@ -4,11 +4,15 @@
   <img src="doc/zoomout.gif" alt="animated" />
 </p>
 
-[![](https://github.com/RobinMagnet/pyFM/actions/workflows/documentation.yml/badge.svg)](https://robinmagnet.github.io/pyFM/)
+[![PyPI version](https://img.shields.io/pypi/v/pyfmaps.svg)](https://pypi.org/project/pyfmaps/)
+[![Python versions](https://img.shields.io/pypi/pyversions/pyfmaps.svg)](https://pypi.org/project/pyfmaps/)
+[![License: MIT](https://img.shields.io/pypi/l/pyfmaps.svg)](https://github.com/RobinMagnet/pyFM/blob/master/LICENSE)
+[![Tests](https://github.com/RobinMagnet/pyFM/actions/workflows/test_and_deploy.yml/badge.svg)](https://github.com/RobinMagnet/pyFM/actions/workflows/test_and_deploy.yml)
+[![Documentation](https://github.com/RobinMagnet/pyFM/actions/workflows/documentation.yml/badge.svg)](https://robinmagnet.github.io/pyFM/)
 
-**NEW** API Documentation is available [here](https://robinmagnet.github.io/pyFM/)
+This package contains a comprehensive Python implementation for shape correspondence using functional maps, featuring code from [multiple papers](#implemented-papers).
 
-This package contains a comprehensive Python implementation for shape correspondence using functional maps, featuring code from [multiple papers](#implemented-papers)
+Full [API documentation](https://robinmagnet.github.io/pyFM/) is available online.
 
 ## Core Features
 - Complete TriMesh class with geometric measures (geodesics, normals, LBO projections, differential operators)
@@ -23,11 +27,37 @@ This package contains a comprehensive Python implementation for shape correspond
 pip install pyfmaps
 ```
 
-Please check the PyPi page to ensure the latest version is uploaded.
-
 ### Key Dependencies
-- Required: numpy, scipy, tqdm, scikit-learn
-- Optional: [`potpourri3d`](https://github.com/nmwsharp/potpourri3d) (geodesics), [`robust_laplacian`](https://github.com/nmwsharp/robust-laplacians-py) (Delaunay/tufted Laplacian)
+Requires Python 3.8+ and: numpy, scipy, tqdm, scikit-learn,
+[`potpourri3d`](https://github.com/nmwsharp/potpourri3d) (geodesic distances via the heat
+and fast-marching methods), and
+[`robust_laplacian`](https://github.com/nmwsharp/robust-laplacians-py) (Delaunay/tufted
+Laplacian). All are installed automatically.
+
+## Quickstart
+```python
+from pyFM.mesh import TriMesh
+from pyFM.functional import FunctionalMapping
+
+# Load a source and a target mesh
+mesh1 = TriMesh("cat.off", area_normalize=True, center=False)
+mesh2 = TriMesh("lion.off", area_normalize=True, center=False)
+
+# Compute the LBO spectrum + descriptors, then fit a functional map
+model = FunctionalMapping(mesh1, mesh2)
+model.preprocess(K=(35, 35), descr_type="WKS", verbose=True)
+model.fit(w_descr=1e0, w_lap=1e-2, w_dcomm=1e-1, verbose=True)
+
+# Convert the functional map to a point-to-point map (mesh2 -> mesh1)
+p2p_21 = model.get_p2p()
+
+# Optionally refine the map with ZoomOut
+FM_zo = model.zoomout_refine(nit=10, step=5)
+p2p_21_zo = model.get_p2p(FM_zo)
+```
+
+See the [example notebooks](https://github.com/RobinMagnet/pyFM/tree/master/examples) for
+complete, runnable workflows.
 
 ## Design Philosophy
 This codebase prioritizes readability and adaptability over rigid modularity.
