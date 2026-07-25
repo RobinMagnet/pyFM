@@ -2,6 +2,8 @@ import numpy as np
 
 from . import convert
 
+__all__ = ["area_SD", "conformal_SD", "compute_SD"]
+
 
 def area_SD(FM):
     """

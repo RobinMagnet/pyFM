@@ -1,11 +1,21 @@
 Installation
 ============
 
-This package is pretty minimal and should be able to run on all machines. It is tested on Python 3.9.
+This package is pretty minimal and should run on all machines. It supports
+Python 3.8+.
 
 With pip
 --------
 
 ```bash
 pip install pyfmaps
+```
+
+From source
+-----------
+
+```bash
+git clone https://github.com/RobinMagnet/pyFM.git
+cd pyFM
+pip install -e .
 ```

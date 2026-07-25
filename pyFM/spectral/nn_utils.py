@@ -1,5 +1,7 @@
 from sklearn.neighbors import NearestNeighbors
 
+__all__ = ["knn_query"]
+
 
 def knn_query(X, Y, k=1, return_distance=False, n_jobs=1):
     """

@@ -4,13 +4,11 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 
+import importlib.metadata
 import pathlib
 import sys
 
 sys.path.insert(0, pathlib.Path(__file__).parents[2].resolve().as_posix())
-print(pathlib.Path(__file__).parents[2].resolve().as_posix())
-
-import importlib.metadata
 
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
@@ -33,36 +31,35 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
+    "sphinx_autodoc_typehints",  # merge type hints into descriptions (after napoleon)
     "sphinx_math_dollar",
     "sphinx.ext.mathjax",
+    "sphinx_copybutton",  # copy button on code blocks
     "myst_parser",
     "sphinx_design",
 ]
 
-# mathjax_config = {
-#     'tex2jax': {
-#         'inlineMath': [ ["\\(","\\)"] ],
-#         'displayMath': [["\\[","\\]"] ],
-#     },
-# }
-
-# mathjax3_config = {
-#   "tex": {
-#     "inlineMath": [['\\(', '\\)']],
-#     "displayMath": [["\\[", "\\]"]],
-#   }
-# }
-
-autodoc_mock_imports = ["sklearn"]
-# autodoc_mock_imports = ["pyFM", "scipy", "numpy", "trimesh", "scipy.linalg", "scipy.sparse", 'potpourri3d', "robust_laplacian"]
+# Napoleon (numpydoc parsing)
+napoleon_google_docstring = False
+napoleon_numpy_docstring = True
+napoleon_use_param = True
+napoleon_use_rtype = True
 
 autodoc_default_options = {"members": True, "member-order": "bysource"}
+# Document names re-exported into subpackage __init__.py (guarded by each
+# module's __all__, so numpy/scipy/tqdm names do not leak into the API pages).
+autosummary_generate = True
+# Package pages document the names re-exported into each subpackage __init__.py.
+# Every documented module defines __all__, so only intended public names appear
+# (numpy/scipy/tqdm/etc. never leak into the API pages).
+# Honour each module's __all__ so only intended public names are documented
+# (default True *ignores* __all__, which would leak imported numpy/tqdm/sklearn names).
+autosummary_ignore_module_all = False
 
 templates_path = ["_templates"]
 exclude_patterns = []
 
 source_suffix = [".rst", ".md"]
-autosummary_generate = True
 
 
 # -- Options for HTML output -------------------------------------------------

@@ -12,6 +12,20 @@ from tqdm.auto import tqdm
 
 from .nn_utils import knn_query
 
+__all__ = [
+    "nn_query_precise_np",
+    "project_pc_to_triangles",
+    "compute_lmax",
+    "compute_Deltamin",
+    "mycdist",
+    "compute_dmin",
+    "compute_all_dmin",
+    "project_to_mesh",
+    "barycentric_to_precise",
+    "point_to_triangles_projection",
+    "pointTriangleDistance",
+]
+
 
 def nn_query_precise_np(
     vert_emb, faces, points_emb, return_dist=False, batch_size=None, n_jobs=1

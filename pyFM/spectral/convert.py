@@ -10,6 +10,14 @@ import scipy.linalg
 from . import projection_utils as pju
 from .nn_utils import knn_query
 
+__all__ = [
+    "p2p_to_FM",
+    "mesh_p2p_to_FM",
+    "FM_to_p2p",
+    "mesh_FM_to_p2p",
+    "mesh_FM_to_p2p_precise",
+]
+
 
 def p2p_to_FM(p2p_21, evects1, evects2, A2=None):
     """

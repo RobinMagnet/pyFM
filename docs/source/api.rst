@@ -2,7 +2,9 @@
 
 API Documentation
 =================
-I can't manage to hide this part. Hopefully it will be hidden in the final documentation.
+
+Complete reference for the ``pyFM`` package, generated from the source
+docstrings. Use the sidebar or the tables below to browse the submodules.
 
 .. autosummary::
     :toctree: generated

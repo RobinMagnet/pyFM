@@ -11,7 +11,7 @@ Functional maps provide a compact and robust way to represent correspondences be
 
 This package implements shape signatures, functional map optimization and refinement algorithms, and above all an easy-to-use interface for using functional maps.
 
-The package is now in **v1.0.0** as it has been stable for quite a long time. It had been released on PyPI.
+The package has been stable for quite a long time and is released on PyPI as `pyfmaps <https://pypi.org/project/pyfmaps/>`_.
 
 Key Features
 ------------
@@ -52,9 +52,15 @@ To get started with `pyFM`, check out the example notebook for a quick overview 
 Table of Contents
 -----------------
 .. toctree::
+   :maxdepth: 2
+   :caption: User Guide
+
    install.md
    getting_started.md
    examples.md
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
    api
