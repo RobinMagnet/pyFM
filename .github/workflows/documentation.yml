@@ -12,6 +12,7 @@ jobs:
   build_documentation:
     name: Build Documentation
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     permissions:
       contents: write
@@ -21,20 +22,27 @@ jobs:
       with:
         fetch-depth: 0 # setuptools_scm needs tags to compute the version
 
-    - uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
-        cache: "pip"
-
-    - name: Install package (with dependencies for docs)
+    # VTK's rendering libraries link against libGL at import time, and the
+    # gallery renders PyVista scenes off-screen. Since VTK 9.5 the stock wheel
+    # does headless rendering through EGL, so libegl1 is enough and no Xvfb is
+    # needed. NB: libgl1-mesa-glx does not exist on ubuntu-24.04 (what
+    # ubuntu-latest now resolves to) -- it is libgl1 + libglx-mesa0.
+    - name: Install VTK runtime libraries
       run: |
-        pip install --upgrade pip
-        pip install -r requirements_docs.txt
-        pip install .
+        sudo apt-get update
+        sudo apt-get install -y --no-install-recommends \
+          libgl1 libegl1 libglx-mesa0 libxrender1
+
+    - uses: astral-sh/setup-uv@v5
+      with:
+        enable-cache: true
+
+    # dev + docs come from [tool.uv] default-groups; viz via pyfmaps[viz].
+    - name: Install dependencies from the lockfile
+      run: uv sync --locked
 
     - name: Build HTML
-      run: |
-        sphinx-build -b html docs/source/ docs/_build/html
+      run: uv run sphinx-build -b html docs/source/ docs/_build/html
 
     - name: upload artifact
       uses: actions/upload-artifact@v4

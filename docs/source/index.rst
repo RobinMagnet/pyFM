@@ -57,6 +57,7 @@ Table of Contents
 
    install.md
    getting_started.md
+   auto_examples/index
    examples.md
 
 .. toctree::
