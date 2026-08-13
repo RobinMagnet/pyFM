@@ -3,6 +3,11 @@ docs/source/generated/*
 docs/make.bat
 docs/Makefile
 
+# sphinx-gallery output (regenerated on every build)
+docs/source/auto_examples/
+docs/source/gen_modules/
+docs/source/sg_execution_times.rst
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -82,6 +87,7 @@ target/
 # Pycharm and VSCode
 .idea/
 venv/
+.venv/
 .vscode/
 
 # IPython Notebook

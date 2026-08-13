@@ -1,13 +1,12 @@
-furo
-
-myst_parser >=0.13
-
-
-# Sphinx + theme/plugins
-sphinx >=4.0
-sphinx-autodoc-typehints
-sphinx-copybutton
-sphinx-design
-sphinx-gallery
-sphinx-math-dollar
-
+# Documentation dependencies are declared in pyproject.toml, in the PEP 735
+# [dependency-groups] "docs" group. This file only forwards to them so that a
+# plain pip workflow keeps working:
+#
+#     pip install -r requirements_docs.txt
+#
+# The supported way to build the docs is:
+#
+#     uv sync && uv run sphinx-build -b html docs/source docs/_build/html
+#
+--group docs
+.[viz]

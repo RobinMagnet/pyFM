@@ -35,17 +35,30 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
+# User-facing extra: the optional PyVista-based plotting helpers in ``pyFM.viz``.
+viz = ["pyvista[jupyter]>=0.44", "matplotlib"]
+
+# Development-only dependencies live in PEP 735 groups rather than extras, so they stay
+# out of the published wheel metadata (nobody should `pip install pyfmaps[docs]`).
+[dependency-groups]
 dev = ["ruff", "pre-commit", "pytest", "pytest-cov", "build"]
 docs = [
     "furo",
     "myst_parser>=0.13",
-    "sphinx>=4.0",
+    "sphinx>=7",
     "sphinx-autodoc-typehints",
     "sphinx-copybutton",
     "sphinx-design",
     "sphinx-gallery",
     "sphinx-math-dollar",
+    "pyfmaps[viz]", # the gallery renders PyVista scenes
 ]
+
+[tool.uv]
+default-groups = ["dev", "docs"]
+
+[tool.uv.sources]
+pyfmaps = { workspace = true }
 
 [project.urls]
 "Bug Tracker" = "https://github.com/RobinMagnet/pyFM/issues"
@@ -62,15 +75,16 @@ version_file = "pyFM/_version.py"
 [tool.ruff]
 line-length = 100
 target-version = "py38"
-# Lint the library; sphinx config and teaching notebooks follow their own style.
-extend-exclude = ["docs", "examples", "build"]
+# Lint the library and the gallery scripts; sphinx config and the legacy
+# meshplot notebooks follow their own style.
+extend-exclude = ["docs", "examples/mesh_and_matching", "examples/functional_map_network", "build"]
 
 [tool.ruff.lint]
 # E/W: pycodestyle, F: pyflakes, I: isort
 select = ["E", "W", "F", "I"]
 ignore = [
     "E501", # line length is handled by the formatter
-    "E741", # ambiguous names (I, J, V, l) are idiomatic in the numerical code
+    "E741", # ambiguous names (I, J, V, l) are common
 ]
 
 [tool.ruff.lint.per-file-ignores]
