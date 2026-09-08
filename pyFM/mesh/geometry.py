@@ -25,22 +25,13 @@ def edges_from_faces(faces):
     # This is way faster than a np.unique somehow
     I = np.concatenate([faces[:, 0], faces[:, 1], faces[:, 2]])
     J = np.concatenate([faces[:, 1], faces[:, 2], faces[:, 0]])
-    # V = np.ones_likeke(I)
 
-    In = np.concatenate([I, J])
-    Jn = np.concatenate([J, I])
-    Vn = np.ones_like(In)
+    # Orienting each edge (lo, hi) makes the two half-edges of an interior edge
+    # collide, so building the matrix already deduplicates them.
+    lo, hi = np.minimum(I, J), np.maximum(I, J)
 
-    # Sum duplicate entries
-    M = sparse.csr_matrix((Vn, (In, Jn)), shape=(N, N)).tocoo()
-
-    edges0 = M.row
-    edges1 = M.col
-
-    indices = M.col > M.row
-
-    edges = np.concatenate([edges0[indices, None], edges1[indices, None]], axis=1)
-    return edges
+    M = sparse.csr_matrix((np.ones(lo.size, dtype=bool), (lo, hi)), shape=(N, N)).tocoo()
+    return np.stack([M.row, M.col], axis=1)
 
 
 def compute_faces_areas(vertices, faces):
@@ -193,7 +184,7 @@ def per_vertex_normal_area(vertices, faces):
 
     vert_normals = np.zeros((n_vertices, 3))
     np.add.at(vert_normals, faces.flatten(), np.repeat(face_normals_weighted, 3, axis=0))
-    vert_normals /= 1e-6 + np.linalg.norm(vert_normals, axis=1, keepdims=True)
+    vert_normals /= 1e-8 + np.linalg.norm(vert_normals, axis=1, keepdims=True)
 
     return vert_normals
 
@@ -229,7 +220,7 @@ def per_vertex_normal_uniform(vertices, faces, face_normals=None):
 
     vert_normals = np.zeros((n_vertices, 3))
     np.add.at(vert_normals, faces.flatten(), np.repeat(face_normals, 3, axis=0))
-    vert_normals /= 1e-6 + np.linalg.norm(vert_normals, axis=1, keepdims=True)
+    vert_normals /= 1e-8 + np.linalg.norm(vert_normals, axis=1, keepdims=True)
 
     return vert_normals
 

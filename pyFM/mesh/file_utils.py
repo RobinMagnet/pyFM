@@ -37,6 +37,7 @@ def read_off(filepath, read_colors=False):
 
         vertices = [[float(x) for x in f.readline().strip().split()[:3]] for _ in range(n_verts)]
 
+        colors = None
         if n_faces > 0:
             face_elements = [
                 [int(x) for x in f.readline().strip().split()[1:] if not x.startswith("#")]
@@ -44,8 +45,8 @@ def read_off(filepath, read_colors=False):
             ]
             face_elements = np.asarray(face_elements)
             faces = face_elements[:, :3]
-            if read_colors:
-                colors = face_elements[:, 3:6] if face_elements.shape[1] == 6 else None
+            if read_colors and face_elements.shape[1] >= 6:
+                colors = face_elements[:, 3:6]
         else:
             faces = None
 
@@ -179,11 +180,13 @@ def write_off(filepath, vertices, faces, precision=None, face_colors=None):
 
         if n_faces != 0:
             for j in range(n_faces):
+                # The leading number is the number of vertices of the face, which
+                # is 3 whether or not a color follows.
+                f.write(f"3 {' '.join([str(tri) for tri in faces[j]])}")
                 if face_colors is None:
-                    f.write(f"3 {' '.join([str(tri) for tri in faces[j]])}\n")
+                    f.write("\n")
                 else:
-                    f.write(f"4 {' '.join([str(tri) for tri in faces[j]])} ")
-                    f.write(f"{' '.join([str(tri_c) for tri_c in face_colors[j]])}\n")
+                    f.write(f" {' '.join([str(tri_c) for tri_c in face_colors[j]])}\n")
 
 
 def write_obj(
