@@ -4,7 +4,7 @@ from tqdm.auto import tqdm
 from .. import spectral
 
 
-def zoomout_iteration(FM_12, evects1, evects2, step=1, A2=None, n_jobs=1):
+def zoomout_iteration(FM_12, evects1, evects2, step=1, A2=None, n_jobs=None):
     """Perform an iteration of ZoomOut.
 
     Parameters
@@ -23,7 +23,7 @@ def zoomout_iteration(FM_12, evects1, evects2, step=1, A2=None, n_jobs=1):
         Area matrix on target mesh, for vertex to vertex computation.
         If specified, the eigenvectors can't be subsampled !
     n_jobs : int, optional
-        Number of parallel jobs. Use -1 to use all processes.
+        Number of parallel jobs. None (default) decides automatically, -1 uses all processes.
 
     Returns
     -------
@@ -54,7 +54,7 @@ def zoomout_refine(
     A2=None,
     subsample=None,
     return_p2p=False,
-    n_jobs=1,
+    n_jobs=None,
     verbose=False,
 ):
     """Refine a functional map with ZoomOut.
@@ -83,7 +83,7 @@ def zoomout_refine(
     return_p2p : bool, optional
         If True, also return the vertex to vertex map.
     n_jobs : int, optional
-        Number of parallel jobs. Use -1 to use all processes.
+        Number of parallel jobs. None (default) decides automatically, -1 uses all processes.
     verbose : bool, optional
         Whether to display a progress bar.
 
@@ -102,14 +102,16 @@ def zoomout_refine(
         step1 = step
         step2 = step
 
-    assert k1_0 + nit * step1 <= evects1.shape[1], (
-        f"Not enough eigenvectors on source : \
-        {k1_0 + nit * step1} are needed when {evects1.shape[1]} are provided"
-    )
-    assert k2_0 + nit * step2 <= evects2.shape[1], (
-        f"Not enough eigenvectors on target : \
-        {k2_0 + nit * step2} are needed when {evects2.shape[1]} are provided"
-    )
+    if k1_0 + nit * step1 > evects1.shape[1]:
+        raise ValueError(
+            f"Not enough eigenvectors on source: {k1_0 + nit * step1} are needed "
+            f"when {evects1.shape[1]} are provided"
+        )
+    if k2_0 + nit * step2 > evects2.shape[1]:
+        raise ValueError(
+            f"Not enough eigenvectors on target: {k2_0 + nit * step2} are needed "
+            f"when {evects2.shape[1]} are provided"
+        )
 
     use_subsample = False
     if subsample is not None:
@@ -150,7 +152,7 @@ def mesh_zoomout_refine(
     step=1,
     subsample=None,
     return_p2p=False,
-    n_jobs=1,
+    n_jobs=None,
     verbose=False,
 ):
     """Refine a functional map between meshes with ZoomOut.
@@ -178,7 +180,7 @@ def mesh_zoomout_refine(
     return_p2p : bool, optional
         If True, also return the vertex to vertex map.
     n_jobs : int, optional
-        Number of parallel jobs. Use -1 to use all processes.
+        Number of parallel jobs. None (default) decides automatically, -1 uses all processes.
     verbose : bool, optional
         Whether to display progress.
 
@@ -193,8 +195,8 @@ def mesh_zoomout_refine(
     if np.issubdtype(type(subsample), np.integer):
         if verbose:
             print(f"Computing farthest point sampling of size {subsample}")
-        sub1 = mesh1.extract_fps(subsample)
-        sub2 = mesh2.extract_fps(subsample)
+        sub1 = mesh1.farthest_point_sampling(subsample)
+        sub2 = mesh2.farthest_point_sampling(subsample)
         subsample = (sub1, sub2)
 
     result = zoomout_refine(
@@ -222,7 +224,7 @@ def mesh_zoomout_refine_p2p(
     step=1,
     subsample=None,
     return_p2p=False,
-    n_jobs=1,
+    n_jobs=None,
     p2p_on_sub=False,
     verbose=False,
 ):
@@ -254,7 +256,7 @@ def mesh_zoomout_refine_p2p(
     return_p2p : bool, optional
         If True, also return the vertex to vertex map.
     n_jobs : int, optional
-        Number of parallel jobs. Use -1 to use all processes.
+        Number of parallel jobs. None (default) decides automatically, -1 uses all processes.
     p2p_on_sub : bool, optional
         Whether the initial p2p map is defined on the subsampled vertices.
     verbose : bool, optional
@@ -273,8 +275,8 @@ def mesh_zoomout_refine_p2p(
             raise ValueError("P2P can't be defined on undefined subsample")
         if verbose:
             print(f"Computing farthest point sampling of size {subsample}")
-        sub1 = mesh1.extract_fps(subsample)
-        sub2 = mesh2.extract_fps(subsample)
+        sub1 = mesh1.farthest_point_sampling(subsample)
+        sub2 = mesh2.farthest_point_sampling(subsample)
         subsample = (sub1, sub2)
 
     if p2p_on_sub:
