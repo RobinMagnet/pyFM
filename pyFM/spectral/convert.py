@@ -8,7 +8,7 @@ import numpy as np
 import scipy.linalg
 
 from . import projection_utils as pju
-from .nn_utils import knn_query
+from .nearest_neighbor import knn_query
 
 __all__ = [
     "p2p_to_FM",
@@ -103,7 +103,7 @@ def mesh_p2p_to_FM(p2p_21, mesh1, mesh2, dims=None, subsample=None):
     return p2p_to_FM(p2p_21, mesh1.eigenvectors[sub1, :k1], mesh2.eigenvectors[sub2, :k2], A2=None)
 
 
-def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
+def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=None):
     """
     Obtain a point to point map from a functional map C.
 
@@ -127,7 +127,7 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
     use_adj : bool, optional
         Use the adjoint method.
     n_jobs : int, optional
-        Number of parallel jobs. Use -1 to use all processes.
+        Number of parallel jobs. None (default) decides automatically, -1 uses all processes.
 
     Returns
     -------
@@ -137,12 +137,16 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
     """
     k2, k1 = FM_12.shape
 
-    assert k1 <= evects1.shape[1], (
-        f"At least {k1} should be provided, here only {evects1.shape[1]} are given"
-    )
-    assert k2 <= evects2.shape[1], (
-        f"At least {k2} should be provided, here only {evects2.shape[1]} are given"
-    )
+    if k1 > evects1.shape[1]:
+        raise ValueError(
+            f"At least {k1} eigenvectors should be provided on the source, "
+            f"here only {evects1.shape[1]} are given"
+        )
+    if k2 > evects2.shape[1]:
+        raise ValueError(
+            f"At least {k2} eigenvectors should be provided on the target, "
+            f"here only {evects2.shape[1]} are given"
+        )
 
     if use_adj:
         emb1 = evects1[:, :k1]
@@ -156,7 +160,7 @@ def FM_to_p2p(FM_12, evects1, evects2, use_adj=False, n_jobs=1):
     return p2p_21  # (n2,)
 
 
-def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, n_jobs=1):
+def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, n_jobs=None):
     """
     Wrapper for `FM_to_p2p` using the TriMesh class.
 
@@ -174,7 +178,7 @@ def mesh_FM_to_p2p(FM_12, mesh1, mesh2, use_adj=False, subsample=None, n_jobs=1)
         None or size 2 iterable ((n1',), (n2',)). Subsample of vertices for both
         meshes. If specified the p2p map is between the two subsamples.
     n_jobs : int, optional
-        Number of parallel jobs. Use -1 to use all processes.
+        Number of parallel jobs. None (default) decides automatically, -1 uses all processes.
 
     Returns
     -------
@@ -211,7 +215,7 @@ def mesh_FM_to_p2p_precise(
     precompute_dmin=True,
     use_adj=True,
     batch_size=None,
-    n_jobs=1,
+    n_jobs=None,
     verbose=False,
 ):
     """
@@ -237,7 +241,7 @@ def mesh_FM_to_p2p_precise(
     batch_size : int, optional
         If precompute_dmin is False, projects batches of points on the surface.
     n_jobs : int, optional
-        Number of parallel processes for nearest neighbor precomputation.
+        Number of parallel jobs. None (default) decides automatically.
     verbose : bool, optional
         Whether to display progress information.
 
@@ -257,7 +261,7 @@ def mesh_FM_to_p2p_precise(
 
     P_21 = pju.project_pc_to_triangles(
         emb1,
-        mesh1.facelist,
+        mesh1.faces,
         emb2,
         precompute_dmin=precompute_dmin,
         batch_size=batch_size,

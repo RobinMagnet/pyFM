@@ -10,7 +10,7 @@ import numpy as np
 import scipy.sparse as sparse
 from tqdm.auto import tqdm
 
-from .nn_utils import knn_query
+from .nearest_neighbor import knn_query
 
 __all__ = [
     "nn_query_precise_np",
@@ -27,7 +27,9 @@ __all__ = [
 ]
 
 
-def nn_query_precise_np(vert_emb, faces, points_emb, return_dist=False, batch_size=None, n_jobs=1):
+def nn_query_precise_np(
+    vert_emb, faces, points_emb, return_dist=False, batch_size=None, n_jobs=None
+):
     """
     Project a pointcloud on a p-dimensional mesh.
 
@@ -44,7 +46,7 @@ def nn_query_precise_np(vert_emb, faces, points_emb, return_dist=False, batch_si
     batch_size : int, optional
         If precompute_dmin is False, projects batches of points on the surface.
     n_jobs : int, optional
-        Number of parallel processes for nearest neighbor precomputation.
+        Number of parallel jobs. None (default) decides automatically.
 
     Returns
     -------
@@ -83,7 +85,7 @@ def project_pc_to_triangles(
     points_emb,
     precompute_dmin=True,
     batch_size=None,
-    n_jobs=1,
+    n_jobs=None,
     return_sparse=False,
     verbose=False,
 ):
@@ -107,7 +109,7 @@ def project_pc_to_triangles(
     batch_size : int, optional
         If precompute_dmin is False, projects batches of points on the surface.
     n_jobs : int, optional
-        Number of parallel processes for nearest neighbor precomputation.
+        Number of parallel jobs. None (default) decides automatically.
     return_sparse : bool, optional
         Whether to return a sparse matrix instead of the face_match and barycentric coordinates.
     verbose : bool, optional
@@ -247,7 +249,7 @@ def compute_lmax(vert_emb, faces):
     return np.max(np.hstack([term1, term2, term3]), axis=1)  # (m1,)
 
 
-def compute_Deltamin(vert_emb, points_emb, n_jobs=1):
+def compute_Deltamin(vert_emb, points_emb, n_jobs=None):
     r"""
     For each point in the pointcloud gives the distance to the nearest vertex
     on the mesh.
@@ -508,7 +510,7 @@ def project_to_mesh(
     # Projection can be done on multiple triangles
     query_triangles = vert_emb[faces[query_faceinds]]  # (p, 3, k1)
     query_point = points_emb[vertind]
-    # query_triangles = mesh1.eigenvectors[mesh1.facelist[query_faceinds], :k1]  # (p, 3,k1)
+    # query_triangles = mesh1.eigenvectors[mesh1.faces[query_faceinds], :k1]  # (p, 3,k1)
     # query_point = FM.T @ mesh2.eigenvectors[vertind,:k2]  # (k1,)
 
     if len(query_faceinds) == 1:

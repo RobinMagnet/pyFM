@@ -1,3 +1,3 @@
 from .convert import *
-from .nn_utils import knn_query
+from .nearest_neighbor import knn_query
 from .shape_difference import *
