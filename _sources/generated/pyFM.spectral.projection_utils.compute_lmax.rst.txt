@@ -1,0 +1,9 @@
+pyFM.spectral.projection\_utils.compute\_lmax
+=============================================
+
+.. currentmodule:: pyFM.spectral.projection_utils
+
+.. autofunction:: compute_lmax
+
+.. minigallery:: pyFM.spectral.projection_utils.compute_lmax
+   :add-heading: Examples using ``compute_lmax``

@@ -1,0 +1,9 @@
+pyFM.optimize.base\_functions.LB\_commutation\_grad
+===================================================
+
+.. currentmodule:: pyFM.optimize.base_functions
+
+.. autofunction:: LB_commutation_grad
+
+.. minigallery:: pyFM.optimize.base_functions.LB_commutation_grad
+   :add-heading: Examples using ``LB_commutation_grad``

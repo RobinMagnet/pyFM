@@ -1,0 +1,9 @@
+pyFM.refine.icp.icp\_refine
+===========================
+
+.. currentmodule:: pyFM.refine.icp
+
+.. autofunction:: icp_refine
+
+.. minigallery:: pyFM.refine.icp.icp_refine
+   :add-heading: Examples using ``icp_refine``

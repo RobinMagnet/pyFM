@@ -1,0 +1,164 @@
+:orphan:
+
+.. _gallery:
+
+Example gallery
+===============
+
+Runnable examples covering mesh handling, spectral quantities and functional-map
+based shape correspondence. Every 3D view is interactive: drag to rotate, scroll
+to zoom.
+
+They are ordered as a tutorial, from loading a mesh to computing a correspondence,
+and each one can be downloaded as a Python script or a Jupyter notebook.
+
+
+.. raw:: html
+
+  <div id='sg-tag-list' class='sphx-glr-tag-list'></div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbnails">
+
+.. thumbnail-parent-div-open
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The shortest possible pyFM session: read a triangle mesh from disk, inspect its properties.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_01_load_mesh_thumb.png
+    :alt:
+
+  :doc:`/auto_examples/plot_01_load_mesh`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Loading and visualizing a mesh</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="Everything a TriMesh knows is derived from two arrays, vertices and faces: edges, areas, normals, geodesic distances. None of it is computed when the mesh is loaded but instead built the first time you ask for it, and stored afterwards.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_02_mesh_geometry_thumb.png
+    :alt:
+
+  :doc:`/auto_examples/plot_02_mesh_geometry`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Geometry of a triangle mesh</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The Laplace-Beltrami operator is the single object the rest of pyFM is built on. Its eigenfunctions form an orthonormal basis of the functions living on a surface, ordered from the slowest to the fastest varying. Truncating that basis is what turns a correspondence between two shapes into a small matrix called a functional map.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_03_spectrum_thumb.png
+    :alt:
+
+  :doc:`/auto_examples/plot_03_spectrum`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">The Laplacian and its spectrum</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="A functional map is a compact (approximate) representation of correspondences as a small sized matrix. It is simply the pull-back operator of a pointwise map, expressed in the spectral basis of the two shapes.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_04_maps_from_correspondence_thumb.png
+    :alt:
+
+  :doc:`/auto_examples/plot_04_maps_from_correspondence`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Encoding Dense Correspondences in a Functional Map</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="With neither a correspondence nor an alignment, the map has to be optimized for. pyFM does this by asking that the functional map transport descriptors — quantities computed on each shape independently — and that it commute with the Laplacian.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_05_maps_without_correspondence_thumb.png
+    :alt:
+
+  :doc:`/auto_examples/plot_05_maps_without_correspondence`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Computing a map without a correspondence</div>
+    </div>
+
+
+.. raw:: html
+
+    <div class="sphx-glr-thumbcontainer" tooltip="The previous pages matched two shapes at a time. When a whole collection is available, matching pairs independently wastes information: a map from shape 1 to shape 2, followed by a map from shape 2 to shape 3, should agree with the direct map from shape 1 to shape 3. It rarely does.">
+
+.. only:: html
+
+  .. image:: /auto_examples/images/thumb/sphx_glr_plot_06_functional_map_network_thumb.png
+    :alt:
+
+  :doc:`/auto_examples/plot_06_functional_map_network`
+
+.. raw:: html
+
+      <div class="sphx-glr-thumbnail-title">Maps across a collection of shapes</div>
+    </div>
+
+
+.. thumbnail-parent-div-close
+
+.. raw:: html
+
+    </div>
+
+
+.. toctree::
+   :hidden:
+
+   /auto_examples/plot_01_load_mesh
+   /auto_examples/plot_02_mesh_geometry
+   /auto_examples/plot_03_spectrum
+   /auto_examples/plot_04_maps_from_correspondence
+   /auto_examples/plot_05_maps_without_correspondence
+   /auto_examples/plot_06_functional_map_network
+
+
+.. only:: html
+
+  .. container:: sphx-glr-footer sphx-glr-footer-gallery
+
+    .. container:: sphx-glr-download sphx-glr-download-python
+
+      :download:`Download all examples in Python source code: auto_examples_python.zip </auto_examples/auto_examples_python.zip>`
+
+    .. container:: sphx-glr-download sphx-glr-download-jupyter
+
+      :download:`Download all examples in Jupyter notebooks: auto_examples_jupyter.zip </auto_examples/auto_examples_jupyter.zip>`
+
+
+.. only:: html
+
+ .. rst-class:: sphx-glr-signature
+
+    `Gallery generated by Sphinx-Gallery <https://sphinx-gallery.github.io>`_

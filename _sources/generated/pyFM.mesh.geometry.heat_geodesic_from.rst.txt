@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.heat\_geodesic\_from
+=======================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: heat_geodesic_from
+
+.. minigallery:: pyFM.mesh.geometry.heat_geodesic_from
+   :add-heading: Examples using ``heat_geodesic_from``

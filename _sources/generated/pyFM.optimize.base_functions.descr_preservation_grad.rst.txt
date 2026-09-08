@@ -1,0 +1,9 @@
+pyFM.optimize.base\_functions.descr\_preservation\_grad
+=======================================================
+
+.. currentmodule:: pyFM.optimize.base_functions
+
+.. autofunction:: descr_preservation_grad
+
+.. minigallery:: pyFM.optimize.base_functions.descr_preservation_grad
+   :add-heading: Examples using ``descr_preservation_grad``

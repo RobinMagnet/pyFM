@@ -1,0 +1,9 @@
+pyFM.optimize.weights.legacy\_taus
+==================================
+
+.. currentmodule:: pyFM.optimize.weights
+
+.. autofunction:: legacy_taus
+
+.. minigallery:: pyFM.optimize.weights.legacy_taus
+   :add-heading: Examples using ``legacy_taus``

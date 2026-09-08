@@ -1,0 +1,9 @@
+pyFM.eval.evaluate.coverage
+===========================
+
+.. currentmodule:: pyFM.eval.evaluate
+
+.. autofunction:: coverage
+
+.. minigallery:: pyFM.eval.evaluate.coverage
+   :add-heading: Examples using ``coverage``

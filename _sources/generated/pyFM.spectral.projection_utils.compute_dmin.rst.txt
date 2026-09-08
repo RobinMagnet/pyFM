@@ -1,0 +1,9 @@
+pyFM.spectral.projection\_utils.compute\_dmin
+=============================================
+
+.. currentmodule:: pyFM.spectral.projection_utils
+
+.. autofunction:: compute_dmin
+
+.. minigallery:: pyFM.spectral.projection_utils.compute_dmin
+   :add-heading: Examples using ``compute_dmin``

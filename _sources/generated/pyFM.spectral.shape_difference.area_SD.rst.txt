@@ -1,0 +1,9 @@
+pyFM.spectral.shape\_difference.area\_SD
+========================================
+
+.. currentmodule:: pyFM.spectral.shape_difference
+
+.. autofunction:: area_SD
+
+.. minigallery:: pyFM.spectral.shape_difference.area_SD
+   :add-heading: Examples using ``area_SD``

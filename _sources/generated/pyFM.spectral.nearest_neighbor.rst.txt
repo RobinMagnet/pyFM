@@ -1,0 +1,33 @@
+pyFM.spectral.nearest\_neighbor
+===============================
+
+.. automodule:: pyFM.spectral.nearest_neighbor
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      brute_query
+      choose_backend
+      compute_sqdistmat
+      get_config
+      knn_query
+      reset_config
+      set_config
+      tree_query
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

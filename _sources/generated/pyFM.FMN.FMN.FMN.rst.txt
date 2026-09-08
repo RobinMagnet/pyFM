@@ -1,0 +1,12 @@
+﻿pyFM.FMN.FMN.FMN
+================
+
+.. currentmodule:: pyFM.FMN.FMN
+
+.. autoclass:: FMN
+   :members:
+   :show-inheritance:
+   :member-order: bysource
+
+.. minigallery:: pyFM.FMN.FMN.FMN
+   :add-heading: Examples using ``FMN``

@@ -1,0 +1,29 @@
+pyFM.signatures.WKS\_functions
+==============================
+
+.. automodule:: pyFM.signatures.WKS_functions
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      WKS
+      lm_WKS
+      auto_WKS
+      mesh_WKS
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

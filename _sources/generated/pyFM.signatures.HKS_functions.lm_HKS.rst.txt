@@ -1,0 +1,9 @@
+pyFM.signatures.HKS\_functions.lm\_HKS
+======================================
+
+.. currentmodule:: pyFM.signatures.HKS_functions
+
+.. autofunction:: lm_HKS
+
+.. minigallery:: pyFM.signatures.HKS_functions.lm_HKS
+   :add-heading: Examples using ``lm_HKS``

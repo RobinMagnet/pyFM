@@ -1,0 +1,9 @@
+pyFM.refine.icp.mesh\_icp\_refine
+=================================
+
+.. currentmodule:: pyFM.refine.icp
+
+.. autofunction:: mesh_icp_refine
+
+.. minigallery:: pyFM.refine.icp.mesh_icp_refine
+   :add-heading: Examples using ``mesh_icp_refine``

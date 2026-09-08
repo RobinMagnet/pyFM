@@ -1,0 +1,9 @@
+pyFM.spectral.projection\_utils.barycentric\_to\_precise
+========================================================
+
+.. currentmodule:: pyFM.spectral.projection_utils
+
+.. autofunction:: barycentric_to_precise
+
+.. minigallery:: pyFM.spectral.projection_utils.barycentric_to_precise
+   :add-heading: Examples using ``barycentric_to_precise``

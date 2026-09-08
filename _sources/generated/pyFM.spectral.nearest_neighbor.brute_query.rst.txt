@@ -1,0 +1,9 @@
+pyFM.spectral.nearest\_neighbor.brute\_query
+============================================
+
+.. currentmodule:: pyFM.spectral.nearest_neighbor
+
+.. autofunction:: brute_query
+
+.. minigallery:: pyFM.spectral.nearest_neighbor.brute_query
+   :add-heading: Examples using ``brute_query``

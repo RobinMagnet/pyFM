@@ -1,0 +1,9 @@
+pyFM.spectral.nearest\_neighbor.choose\_backend
+===============================================
+
+.. currentmodule:: pyFM.spectral.nearest_neighbor
+
+.. autofunction:: choose_backend
+
+.. minigallery:: pyFM.spectral.nearest_neighbor.choose_backend
+   :add-heading: Examples using ``choose_backend``

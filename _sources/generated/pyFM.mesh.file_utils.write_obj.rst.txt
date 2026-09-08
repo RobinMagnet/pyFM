@@ -1,0 +1,9 @@
+pyFM.mesh.file\_utils.write\_obj
+================================
+
+.. currentmodule:: pyFM.mesh.file_utils
+
+.. autofunction:: write_obj
+
+.. minigallery:: pyFM.mesh.file_utils.write_obj
+   :add-heading: Examples using ``write_obj``

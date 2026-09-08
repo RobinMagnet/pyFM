@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.heat\_geodmat\_robust
+========================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: heat_geodmat_robust
+
+.. minigallery:: pyFM.mesh.geometry.heat_geodmat_robust
+   :add-heading: Examples using ``heat_geodmat_robust``

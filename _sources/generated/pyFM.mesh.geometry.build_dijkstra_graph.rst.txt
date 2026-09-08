@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.build\_dijkstra\_graph
+=========================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: build_dijkstra_graph
+
+.. minigallery:: pyFM.mesh.geometry.build_dijkstra_graph
+   :add-heading: Examples using ``build_dijkstra_graph``

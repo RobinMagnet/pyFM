@@ -1,0 +1,12 @@
+﻿pyFM.functional.FunctionalMapping
+=================================
+
+.. currentmodule:: pyFM.functional
+
+.. autoclass:: FunctionalMapping
+   :members:
+   :show-inheritance:
+   :member-order: bysource
+
+.. minigallery:: pyFM.functional.FunctionalMapping
+   :add-heading: Examples using ``FunctionalMapping``

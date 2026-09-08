@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.compute\_vertex\_areas
+=========================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: compute_vertex_areas
+
+.. minigallery:: pyFM.mesh.geometry.compute_vertex_areas
+   :add-heading: Examples using ``compute_vertex_areas``

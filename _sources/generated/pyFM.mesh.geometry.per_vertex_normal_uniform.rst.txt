@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.per\_vertex\_normal\_uniform
+===============================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: per_vertex_normal_uniform
+
+.. minigallery:: pyFM.mesh.geometry.per_vertex_normal_uniform
+   :add-heading: Examples using ``per_vertex_normal_uniform``

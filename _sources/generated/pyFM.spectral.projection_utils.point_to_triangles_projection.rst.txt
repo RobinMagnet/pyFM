@@ -1,0 +1,9 @@
+pyFM.spectral.projection\_utils.point\_to\_triangles\_projection
+================================================================
+
+.. currentmodule:: pyFM.spectral.projection_utils
+
+.. autofunction:: point_to_triangles_projection
+
+.. minigallery:: pyFM.spectral.projection_utils.point_to_triangles_projection
+   :add-heading: Examples using ``point_to_triangles_projection``

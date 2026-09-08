@@ -1,0 +1,12 @@
+﻿pyFM.mesh.TriMesh
+=================
+
+.. currentmodule:: pyFM.mesh
+
+.. autoclass:: TriMesh
+   :members:
+   :show-inheritance:
+   :member-order: bysource
+
+.. minigallery:: pyFM.mesh.TriMesh
+   :add-heading: Examples using ``TriMesh``

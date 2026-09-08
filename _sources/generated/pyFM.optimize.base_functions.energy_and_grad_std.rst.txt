@@ -1,0 +1,9 @@
+pyFM.optimize.base\_functions.energy\_and\_grad\_std
+====================================================
+
+.. currentmodule:: pyFM.optimize.base_functions
+
+.. autofunction:: energy_and_grad_std
+
+.. minigallery:: pyFM.optimize.base_functions.energy_and_grad_std
+   :add-heading: Examples using ``energy_and_grad_std``

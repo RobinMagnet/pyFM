@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.grad\_f
+==========================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: grad_f
+
+.. minigallery:: pyFM.mesh.geometry.grad_f
+   :add-heading: Examples using ``grad_f``

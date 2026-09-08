@@ -1,0 +1,9 @@
+pyFM.spectral.convert.p2p\_to\_FM
+=================================
+
+.. currentmodule:: pyFM.spectral.convert
+
+.. autofunction:: p2p_to_FM
+
+.. minigallery:: pyFM.spectral.convert.p2p_to_FM
+   :add-heading: Examples using ``p2p_to_FM``

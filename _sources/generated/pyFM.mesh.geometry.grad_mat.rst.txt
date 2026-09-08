@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.grad\_mat
+============================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: grad_mat
+
+.. minigallery:: pyFM.mesh.geometry.grad_mat
+   :add-heading: Examples using ``grad_mat``

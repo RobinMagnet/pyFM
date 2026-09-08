@@ -1,0 +1,9 @@
+pyFM.refine.zoomout.zoomout\_refine
+===================================
+
+.. currentmodule:: pyFM.refine.zoomout
+
+.. autofunction:: zoomout_refine
+
+.. minigallery:: pyFM.refine.zoomout.zoomout_refine
+   :add-heading: Examples using ``zoomout_refine``

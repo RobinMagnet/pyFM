@@ -1,0 +1,9 @@
+﻿pyFM.FMN.FMN.CLB\_quad\_form
+============================
+
+.. currentmodule:: pyFM.FMN.FMN
+
+.. autofunction:: CLB_quad_form
+
+.. minigallery:: pyFM.FMN.FMN.CLB_quad_form
+   :add-heading: Examples using ``CLB_quad_form``

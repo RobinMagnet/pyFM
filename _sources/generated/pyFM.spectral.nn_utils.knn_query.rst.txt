@@ -1,0 +1,9 @@
+pyFM.spectral.nn\_utils.knn\_query
+==================================
+
+.. currentmodule:: pyFM.spectral.nn_utils
+
+.. autofunction:: knn_query
+
+.. minigallery:: pyFM.spectral.nn_utils.knn_query
+   :add-heading: Examples using ``knn_query``

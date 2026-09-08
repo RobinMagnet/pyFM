@@ -1,0 +1,9 @@
+pyFM.optimize.base\_functions.descr\_preservation
+=================================================
+
+.. currentmodule:: pyFM.optimize.base_functions
+
+.. autofunction:: descr_preservation
+
+.. minigallery:: pyFM.optimize.base_functions.descr_preservation
+   :add-heading: Examples using ``descr_preservation``

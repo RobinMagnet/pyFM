@@ -1,0 +1,9 @@
+pyFM.spectral.nearest\_neighbor.tree\_query
+===========================================
+
+.. currentmodule:: pyFM.spectral.nearest_neighbor
+
+.. autofunction:: tree_query
+
+.. minigallery:: pyFM.spectral.nearest_neighbor.tree_query
+   :add-heading: Examples using ``tree_query``

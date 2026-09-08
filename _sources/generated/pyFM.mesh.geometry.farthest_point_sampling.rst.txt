@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.farthest\_point\_sampling
+============================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: farthest_point_sampling
+
+.. minigallery:: pyFM.mesh.geometry.farthest_point_sampling
+   :add-heading: Examples using ``farthest_point_sampling``

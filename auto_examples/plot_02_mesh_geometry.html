@@ -1,0 +1,881 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="The Laplacian and its spectrum" href="plot_03_spectrum.html"><link rel="prev" title="Loading and visualizing a mesh" href="plot_01_load_mesh.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Geometry of a triangle mesh - pyfmaps 1.2.1.dev14+g50b3f1b94 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=fd6457a4" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="../_static/pyfm.css?v=1c273c8b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">pyfmaps 1.2.1.dev14+g50b3f1b94 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">pyfmaps 1.2.1.dev14+g50b3f1b94 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Example gallery</a><input aria-label="Toggle navigation of Example gallery" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="plot_01_load_mesh.html">Loading and visualizing a mesh</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Geometry of a triangle mesh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_03_spectrum.html">The Laplacian and its spectrum</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_04_maps_from_correspondence.html">Encoding Dense Correspondences in a Functional Map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_05_maps_without_correspondence.html">Computing a map without a correspondence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_06_functional_map_network.html">Maps across a collection of shapes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Documentation</a><input aria-label="Toggle navigation of API Documentation" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../generated/pyFM.mesh.TriMesh.html">pyFM.mesh.TriMesh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/pyFM.functional.FunctionalMapping.html">pyFM.functional.FunctionalMapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/pyFM.FMN.FMN.FMN.html">pyFM.FMN.FMN.FMN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/pyFM.FMN.FMN.CLB_quad_form.html">pyFM.FMN.FMN.CLB_quad_form</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.signatures.html">pyFM.signatures</a><input aria-label="Toggle navigation of pyFM.signatures" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.signatures.HKS_functions.html">pyFM.signatures.HKS_functions</a><input aria-label="Toggle navigation of pyFM.signatures.HKS_functions" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.HKS_functions.HKS.html">pyFM.signatures.HKS_functions.HKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.HKS_functions.lm_HKS.html">pyFM.signatures.HKS_functions.lm_HKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.HKS_functions.auto_HKS.html">pyFM.signatures.HKS_functions.auto_HKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.HKS_functions.mesh_HKS.html">pyFM.signatures.HKS_functions.mesh_HKS</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.signatures.WKS_functions.html">pyFM.signatures.WKS_functions</a><input aria-label="Toggle navigation of pyFM.signatures.WKS_functions" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.WKS_functions.WKS.html">pyFM.signatures.WKS_functions.WKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.WKS_functions.lm_WKS.html">pyFM.signatures.WKS_functions.lm_WKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.WKS_functions.auto_WKS.html">pyFM.signatures.WKS_functions.auto_WKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.WKS_functions.mesh_WKS.html">pyFM.signatures.WKS_functions.mesh_WKS</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.spectral.html">pyFM.spectral</a><input aria-label="Toggle navigation of pyFM.spectral" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.spectral.convert.html">pyFM.spectral.convert</a><input aria-label="Toggle navigation of pyFM.spectral.convert" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.convert.p2p_to_FM.html">pyFM.spectral.convert.p2p_to_FM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.convert.mesh_p2p_to_FM.html">pyFM.spectral.convert.mesh_p2p_to_FM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.convert.FM_to_p2p.html">pyFM.spectral.convert.FM_to_p2p</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.convert.mesh_FM_to_p2p.html">pyFM.spectral.convert.mesh_FM_to_p2p</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.convert.mesh_FM_to_p2p_precise.html">pyFM.spectral.convert.mesh_FM_to_p2p_precise</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.html">pyFM.spectral.nearest_neighbor</a><input aria-label="Toggle navigation of pyFM.spectral.nearest_neighbor" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.brute_query.html">pyFM.spectral.nearest_neighbor.brute_query</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.choose_backend.html">pyFM.spectral.nearest_neighbor.choose_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.compute_sqdistmat.html">pyFM.spectral.nearest_neighbor.compute_sqdistmat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.get_config.html">pyFM.spectral.nearest_neighbor.get_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.knn_query.html">pyFM.spectral.nearest_neighbor.knn_query</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.reset_config.html">pyFM.spectral.nearest_neighbor.reset_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.set_config.html">pyFM.spectral.nearest_neighbor.set_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.tree_query.html">pyFM.spectral.nearest_neighbor.tree_query</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.spectral.nn_utils.html">pyFM.spectral.nn_utils</a><input aria-label="Toggle navigation of pyFM.spectral.nn_utils" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nn_utils.knn_query.html">pyFM.spectral.nn_utils.knn_query</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.html">pyFM.spectral.projection_utils</a><input aria-label="Toggle navigation of pyFM.spectral.projection_utils" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.nn_query_precise_np.html">pyFM.spectral.projection_utils.nn_query_precise_np</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.project_pc_to_triangles.html">pyFM.spectral.projection_utils.project_pc_to_triangles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.compute_lmax.html">pyFM.spectral.projection_utils.compute_lmax</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.compute_Deltamin.html">pyFM.spectral.projection_utils.compute_Deltamin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.mycdist.html">pyFM.spectral.projection_utils.mycdist</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.compute_dmin.html">pyFM.spectral.projection_utils.compute_dmin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.compute_all_dmin.html">pyFM.spectral.projection_utils.compute_all_dmin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.project_to_mesh.html">pyFM.spectral.projection_utils.project_to_mesh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.barycentric_to_precise.html">pyFM.spectral.projection_utils.barycentric_to_precise</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.point_to_triangles_projection.html">pyFM.spectral.projection_utils.point_to_triangles_projection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.pointTriangleDistance.html">pyFM.spectral.projection_utils.pointTriangleDistance</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.spectral.shape_difference.html">pyFM.spectral.shape_difference</a><input aria-label="Toggle navigation of pyFM.spectral.shape_difference" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.shape_difference.area_SD.html">pyFM.spectral.shape_difference.area_SD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.shape_difference.conformal_SD.html">pyFM.spectral.shape_difference.conformal_SD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.shape_difference.compute_SD.html">pyFM.spectral.shape_difference.compute_SD</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.refine.html">pyFM.refine</a><input aria-label="Toggle navigation of pyFM.refine" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.refine.icp.html">pyFM.refine.icp</a><input aria-label="Toggle navigation of pyFM.refine.icp" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.icp.icp_iteration.html">pyFM.refine.icp.icp_iteration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.icp.icp_refine.html">pyFM.refine.icp.icp_refine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.icp.mesh_icp_refine.html">pyFM.refine.icp.mesh_icp_refine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.icp.mesh_icp_refine_p2p.html">pyFM.refine.icp.mesh_icp_refine_p2p</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.refine.zoomout.html">pyFM.refine.zoomout</a><input aria-label="Toggle navigation of pyFM.refine.zoomout" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.zoomout.mesh_zoomout_refine.html">pyFM.refine.zoomout.mesh_zoomout_refine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.zoomout.mesh_zoomout_refine_p2p.html">pyFM.refine.zoomout.mesh_zoomout_refine_p2p</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.zoomout.zoomout_iteration.html">pyFM.refine.zoomout.zoomout_iteration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.zoomout.zoomout_refine.html">pyFM.refine.zoomout.zoomout_refine</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.eval.html">pyFM.eval</a><input aria-label="Toggle navigation of pyFM.eval" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.eval.evaluate.html">pyFM.eval.evaluate</a><input aria-label="Toggle navigation of pyFM.eval.evaluate" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.eval.evaluate.accuracy.html">pyFM.eval.evaluate.accuracy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.eval.evaluate.continuity.html">pyFM.eval.evaluate.continuity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.eval.evaluate.coverage.html">pyFM.eval.evaluate.coverage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.mesh.geometry.html">pyFM.mesh.geometry</a><input aria-label="Toggle navigation of pyFM.mesh.geometry" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.build_dijkstra_graph.html">pyFM.mesh.geometry.build_dijkstra_graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.compute_faces_areas.html">pyFM.mesh.geometry.compute_faces_areas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.compute_normals.html">pyFM.mesh.geometry.compute_normals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.compute_vertex_areas.html">pyFM.mesh.geometry.compute_vertex_areas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.dijkstra_from.html">pyFM.mesh.geometry.dijkstra_from</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.div_f.html">pyFM.mesh.geometry.div_f</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.edges_from_faces.html">pyFM.mesh.geometry.edges_from_faces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.farthest_point_sampling.html">pyFM.mesh.geometry.farthest_point_sampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.farthest_point_sampling_call.html">pyFM.mesh.geometry.farthest_point_sampling_call</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.farthest_point_sampling_call_sub.html">pyFM.mesh.geometry.farthest_point_sampling_call_sub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.farthest_point_sampling_distmat.html">pyFM.mesh.geometry.farthest_point_sampling_distmat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.geodesic_distmat_dijkstra.html">pyFM.mesh.geometry.geodesic_distmat_dijkstra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.geodesic_distmat_fast_marching.html">pyFM.mesh.geometry.geodesic_distmat_fast_marching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.get_orientation_op.html">pyFM.mesh.geometry.get_orientation_op</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.grad_f.html">pyFM.mesh.geometry.grad_f</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.grad_mat.html">pyFM.mesh.geometry.grad_mat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.heat_geodesic_from.html">pyFM.mesh.geometry.heat_geodesic_from</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.heat_geodmat.html">pyFM.mesh.geometry.heat_geodmat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.heat_geodmat_robust.html">pyFM.mesh.geometry.heat_geodmat_robust</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.neigh_faces.html">pyFM.mesh.geometry.neigh_faces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.per_vertex_normal.html">pyFM.mesh.geometry.per_vertex_normal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.per_vertex_normal_area.html">pyFM.mesh.geometry.per_vertex_normal_area</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.per_vertex_normal_uniform.html">pyFM.mesh.geometry.per_vertex_normal_uniform</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.mesh.laplacian.html">pyFM.mesh.laplacian</a><input aria-label="Toggle navigation of pyFM.mesh.laplacian" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.laplacian.cotangent_weights.html">pyFM.mesh.laplacian.cotangent_weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.laplacian.dia_area_mat.html">pyFM.mesh.laplacian.dia_area_mat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.laplacian.fem_area_mat.html">pyFM.mesh.laplacian.fem_area_mat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.laplacian.laplacian_spectrum.html">pyFM.mesh.laplacian.laplacian_spectrum</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.html">pyFM.mesh.file_utils</a><input aria-label="Toggle navigation of pyFM.mesh.file_utils" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.get_uv.html">pyFM.mesh.file_utils.get_uv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.read_obj.html">pyFM.mesh.file_utils.read_obj</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.read_off.html">pyFM.mesh.file_utils.read_off</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.read_tri.html">pyFM.mesh.file_utils.read_tri</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.read_vert.html">pyFM.mesh.file_utils.read_vert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.write_mtl.html">pyFM.mesh.file_utils.write_mtl</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.write_obj.html">pyFM.mesh.file_utils.write_obj</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.write_obj_texture.html">pyFM.mesh.file_utils.write_obj_texture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.write_off.html">pyFM.mesh.file_utils.write_off</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.viz.html">pyFM.viz</a><input aria-label="Toggle navigation of pyFM.viz" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.viz.plot_mesh.html">pyFM.viz.plot_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.viz.plot_arrows.html">pyFM.viz.plot_arrows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.viz.to_polydata.html">pyFM.viz.to_polydata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.viz.vertices_to_rgb.html">pyFM.viz.vertices_to_rgb</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.optimize.html">pyFM.optimize</a><input aria-label="Toggle navigation of pyFM.optimize" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.html">pyFM.optimize.base_functions</a><input aria-label="Toggle navigation of pyFM.optimize.base_functions" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.descr_preservation.html">pyFM.optimize.base_functions.descr_preservation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.descr_preservation_grad.html">pyFM.optimize.base_functions.descr_preservation_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.descr_preservation_and_grad.html">pyFM.optimize.base_functions.descr_preservation_and_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.LB_commutation.html">pyFM.optimize.base_functions.LB_commutation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.LB_commutation_grad.html">pyFM.optimize.base_functions.LB_commutation_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.LB_commutation_and_grad.html">pyFM.optimize.base_functions.LB_commutation_and_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.op_commutation.html">pyFM.optimize.base_functions.op_commutation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.op_commutation_grad.html">pyFM.optimize.base_functions.op_commutation_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.op_commutation_and_grad.html">pyFM.optimize.base_functions.op_commutation_and_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.oplist_commutation.html">pyFM.optimize.base_functions.oplist_commutation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.oplist_commutation_grad.html">pyFM.optimize.base_functions.oplist_commutation_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.oplist_commutation_and_grad.html">pyFM.optimize.base_functions.oplist_commutation_and_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.energy_func_std.html">pyFM.optimize.base_functions.energy_func_std</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.grad_energy_std.html">pyFM.optimize.base_functions.grad_energy_std</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.energy_and_grad_std.html">pyFM.optimize.base_functions.energy_and_grad_std</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.optimize.weights.html">pyFM.optimize.weights</a><input aria-label="Toggle navigation of pyFM.optimize.weights" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.weights.resolvent_mask.html">pyFM.optimize.weights.resolvent_mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.weights.effective_p.html">pyFM.optimize.weights.effective_p</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.weights.canonical_taus.html">pyFM.optimize.weights.canonical_taus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.weights.legacy_taus.html">pyFM.optimize.weights.legacy_taus</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/auto_examples/plot_02_mesh_geometry.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-02-mesh-geometry-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="geometry-of-a-triangle-mesh">
+<span id="sphx-glr-auto-examples-plot-02-mesh-geometry-py"></span><h1>Geometry of a triangle mesh<a class="headerlink" href="#geometry-of-a-triangle-mesh" title="Link to this heading">¶</a></h1>
+<p>Everything a <a class="reference internal" href="../generated/pyFM.mesh.TriMesh.html#pyFM.mesh.TriMesh" title="pyFM.mesh.trimesh.TriMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">TriMesh</span></code></a> knows is derived from two arrays,
+<code class="docutils literal notranslate"><span class="pre">vertices</span></code> and <code class="docutils literal notranslate"><span class="pre">faces</span></code>: edges, areas, normals, geodesic distances. None of it is
+computed when the mesh is loaded but instead built the first time you ask for
+it, and stored afterwards.</p>
+<p>This page walks through those quantities and plots them with <code class="docutils literal notranslate"><span class="pre">pyFM.viz</span></code>. Drag to
+rotate the 3D views, scroll to zoom.</p>
+<section id="locating-data">
+<h2>Locating data<a class="headerlink" href="#locating-data" title="Link to this heading">¶</a></h2>
+<p>The example meshes are stored in <code class="docutils literal notranslate"><span class="pre">examples/data</span></code> and are not part of the package.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="pathlib.Path" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class"><span class="n">Path</span></a>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pv</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyFM.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">TriMesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyFM.viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_arrows</span><span class="p">,</span> <span class="n">plot_mesh</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">example_data</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the path to a mesh in the ``examples/data`` folder.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="p">[</span><a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.cwd" title="pathlib.Path.cwd" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-method"><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span></a><span class="p">(),</span> <span class="o">*</span><a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.cwd" title="pathlib.Path.cwd" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-method"><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span></a><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">]:</span>
+        <span class="n">candidate</span> <span class="o">=</span> <span class="n">folder</span> <span class="o">/</span> <span class="s2">&quot;examples&quot;</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">candidate</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> not found. These examples read data from the pyFM repository; &quot;</span>
+        <span class="s2">&quot;clone it and run them there.&quot;</span>
+    <span class="p">)</span>
+
+
+<a href="https://numpy.org/doc/stable/reference/random/generated/numpy.random.seed.html#numpy.random.seed" title="numpy.random.seed" class="sphx-glr-backref-module-numpy-random sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span></a><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="loading-a-mesh">
+<h2>Loading a mesh<a class="headerlink" href="#loading-a-mesh" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">area_normalize</span></code> rescales the mesh to unit area and <code class="docutils literal notranslate"><span class="pre">center</span></code> moves its center of mass to the origin.
+Scaling is particularly useful for numerical stability of spectral quantities.
+<code class="docutils literal notranslate"><span class="pre">normalize</span></code> is a convenient shortcut that applies both <code class="docutils literal notranslate"><span class="pre">area_normalize</span></code> and <code class="docutils literal notranslate"><span class="pre">center</span></code>.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">mesh</span> <span class="o">=</span> <span class="n">TriMesh</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_data</span><span class="p">(</span><span class="s2">&quot;cat.obj&quot;</span><span class="p">),</span> <span class="n">area_normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;name: </span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mesh</span><span class="o">.</span><span class="n">name</span></a><span class="si">}</span><span class="s2">, loaded from: </span><span class="si">{</span><a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="pathlib.Path" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-class"><span class="n">Path</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/stdtypes.html#str" title="builtins.str" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">mesh</span><span class="o">.</span><span class="n">path</span></a><span class="p">)</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;area: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">area</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">, sqrt_area: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">sqrt_area</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;TriMesh &#39;cat&#39;: 7207 vertices, 14410 faces&gt;
+name: cat, loaded from: cat.obj
+area: 1.000000, sqrt_area: 1.000000
+</pre></div>
+</div>
+</section>
+<section id="rigid-transformations">
+<h2>Rigid transformations<a class="headerlink" href="#rigid-transformations" title="Link to this heading">¶</a></h2>
+<p><code class="xref py py-meth docutils literal notranslate"><span class="pre">rotate()</span></code>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">translate()</span></code>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">scale()</span></code>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">center()</span></code> and
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">area_normalize()</span></code> modify the mesh <strong>in place</strong> and
+return it, so they can be chained. Work on a <code class="xref py py-meth docutils literal notranslate"><span class="pre">copy()</span></code>
+when you want to keep the original around.</p>
+<p>These methods also carry the already-computed quantities along instead of throwing
+them away. For instance rotating rotates the cached normals, and <code class="docutils literal notranslate"><span class="pre">scale(alpha)</span></code> rescales the
+mass matrix, face areas, divides the eigenvalues by <code class="docutils literal notranslate"><span class="pre">alpha**2</span></code> and the
+eigenvectors by <code class="docutils literal notranslate"><span class="pre">alpha</span></code>. Note that <code class="docutils literal notranslate"><span class="pre">area_normalize</span></code> preserves the center of
+mass, so it never moves the shape.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">theta</span></a> <span class="o">=</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">pi</span></a> <span class="o">/</span> <span class="mi">4</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">rotation</span></a> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="numpy.array" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">array</span></a><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="p">[</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc" title="numpy.ufunc" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">cos</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">theta</span></a><span class="p">),</span> <span class="o">-</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc" title="numpy.ufunc" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">sin</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">theta</span></a><span class="p">),</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="p">[</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc" title="numpy.ufunc" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">sin</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">theta</span></a><span class="p">),</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc" title="numpy.ufunc" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">cos</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">theta</span></a><span class="p">),</span> <span class="mi">0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+    <span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">moved</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="mf">0.6</span><span class="p">)</span><span class="o">.</span><span class="n">rotate</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">rotation</span></a><span class="p">)</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="numpy.array" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">array</span></a><span class="p">([</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">]))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;original area: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">area</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;scaled area  : </span><span class="si">{</span><span class="n">moved</span><span class="o">.</span><span class="n">area</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">  (0.6^2 = </span><span class="si">{</span><span class="mf">0.6</span><span class="o">**</span><span class="mi">2</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a> <span class="o">=</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class"><span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span></a><span class="p">()</span>
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#91c0d8&quot;</span><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">moved</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#d27575&quot;</span><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.show.html#pyvista.Plotter.show" title="pyvista.Plotter.show" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">show</span></a><span class="p">()</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_02_mesh_geometry_001.png" srcset="../_images/sphx_glr_plot_02_mesh_geometry_001.png" alt="plot 02 mesh geometry" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_02_mesh_geometry_001.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>original area: 1.000000
+scaled area  : 0.360000  (0.6^2 = 0.36)
+</pre></div>
+</div>
+</section>
+<section id="edges-and-faces">
+<h2>Edges and faces<a class="headerlink" href="#edges-and-faces" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">edges</span></code> lists each undirected edge and <code class="docutils literal notranslate"><span class="pre">edge_lengths</span></code> gives their lengths.
+We can confirm the Euler characteristic of a sphere-like shape is 2.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;vertices: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">n_vertices</span><span class="si">}</span><span class="s2">, edges: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span><span class="si">}</span><span class="s2">, faces: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">n_faces</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Euler characteristic: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">n_vertices</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">mesh</span><span class="o">.</span><span class="n">n_faces</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;mean edge length: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">edge_lengths</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>vertices: 7207, edges: 21615, faces: 14410
+Euler characteristic: 2
+mean edge length: 0.0123
+</pre></div>
+</div>
+</section>
+<section id="areas">
+<h2>Areas<a class="headerlink" href="#areas" title="Link to this heading">¶</a></h2>
+<p>Each face has an area, which is split evenly among the vertices to define vertex areas.
+Vertex areas define the mass matrix that define inner product and integration of functions on the surface.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;face_areas  : </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">face_areas</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, sum = </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">face_areas</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;vertex_areas: </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex_areas</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, sum = </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex_areas</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">:</span><span class="s2">.6f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>face_areas  : (14410,), sum = 1.000000
+vertex_areas: (7207,), sum = 1.000000
+</pre></div>
+</div>
+<p>Coloring the surface by <code class="docutils literal notranslate"><span class="pre">vertex_areas</span></code> shows where the triangulation is dense (dark)
+and where it is coarse (bright).</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertex_areas</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;magma&quot;</span><span class="p">,</span> <span class="n">show_colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_02_mesh_geometry_002.png" srcset="../_images/sphx_glr_plot_02_mesh_geometry_002.png" alt="plot 02 mesh geometry" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_02_mesh_geometry_002.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+</section>
+<section id="normals">
+<h2>Normals<a class="headerlink" href="#normals" title="Link to this heading">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">face_normals</span></code> holds one unit vector per triangle. Passing an array to <code class="docutils literal notranslate"><span class="pre">vfield</span></code>
+draws it as arrows, where per-face field is placed at the face barycenters and per-vertex
+field at the vertices.
+<code class="docutils literal notranslate"><span class="pre">vfield_tolerance</span></code> subsamples the arrows to avoid clutter, and <code class="docutils literal notranslate"><span class="pre">vfield_rescale</span></code> rescales them to a visible length.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">plot_mesh</span><span class="p">(</span>
+    <span class="n">mesh</span><span class="p">,</span>
+    <span class="n">vfield</span><span class="o">=</span><span class="n">mesh</span><span class="o">.</span><span class="n">face_normals</span><span class="p">,</span>
+    <span class="n">vfield_rescale</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span>
+    <span class="n">vfield_tolerance</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+    <span class="n">vfield_color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span>
+    <span class="n">wireframe</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">line_width</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-4" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-4">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_02_mesh_geometry_003.png" srcset="../_images/sphx_glr_plot_02_mesh_geometry_003.png" alt="plot 02 mesh geometry" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-5" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-5">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_02_mesh_geometry_003.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+<p>Vertex normals are averages of the adjacent faces, and the averaging weights are a choice.
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">set_vertex_normal_weighting()</span></code> switches between
+weighting each face by its area (the default) and weighting them all equally.</p>
+<p>The two differ at vertices surrounded by triangles of very different sizes.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">normals_area</span></a> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex_normals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="n">mesh</span><span class="o">.</span><span class="n">set_vertex_normal_weighting</span><span class="p">(</span><span class="s2">&quot;uniform&quot;</span><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">normals_uniform</span></a> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">vertex_normals</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="n">mesh</span><span class="o">.</span><span class="n">set_vertex_normal_weighting</span><span class="p">(</span><span class="s2">&quot;area&quot;</span><span class="p">)</span>
+
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cosines</span></a> <span class="o">=</span> <span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">normals_area</span></a> <span class="o">*</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">normals_uniform</span></a><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">angles</span></a> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc" title="numpy.ufunc" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">degrees</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc" title="numpy.ufunc" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">arccos</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">cosines</span></a><span class="p">))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;angle between the two weightings (degrees):&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  median </span><span class="si">{</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.median.html#numpy.median" title="numpy.median" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">median</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">angles</span></a><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">, max </span><span class="si">{</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">angles</span></a><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>angle between the two weightings (degrees):
+  median 1.09, max 57.75
+</pre></div>
+</div>
+<p>Drawing both fields in one scene makes the agreement visible. To compose plots, plotting function
+accepts a <code class="docutils literal notranslate"><span class="pre">pl</span></code> to draw into, and returns one back with <code class="docutils literal notranslate"><span class="pre">return_plot=True</span></code>.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a> <span class="o">=</span> <span class="n">plot_mesh</span><span class="p">(</span>
+    <span class="n">mesh</span><span class="p">,</span>
+    <span class="n">vfield</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">normals_area</span></a><span class="p">,</span>
+    <span class="n">vfield_rescale</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">vfield_color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span>
+    <span class="n">return_plot</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">plot_arrows</span><span class="p">(</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span>
+    <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">normals_uniform</span></a><span class="p">,</span>
+    <span class="n">rescale</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span>
+    <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">,</span>
+<span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.show.html#pyvista.Plotter.show" title="pyvista.Plotter.show" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">show</span></a><span class="p">()</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-6" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-6">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_02_mesh_geometry_004.png" srcset="../_images/sphx_glr_plot_02_mesh_geometry_004.png" alt="plot 02 mesh geometry" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-7" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-7">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_02_mesh_geometry_004.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+</section>
+<section id="geodesic-distances">
+<h2>Geodesic distances<a class="headerlink" href="#geodesic-distances" title="Link to this heading">¶</a></h2>
+<p><code class="xref py py-meth docutils literal notranslate"><span class="pre">geodesic_from()</span></code> measures distances <em>along the
+surface</em> from one vertex (or several).</p>
+<p>Four methods are available through <code class="docutils literal notranslate"><span class="pre">method=</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;heat&quot;</span></code> (the default, a robust
+solver from <cite>potpourri3d</cite>), <code class="docutils literal notranslate"><span class="pre">&quot;heat_pure&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;dijkstra&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;fast_marching&quot;</span></code>.
+The linear systems are prefactorized and reused, so repeated calls on the same mesh
+are cheap.</p>
+<p><code class="docutils literal notranslate"><span class="pre">points</span></code> draws spheres on top of the surface.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">source</span></a> <span class="o">=</span> <span class="mi">200</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">distances</span></a> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">geodesic_from</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">source</span></a><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">&quot;heat&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;distances: </span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">distances</span><span class="o">.</span><span class="n">shape</span></a><span class="si">}</span><span class="s2">, max = </span><span class="si">{</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">distances</span></a><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">plot_mesh</span><span class="p">(</span>
+    <span class="n">mesh</span><span class="p">,</span>
+    <span class="n">scalars</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">distances</span></a><span class="p">,</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span>
+    <span class="n">points</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">source</span></a><span class="p">,</span>
+    <span class="n">points_color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span>
+    <span class="n">point_size</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">show_colorbar</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-8" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-8">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_02_mesh_geometry_005.png" srcset="../_images/sphx_glr_plot_02_mesh_geometry_005.png" alt="plot 02 mesh geometry" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-9" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-9">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_02_mesh_geometry_005.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>distances: (7207,), max = 0.888
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><code class="xref py py-meth docutils literal notranslate"><span class="pre">geodesic_matrix()</span></code> computes <em>all</em> pairwise
+distances, which is a dense <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">n)</span></code> array.
+You can hand it to <code class="xref py py-meth docutils literal notranslate"><span class="pre">farthest_point_sampling()</span></code> to avoid recomputing distances.</p>
+</div>
+</section>
+<section id="farthest-point-sampling">
+<h2>Farthest point sampling<a class="headerlink" href="#farthest-point-sampling" title="Link to this heading">¶</a></h2>
+<p><code class="xref py py-meth docutils literal notranslate"><span class="pre">farthest_point_sampling()</span></code> picks a subset of vertices
+that spreads out over the shape: each new sample is the vertex furthest away from all
+the previous ones.</p>
+<p>Distances are recomputed on the fly unless a full distance matrix is passed as
+<code class="docutils literal notranslate"><span class="pre">distances</span></code>. The first sample is drawn at random, so pass <code class="docutils literal notranslate"><span class="pre">distances</span></code> together
+with <code class="docutils literal notranslate"><span class="pre">random_init=False</span></code> when you need the same subset twice.</p>
+<p>The function supports both Euclidean and geodesic distances.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">samples</span></a> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">farthest_point_sampling</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">geodesic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;sampled </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">samples</span><span class="o">.</span><span class="n">size</span></a><span class="si">}</span><span class="s2"> vertices out of </span><span class="si">{</span><span class="n">mesh</span><span class="o">.</span><span class="n">n_vertices</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#b0bec5&quot;</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">samples</span></a><span class="p">,</span> <span class="n">points_color</span><span class="o">=</span><span class="s2">&quot;crimson&quot;</span><span class="p">,</span> <span class="n">point_size</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-10" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-10">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_02_mesh_geometry_006.png" srcset="../_images/sphx_glr_plot_02_mesh_geometry_006.png" alt="plot 02 mesh geometry" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-11" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-11">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_02_mesh_geometry_006.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>sampled 200 vertices out of 7207
+</pre></div>
+</div>
+</section>
+<section id="point-clouds">
+<h2>Point clouds<a class="headerlink" href="#point-clouds" title="Link to this heading">¶</a></h2>
+<p>A <a class="reference internal" href="../generated/pyFM.mesh.TriMesh.html#pyFM.mesh.TriMesh" title="pyFM.mesh.trimesh.TriMesh"><code class="xref py py-class docutils literal notranslate"><span class="pre">TriMesh</span></code></a> built without faces is a point cloud.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">cloud</span> <span class="o">=</span> <span class="n">TriMesh</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">cloud</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;is_point_cloud: </span><span class="si">{</span><span class="n">cloud</span><span class="o">.</span><span class="n">is_point_cloud</span><span class="si">}</span><span class="s2">, n_faces: </span><span class="si">{</span><span class="n">cloud</span><span class="o">.</span><span class="n">n_faces</span><span class="si">}</span><span class="s2">, area: </span><span class="si">{</span><span class="n">cloud</span><span class="o">.</span><span class="n">area</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">cloud</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><span class="n">mesh</span><span class="o">.</span><span class="n">vertices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;viridis&quot;</span><span class="p">,</span> <span class="n">point_size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-12" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-12">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_02_mesh_geometry_007.png" srcset="../_images/sphx_glr_plot_02_mesh_geometry_007.png" alt="plot 02 mesh geometry" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-13" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-13">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_02_mesh_geometry_007.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;TriMesh: 7207 vertices (point cloud)&gt;
+is_point_cloud: True, n_faces: 0, area: None
+</pre></div>
+</div>
+<p>Anything that needs the connectivity, such as edges, normals, face areas or geodesic
+distances, raises a ValueError.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">cloud</span><span class="o">.</span><span class="n">face_normals</span>
+<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ValueError: </span><span class="si">{</span><span class="n">err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>ValueError: Cannot compute face normals: this mesh has no faces.
+</pre></div>
+</div>
+<p>The Laplace-Beltrami operator, on the other hand, is still available: pyFM falls back
+to the robust (tufted) construction, built from the points alone. That operator, and the
+spectral basis it generates, are the subject of
+<a class="reference internal" href="plot_03_spectrum.html#sphx-glr-auto-examples-plot-03-spectrum-py"><span class="std std-ref">The Laplacian and its spectrum</span></a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The other potpourri3d point cloud operators will be wired in so they work seamlessly on
+<code class="docutils literal notranslate"><span class="pre">TriMesh</span></code> point clouds.</p>
+</div>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 5.261 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-02-mesh-geometry-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/5b0dd4d49b2c959a40ea2bf99704f828/plot_02_mesh_geometry.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_02_mesh_geometry.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/c5cf21781c7ca1aaa7b7dd0c4ef09c12/plot_02_mesh_geometry.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_02_mesh_geometry.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/ba23a92ffe0f994b62a2d4b9ebe5b617/plot_02_mesh_geometry.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">plot_02_mesh_geometry.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="plot_03_spectrum.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">The Laplacian and its spectrum</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="plot_01_load_mesh.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Loading and visualizing a mesh</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Robin Magnet
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Geometry of a triangle mesh</a><ul>
+<li><a class="reference internal" href="#locating-data">Locating data</a></li>
+<li><a class="reference internal" href="#loading-a-mesh">Loading a mesh</a></li>
+<li><a class="reference internal" href="#rigid-transformations">Rigid transformations</a></li>
+<li><a class="reference internal" href="#edges-and-faces">Edges and faces</a></li>
+<li><a class="reference internal" href="#areas">Areas</a></li>
+<li><a class="reference internal" href="#normals">Normals</a></li>
+<li><a class="reference internal" href="#geodesic-distances">Geodesic distances</a></li>
+<li><a class="reference internal" href="#farthest-point-sampling">Farthest point sampling</a></li>
+<li><a class="reference internal" href="#point-clouds">Point clouds</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=d07e833c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    </body>
+</html>

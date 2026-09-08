@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.geodesic\_distmat\_dijkstra
+==============================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: geodesic_distmat_dijkstra
+
+.. minigallery:: pyFM.mesh.geometry.geodesic_distmat_dijkstra
+   :add-heading: Examples using ``geodesic_distmat_dijkstra``

@@ -1,0 +1,29 @@
+pyFM.signatures.HKS\_functions
+==============================
+
+.. automodule:: pyFM.signatures.HKS_functions
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      HKS
+      lm_HKS
+      auto_HKS
+      mesh_HKS
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

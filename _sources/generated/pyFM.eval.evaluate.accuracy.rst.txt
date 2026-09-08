@@ -1,0 +1,9 @@
+pyFM.eval.evaluate.accuracy
+===========================
+
+.. currentmodule:: pyFM.eval.evaluate
+
+.. autofunction:: accuracy
+
+.. minigallery:: pyFM.eval.evaluate.accuracy
+   :add-heading: Examples using ``accuracy``

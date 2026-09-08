@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.get\_orientation\_op
+=======================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: get_orientation_op
+
+.. minigallery:: pyFM.mesh.geometry.get_orientation_op
+   :add-heading: Examples using ``get_orientation_op``

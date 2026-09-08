@@ -1,0 +1,9 @@
+pyFM.mesh.file\_utils.write\_mtl
+================================
+
+.. currentmodule:: pyFM.mesh.file_utils
+
+.. autofunction:: write_mtl
+
+.. minigallery:: pyFM.mesh.file_utils.write_mtl
+   :add-heading: Examples using ``write_mtl``

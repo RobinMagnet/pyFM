@@ -1,0 +1,953 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Computing a map without a correspondence" href="plot_05_maps_without_correspondence.html"><link rel="prev" title="The Laplacian and its spectrum" href="plot_03_spectrum.html">
+
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+        <title>Encoding Dense Correspondences in a Functional Map - pyfmaps 1.2.1.dev14+g50b3f1b94 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery.css?v=fd6457a4" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-binder.css?v=f4aeca0c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-dataframe.css?v=2082cf3c" />
+    <link rel="stylesheet" type="text/css" href="../_static/sg_gallery-rendered-html.css?v=1277b6f3" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="../_static/pyfm.css?v=1c273c8b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">pyfmaps 1.2.1.dev14+g50b3f1b94 documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  
+  <span class="sidebar-brand-text">pyfmaps 1.2.1.dev14+g50b3f1b94 documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">User Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="index.html">Example gallery</a><input aria-label="Toggle navigation of Example gallery" checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="plot_01_load_mesh.html">Loading and visualizing a mesh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_02_mesh_geometry.html">Geometry of a triangle mesh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_03_spectrum.html">The Laplacian and its spectrum</a></li>
+<li class="toctree-l2 current current-page"><a class="current reference internal" href="#">Encoding Dense Correspondences in a Functional Map</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_05_maps_without_correspondence.html">Computing a map without a correspondence</a></li>
+<li class="toctree-l2"><a class="reference internal" href="plot_06_functional_map_network.html">Maps across a collection of shapes</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Documentation</a><input aria-label="Toggle navigation of API Documentation" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../generated/pyFM.mesh.TriMesh.html">pyFM.mesh.TriMesh</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/pyFM.functional.FunctionalMapping.html">pyFM.functional.FunctionalMapping</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/pyFM.FMN.FMN.FMN.html">pyFM.FMN.FMN.FMN</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../generated/pyFM.FMN.FMN.CLB_quad_form.html">pyFM.FMN.FMN.CLB_quad_form</a></li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.signatures.html">pyFM.signatures</a><input aria-label="Toggle navigation of pyFM.signatures" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.signatures.HKS_functions.html">pyFM.signatures.HKS_functions</a><input aria-label="Toggle navigation of pyFM.signatures.HKS_functions" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.HKS_functions.HKS.html">pyFM.signatures.HKS_functions.HKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.HKS_functions.lm_HKS.html">pyFM.signatures.HKS_functions.lm_HKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.HKS_functions.auto_HKS.html">pyFM.signatures.HKS_functions.auto_HKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.HKS_functions.mesh_HKS.html">pyFM.signatures.HKS_functions.mesh_HKS</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.signatures.WKS_functions.html">pyFM.signatures.WKS_functions</a><input aria-label="Toggle navigation of pyFM.signatures.WKS_functions" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.WKS_functions.WKS.html">pyFM.signatures.WKS_functions.WKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.WKS_functions.lm_WKS.html">pyFM.signatures.WKS_functions.lm_WKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.WKS_functions.auto_WKS.html">pyFM.signatures.WKS_functions.auto_WKS</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.signatures.WKS_functions.mesh_WKS.html">pyFM.signatures.WKS_functions.mesh_WKS</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.spectral.html">pyFM.spectral</a><input aria-label="Toggle navigation of pyFM.spectral" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.spectral.convert.html">pyFM.spectral.convert</a><input aria-label="Toggle navigation of pyFM.spectral.convert" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.convert.p2p_to_FM.html">pyFM.spectral.convert.p2p_to_FM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.convert.mesh_p2p_to_FM.html">pyFM.spectral.convert.mesh_p2p_to_FM</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.convert.FM_to_p2p.html">pyFM.spectral.convert.FM_to_p2p</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.convert.mesh_FM_to_p2p.html">pyFM.spectral.convert.mesh_FM_to_p2p</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.convert.mesh_FM_to_p2p_precise.html">pyFM.spectral.convert.mesh_FM_to_p2p_precise</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.html">pyFM.spectral.nearest_neighbor</a><input aria-label="Toggle navigation of pyFM.spectral.nearest_neighbor" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.brute_query.html">pyFM.spectral.nearest_neighbor.brute_query</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.choose_backend.html">pyFM.spectral.nearest_neighbor.choose_backend</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.compute_sqdistmat.html">pyFM.spectral.nearest_neighbor.compute_sqdistmat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.get_config.html">pyFM.spectral.nearest_neighbor.get_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.knn_query.html">pyFM.spectral.nearest_neighbor.knn_query</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.reset_config.html">pyFM.spectral.nearest_neighbor.reset_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.set_config.html">pyFM.spectral.nearest_neighbor.set_config</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nearest_neighbor.tree_query.html">pyFM.spectral.nearest_neighbor.tree_query</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.spectral.nn_utils.html">pyFM.spectral.nn_utils</a><input aria-label="Toggle navigation of pyFM.spectral.nn_utils" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.nn_utils.knn_query.html">pyFM.spectral.nn_utils.knn_query</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.html">pyFM.spectral.projection_utils</a><input aria-label="Toggle navigation of pyFM.spectral.projection_utils" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.nn_query_precise_np.html">pyFM.spectral.projection_utils.nn_query_precise_np</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.project_pc_to_triangles.html">pyFM.spectral.projection_utils.project_pc_to_triangles</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.compute_lmax.html">pyFM.spectral.projection_utils.compute_lmax</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.compute_Deltamin.html">pyFM.spectral.projection_utils.compute_Deltamin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.mycdist.html">pyFM.spectral.projection_utils.mycdist</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.compute_dmin.html">pyFM.spectral.projection_utils.compute_dmin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.compute_all_dmin.html">pyFM.spectral.projection_utils.compute_all_dmin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.project_to_mesh.html">pyFM.spectral.projection_utils.project_to_mesh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.barycentric_to_precise.html">pyFM.spectral.projection_utils.barycentric_to_precise</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.point_to_triangles_projection.html">pyFM.spectral.projection_utils.point_to_triangles_projection</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.projection_utils.pointTriangleDistance.html">pyFM.spectral.projection_utils.pointTriangleDistance</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.spectral.shape_difference.html">pyFM.spectral.shape_difference</a><input aria-label="Toggle navigation of pyFM.spectral.shape_difference" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.shape_difference.area_SD.html">pyFM.spectral.shape_difference.area_SD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.shape_difference.conformal_SD.html">pyFM.spectral.shape_difference.conformal_SD</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.spectral.shape_difference.compute_SD.html">pyFM.spectral.shape_difference.compute_SD</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.refine.html">pyFM.refine</a><input aria-label="Toggle navigation of pyFM.refine" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.refine.icp.html">pyFM.refine.icp</a><input aria-label="Toggle navigation of pyFM.refine.icp" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.icp.icp_iteration.html">pyFM.refine.icp.icp_iteration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.icp.icp_refine.html">pyFM.refine.icp.icp_refine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.icp.mesh_icp_refine.html">pyFM.refine.icp.mesh_icp_refine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.icp.mesh_icp_refine_p2p.html">pyFM.refine.icp.mesh_icp_refine_p2p</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.refine.zoomout.html">pyFM.refine.zoomout</a><input aria-label="Toggle navigation of pyFM.refine.zoomout" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.zoomout.mesh_zoomout_refine.html">pyFM.refine.zoomout.mesh_zoomout_refine</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.zoomout.mesh_zoomout_refine_p2p.html">pyFM.refine.zoomout.mesh_zoomout_refine_p2p</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.zoomout.zoomout_iteration.html">pyFM.refine.zoomout.zoomout_iteration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.refine.zoomout.zoomout_refine.html">pyFM.refine.zoomout.zoomout_refine</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.eval.html">pyFM.eval</a><input aria-label="Toggle navigation of pyFM.eval" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.eval.evaluate.html">pyFM.eval.evaluate</a><input aria-label="Toggle navigation of pyFM.eval.evaluate" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.eval.evaluate.accuracy.html">pyFM.eval.evaluate.accuracy</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.eval.evaluate.continuity.html">pyFM.eval.evaluate.continuity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.eval.evaluate.coverage.html">pyFM.eval.evaluate.coverage</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.mesh.geometry.html">pyFM.mesh.geometry</a><input aria-label="Toggle navigation of pyFM.mesh.geometry" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.build_dijkstra_graph.html">pyFM.mesh.geometry.build_dijkstra_graph</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.compute_faces_areas.html">pyFM.mesh.geometry.compute_faces_areas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.compute_normals.html">pyFM.mesh.geometry.compute_normals</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.compute_vertex_areas.html">pyFM.mesh.geometry.compute_vertex_areas</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.dijkstra_from.html">pyFM.mesh.geometry.dijkstra_from</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.div_f.html">pyFM.mesh.geometry.div_f</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.edges_from_faces.html">pyFM.mesh.geometry.edges_from_faces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.farthest_point_sampling.html">pyFM.mesh.geometry.farthest_point_sampling</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.farthest_point_sampling_call.html">pyFM.mesh.geometry.farthest_point_sampling_call</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.farthest_point_sampling_call_sub.html">pyFM.mesh.geometry.farthest_point_sampling_call_sub</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.farthest_point_sampling_distmat.html">pyFM.mesh.geometry.farthest_point_sampling_distmat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.geodesic_distmat_dijkstra.html">pyFM.mesh.geometry.geodesic_distmat_dijkstra</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.geodesic_distmat_fast_marching.html">pyFM.mesh.geometry.geodesic_distmat_fast_marching</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.get_orientation_op.html">pyFM.mesh.geometry.get_orientation_op</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.grad_f.html">pyFM.mesh.geometry.grad_f</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.grad_mat.html">pyFM.mesh.geometry.grad_mat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.heat_geodesic_from.html">pyFM.mesh.geometry.heat_geodesic_from</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.heat_geodmat.html">pyFM.mesh.geometry.heat_geodmat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.heat_geodmat_robust.html">pyFM.mesh.geometry.heat_geodmat_robust</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.neigh_faces.html">pyFM.mesh.geometry.neigh_faces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.per_vertex_normal.html">pyFM.mesh.geometry.per_vertex_normal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.per_vertex_normal_area.html">pyFM.mesh.geometry.per_vertex_normal_area</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.geometry.per_vertex_normal_uniform.html">pyFM.mesh.geometry.per_vertex_normal_uniform</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.mesh.laplacian.html">pyFM.mesh.laplacian</a><input aria-label="Toggle navigation of pyFM.mesh.laplacian" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.laplacian.cotangent_weights.html">pyFM.mesh.laplacian.cotangent_weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.laplacian.dia_area_mat.html">pyFM.mesh.laplacian.dia_area_mat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.laplacian.fem_area_mat.html">pyFM.mesh.laplacian.fem_area_mat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.laplacian.laplacian_spectrum.html">pyFM.mesh.laplacian.laplacian_spectrum</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.html">pyFM.mesh.file_utils</a><input aria-label="Toggle navigation of pyFM.mesh.file_utils" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.get_uv.html">pyFM.mesh.file_utils.get_uv</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.read_obj.html">pyFM.mesh.file_utils.read_obj</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.read_off.html">pyFM.mesh.file_utils.read_off</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.read_tri.html">pyFM.mesh.file_utils.read_tri</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.read_vert.html">pyFM.mesh.file_utils.read_vert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.write_mtl.html">pyFM.mesh.file_utils.write_mtl</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.write_obj.html">pyFM.mesh.file_utils.write_obj</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.write_obj_texture.html">pyFM.mesh.file_utils.write_obj_texture</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.mesh.file_utils.write_off.html">pyFM.mesh.file_utils.write_off</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.viz.html">pyFM.viz</a><input aria-label="Toggle navigation of pyFM.viz" class="toctree-checkbox" id="toctree-checkbox-20" name="toctree-checkbox-20" role="switch" type="checkbox"/><label for="toctree-checkbox-20"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.viz.plot_mesh.html">pyFM.viz.plot_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.viz.plot_arrows.html">pyFM.viz.plot_arrows</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.viz.to_polydata.html">pyFM.viz.to_polydata</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../generated/pyFM.viz.vertices_to_rgb.html">pyFM.viz.vertices_to_rgb</a></li>
+</ul>
+</li>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../generated/pyFM.optimize.html">pyFM.optimize</a><input aria-label="Toggle navigation of pyFM.optimize" class="toctree-checkbox" id="toctree-checkbox-21" name="toctree-checkbox-21" role="switch" type="checkbox"/><label for="toctree-checkbox-21"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.html">pyFM.optimize.base_functions</a><input aria-label="Toggle navigation of pyFM.optimize.base_functions" class="toctree-checkbox" id="toctree-checkbox-22" name="toctree-checkbox-22" role="switch" type="checkbox"/><label for="toctree-checkbox-22"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.descr_preservation.html">pyFM.optimize.base_functions.descr_preservation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.descr_preservation_grad.html">pyFM.optimize.base_functions.descr_preservation_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.descr_preservation_and_grad.html">pyFM.optimize.base_functions.descr_preservation_and_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.LB_commutation.html">pyFM.optimize.base_functions.LB_commutation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.LB_commutation_grad.html">pyFM.optimize.base_functions.LB_commutation_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.LB_commutation_and_grad.html">pyFM.optimize.base_functions.LB_commutation_and_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.op_commutation.html">pyFM.optimize.base_functions.op_commutation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.op_commutation_grad.html">pyFM.optimize.base_functions.op_commutation_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.op_commutation_and_grad.html">pyFM.optimize.base_functions.op_commutation_and_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.oplist_commutation.html">pyFM.optimize.base_functions.oplist_commutation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.oplist_commutation_grad.html">pyFM.optimize.base_functions.oplist_commutation_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.oplist_commutation_and_grad.html">pyFM.optimize.base_functions.oplist_commutation_and_grad</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.energy_func_std.html">pyFM.optimize.base_functions.energy_func_std</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.grad_energy_std.html">pyFM.optimize.base_functions.grad_energy_std</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.base_functions.energy_and_grad_std.html">pyFM.optimize.base_functions.energy_and_grad_std</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../generated/pyFM.optimize.weights.html">pyFM.optimize.weights</a><input aria-label="Toggle navigation of pyFM.optimize.weights" class="toctree-checkbox" id="toctree-checkbox-23" name="toctree-checkbox-23" role="switch" type="checkbox"/><label for="toctree-checkbox-23"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.weights.resolvent_mask.html">pyFM.optimize.weights.resolvent_mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.weights.effective_p.html">pyFM.optimize.weights.effective_p</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.weights.canonical_taus.html">pyFM.optimize.weights.canonical_taus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../generated/pyFM.optimize.weights.legacy_taus.html">pyFM.optimize.weights.legacy_taus</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../_sources/auto_examples/plot_04_maps_from_correspondence.rst.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <div class="sphx-glr-download-link-note admonition note">
+<p class="admonition-title">Note</p>
+<p><a class="reference internal" href="#sphx-glr-download-auto-examples-plot-04-maps-from-correspondence-py"><span class="std std-ref">Go to the end</span></a>
+to download the full example code.</p>
+</div>
+<section class="sphx-glr-example-title" id="encoding-dense-correspondences-in-a-functional-map">
+<span id="sphx-glr-auto-examples-plot-04-maps-from-correspondence-py"></span><h1>Encoding Dense Correspondences in a Functional Map<a class="headerlink" href="#encoding-dense-correspondences-in-a-functional-map" title="Link to this heading">¶</a></h1>
+<p>A functional map is a compact (approximate) representation of correspondences as a small sized matrix.
+It is simply the pull-back operator of a pointwise map, expressed in the spectral basis of the two shapes.</p>
+<p>Representing the correspondence via its pullback is easy and lossless, as it captures all the information of the original pointwise map.
+The compactness of functional maps comes from reducing this operator to a reduced space, which loses some information.</p>
+<section id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Link to this heading">¶</a></h2>
+<p>The example meshes are stored in <code class="docutils literal notranslate"><span class="pre">examples/data</span></code> and are not part of the package.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pyvista</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">sparse</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyFM.mesh</span><span class="w"> </span><span class="kn">import</span> <span class="n">TriMesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyFM.spectral</span><span class="w"> </span><span class="kn">import</span> <span class="n">knn_query</span><span class="p">,</span> <span class="n">mesh_FM_to_p2p</span><span class="p">,</span> <span class="n">mesh_p2p_to_FM</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyFM.viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_mesh</span><span class="p">,</span> <span class="n">vertices_to_rgb</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">example_data</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the path to a mesh in the ``examples/data`` folder.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">folder</span> <span class="ow">in</span> <span class="p">[</span><a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.cwd" title="pathlib.Path.cwd" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-method"><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span></a><span class="p">(),</span> <span class="o">*</span><a href="https://docs.python.org/3/library/pathlib.html#pathlib.Path.cwd" title="pathlib.Path.cwd" class="sphx-glr-backref-module-pathlib sphx-glr-backref-type-py-method"><span class="n">Path</span><span class="o">.</span><span class="n">cwd</span></a><span class="p">()</span><span class="o">.</span><span class="n">parents</span><span class="p">]:</span>
+        <span class="n">candidate</span> <span class="o">=</span> <span class="n">folder</span> <span class="o">/</span> <span class="s2">&quot;examples&quot;</span> <span class="o">/</span> <span class="s2">&quot;data&quot;</span> <span class="o">/</span> <span class="n">name</span>
+        <span class="k">if</span> <span class="n">candidate</span><span class="o">.</span><span class="n">exists</span><span class="p">():</span>
+            <span class="k">return</span> <span class="n">candidate</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">!r}</span><span class="s2"> not found. These examples read data from the pyFM repository; &quot;</span>
+        <span class="s2">&quot;clone it and run them there.&quot;</span>
+    <span class="p">)</span>
+
+
+<a href="https://numpy.org/doc/stable/reference/random/generated/numpy.random.seed.html#numpy.random.seed" title="numpy.random.seed" class="sphx-glr-backref-module-numpy-random sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span></a><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+
+<span class="n">mesh1</span> <span class="o">=</span> <span class="n">TriMesh</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_data</span><span class="p">(</span><span class="s2">&quot;tr_reg_000.off&quot;</span><span class="p">),</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">mesh2</span> <span class="o">=</span> <span class="n">TriMesh</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_data</span><span class="p">(</span><span class="s2">&quot;tr_reg_047.off&quot;</span><span class="p">),</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>&lt;TriMesh &#39;tr_reg_000&#39;: 6890 vertices, 13776 faces&gt;
+&lt;TriMesh &#39;tr_reg_047&#39;: 6890 vertices, 13776 faces&gt;
+</pre></div>
+</div>
+</section>
+<section id="conventions-and-representations">
+<h2>Conventions and representations<a class="headerlink" href="#conventions-and-representations" title="Link to this heading">¶</a></h2>
+<p>Given a map <span class="math notranslate nohighlight">\(\varphi: \mathcal{X}_2 \to \mathcal{X}_1\)</span>, the functional map is a representation of the
+pull-back operator:
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[
+\varphi^*: L^2(\mathcal{X}_1) \to L^2(\mathcal{X}_2)
+\]</div>
+</div>
+</p>
+<p>Notably, the functional maps and the pointwise maps are in “opposite” directions. Because pyFM focuses on functional maps,
+we adopt the arbitrary <strong>convention that the functional map goes from shape 1 to shape 2</strong>. Pointwise maps will then go from shape 2 to shape 1.</p>
+<p>In the code this translates to the following shapes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">FM_12</span></code> is the functional map from shape 1 to shape 2, of shape <code class="docutils literal notranslate"><span class="pre">(k2,</span> <span class="pre">k1)</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">p2p_21</span></code> is the pointwise map from shape 2 to shape 1, of shape <code class="docutils literal notranslate"><span class="pre">(n2,)</span></code>:
+<code class="docutils literal notranslate"><span class="pre">p2p_21[i]</span></code> is the vertex of shape 1 matching vertex <code class="docutils literal notranslate"><span class="pre">i</span></code> of shape 2.</p></li>
+</ul>
+<p>To illustrate different representations, we start with the unusual setting where the ground-truth pointwise map is available.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gt_p2p_21</span></a> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><span class="n">mesh2</span><span class="o">.</span><span class="n">n_vertices</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Two helpers used on this page: one to score a map, one to draw it.</p>
+<p>Scoring a map means measuring, for each vertex, the geodesic distance on shape 1
+between where the map sends it and where it should go. <code class="xref py py-func docutils literal notranslate"><span class="pre">pyFM.eval.accuracy()</span></code> does
+this from a full <code class="docutils literal notranslate"><span class="pre">(n1,</span> <span class="pre">n1)</span></code> geodesic matrix, but here we only evaluate on 300 points for speed.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">error_function</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gt_p2p_21</span></a><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">300</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return a function scoring a map from shape 2 to shape 1, in percent of sqrt_area.&quot;&quot;&quot;</span>
+    <span class="n">sub</span> <span class="o">=</span> <span class="n">mesh2</span><span class="o">.</span><span class="n">farthest_point_sampling</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span>
+    <span class="n">distances</span> <span class="o">=</span> <span class="n">mesh1</span><span class="o">.</span><span class="n">geodesic_from</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gt_p2p_21</span></a><span class="p">[</span><span class="n">sub</span><span class="p">])</span>  <span class="c1"># (n1, n_samples)</span>
+    <span class="n">columns</span> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">error</span><span class="p">(</span><span class="n">p2p_21</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">1e2</span> <span class="o">*</span> <span class="n">distances</span><span class="p">[</span><span class="n">p2p_21</span><span class="p">[</span><span class="n">sub</span><span class="p">],</span> <span class="n">columns</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="o">/</span> <span class="n">mesh1</span><span class="o">.</span><span class="n">sqrt_area</span>
+
+    <span class="k">return</span> <span class="n">error</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">show_map</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <span class="n">p2p_21</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Color shape 1 by position, and shape 2 by the colors pulled through the map.&quot;&quot;&quot;</span>
+    <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">colors1</span></a> <span class="o">=</span> <span class="n">vertices_to_rgb</span><span class="p">(</span><span class="n">mesh1</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span>
+    <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a> <span class="o">=</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class"><span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span></a><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+    <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.subplot.html#pyvista.Plotter.subplot" title="pyvista.Plotter.subplot" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">subplot</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">colors1</span></a><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+    <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.add_title.html#pyvista.Plotter.add_title" title="pyvista.Plotter.add_title" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">add_title</span></a><span class="p">(</span><span class="s2">&quot;source&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+    <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.subplot.html#pyvista.Plotter.subplot" title="pyvista.Plotter.subplot" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">subplot</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh2</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">colors1</span></a><span class="p">[</span><span class="n">p2p_21</span><span class="p">],</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+    <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.add_title.html#pyvista.Plotter.add_title" title="pyvista.Plotter.add_title" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">add_title</span></a><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+    <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.link_views.html#pyvista.Plotter.link_views" title="pyvista.Plotter.link_views" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">link_views</span></a><span class="p">()</span>
+    <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.show.html#pyvista.Plotter.show" title="pyvista.Plotter.show" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">show</span></a><span class="p">(</span><span class="n">cpos</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">)</span>
+
+
+<span class="n">error</span> <span class="o">=</span> <span class="n">error_function</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gt_p2p_21</span></a><span class="p">)</span>
+</pre></div>
+</div>
+<p>Matching colors mean matching points. Under the ground-truth map the two shapes agree
+everywhere, which is what a perfect correspondence looks like.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">show_map</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gt_p2p_21</span></a><span class="p">,</span> <span class="s2">&quot;ground truth&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-0" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-0">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_04_maps_from_correspondence_001.png" srcset="../_images/sphx_glr_plot_04_maps_from_correspondence_001.png" alt="plot 04 maps from correspondence" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-1" name="sd-tab-set-0" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-1">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_04_maps_from_correspondence_001.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+</section>
+<section id="what-is-a-functional-map">
+<h2>What is a functional map<a class="headerlink" href="#what-is-a-functional-map" title="Link to this heading">¶</a></h2>
+<p>A functional map is simply the pull-back operator of a pointwise map <span class="math notranslate nohighlight">\(\varphi\)</span>.
+What this means is that given a function <span class="math notranslate nohighlight">\(f\)</span> on shape 1, the functional map is a <em>linear</em> map that produces a function <span class="math notranslate nohighlight">\(f \circ \varphi\)</span> on shape 2.
+What does this mean precisely ?
+Let’s say we have a function <span class="math notranslate nohighlight">\(f=(f_1, \dots, f_{n_1})\)</span> on shape 1, where <span class="math notranslate nohighlight">\(f_i\)</span> is the value of the function at vertex <span class="math notranslate nohighlight">\(i\)</span> of shape 1.
+Then the pull-back of <span class="math notranslate nohighlight">\(f\)</span> through the map <span class="math notranslate nohighlight">\(\varphi\)</span> is the function <span class="math notranslate nohighlight">\(\varphi^* f = f \circ \varphi = (f_{\varphi(1)}, \dots, f_{\varphi(n_2)})\)</span> on shape 2.
+In matrix form we write <span class="math notranslate nohighlight">\(\varphi^* f = \Pi_{21} f\)</span>, where <span class="math notranslate nohighlight">\(\Pi_{21}\)</span> is the simple <span class="math notranslate nohighlight">\((n_2, n_1)\)</span> matrix with
+<span class="math notranslate nohighlight">\(\Pi_{21}[i, j] = 1\)</span> if <span class="math notranslate nohighlight">\(\varphi(i) = j\)</span> and <span class="math notranslate nohighlight">\(0\)</span> otherwise.</p>
+<p>This is the standard permutation matrix associated to the pointwise map, with a single value per line.
+On the example below, we take 2 signals on shape 1, and pull them back through the ground-truth map to shape 2:</p>
+<ul class="simple">
+<li><p>One is a geodesic distance from a vertex of shape 1,</p></li>
+<li><p>One is a pure random RGB signal on shape 1.</p></li>
+</ul>
+<p>The result is exactly the same signals, but on shape 2.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="scipy.sparse.csr_matrix" class="sphx-glr-backref-module-scipy-sparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">P21_gt</span></a> <span class="o">=</span> <a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="scipy.sparse.csr_matrix" class="sphx-glr-backref-module-scipy-sparse sphx-glr-backref-type-py-class"><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span></a><span class="p">(</span>
+    <span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ones.html#numpy.ones" title="numpy.ones" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">ones</span></a><span class="p">(</span><span class="n">mesh2</span><span class="o">.</span><span class="n">n_vertices</span><span class="p">),</span> <span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><span class="n">mesh2</span><span class="o">.</span><span class="n">n_vertices</span><span class="p">),</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gt_p2p_21</span></a><span class="p">)),</span>
+    <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">mesh2</span><span class="o">.</span><span class="n">n_vertices</span><span class="p">,</span> <span class="n">mesh1</span><span class="o">.</span><span class="n">n_vertices</span><span class="p">),</span>
+<span class="p">)</span>
+
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f1</span></a> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc" title="numpy.ufunc" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">cos</span></a><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">pi</span></a> <span class="o">*</span> <span class="n">mesh1</span><span class="o">.</span><span class="n">geodesic_from</span><span class="p">(</span><span class="mi">300</span><span class="p">)</span> <span class="o">/</span> <span class="mf">0.2</span><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f2</span></a> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/random/generated/numpy.random.random.html#numpy.random.random" title="numpy.random.random" class="sphx-glr-backref-module-numpy-random sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span></a><span class="p">((</span><span class="n">mesh1</span><span class="o">.</span><span class="n">n_vertices</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a> <span class="o">=</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class"><span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span></a><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.subplot.html#pyvista.Plotter.subplot" title="pyvista.Plotter.subplot" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">subplot</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f1</span></a><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.add_title.html#pyvista.Plotter.add_title" title="pyvista.Plotter.add_title" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">add_title</span></a><span class="p">(</span><span class="s2">&quot;function on shape 1&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.subplot.html#pyvista.Plotter.subplot" title="pyvista.Plotter.subplot" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">subplot</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh2</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="scipy.sparse.csr_matrix" class="sphx-glr-backref-module-scipy-sparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">P21_gt</span></a> <span class="o">@</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f1</span></a><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.add_title.html#pyvista.Plotter.add_title" title="pyvista.Plotter.add_title" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">add_title</span></a><span class="p">(</span><span class="s2">&quot;pulled back to shape 2&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.subplot.html#pyvista.Plotter.subplot" title="pyvista.Plotter.subplot" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">subplot</span></a><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f2</span></a><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.add_title.html#pyvista.Plotter.add_title" title="pyvista.Plotter.add_title" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">add_title</span></a><span class="p">(</span><span class="s2">&quot;function on shape 1&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.subplot.html#pyvista.Plotter.subplot" title="pyvista.Plotter.subplot" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">subplot</span></a><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh2</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><a href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="scipy.sparse.csr_matrix" class="sphx-glr-backref-module-scipy-sparse sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">P21_gt</span></a> <span class="o">@</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f2</span></a><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.add_title.html#pyvista.Plotter.add_title" title="pyvista.Plotter.add_title" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">add_title</span></a><span class="p">(</span><span class="s2">&quot;pulled back to shape 2&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.link_views.html#pyvista.Plotter.link_views" title="pyvista.Plotter.link_views" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">link_views</span></a><span class="p">()</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.show.html#pyvista.Plotter.show" title="pyvista.Plotter.show" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">show</span></a><span class="p">(</span><span class="n">cpos</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-2" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-2">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_04_maps_from_correspondence_002.png" srcset="../_images/sphx_glr_plot_04_maps_from_correspondence_002.png" alt="plot 04 maps from correspondence" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-3" name="sd-tab-set-1" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-3">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_04_maps_from_correspondence_002.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+</section>
+<section id="the-map-as-a-matrix">
+<h2>The map as a matrix<a class="headerlink" href="#the-map-as-a-matrix" title="Link to this heading">¶</a></h2>
+<p>The functional map shown above is a large sparse matrix of shape <code class="docutils literal notranslate"><span class="pre">(n2,</span> <span class="pre">n1)</span></code>, which is the size of the two shapes.
+So the procedure didn’t compress any information, the pointwise map can be exactly recovered by looking at the positions of the non-zero entries in the matrix.</p>
+<p>The thing is that <code class="docutils literal notranslate"><span class="pre">P21_gt</span></code> is the functional map, expressed in the canonical basis of functions on each shape, that is
+the basis of delta functions at each vertex <span class="math notranslate nohighlight">\((1,0,\dots,0)^T, (0,1,0,\dots,0)^T, \dots, (0,\dots,0,1)^T\)</span>.</p>
+<p>By changing the basis of functions on each shape, we can express the same operator as a different (n,n) matrix, which is not a permutation anymore.
+What we will see is that with a good choice of basis, truncating the matrix to a small size still captures the essence of the map, and can be used to transfer smooth functions between shapes.
+While the truncated functional map will not be able to transfer all functions, and in particular the random values shown above, it will still be able to transfer smooth functions effectively,
+which is enough information to recover most of the pointwise map.</p>
+<p>Given a basis of functions of size <code class="docutils literal notranslate"><span class="pre">k_i</span></code> on shape <code class="docutils literal notranslate"><span class="pre">i</span></code>, where each basis function is a column of the matrix <span class="math notranslate nohighlight">\(\Phi_i\)</span> of size <span class="math notranslate nohighlight">\(n_i \times k_i\)</span>,
+the (truncated) functional map associated to a pointwise map is simply the least-squares solution of
+<span class="math notranslate nohighlight">\(\Phi_2 C_{12} = \Pi_{21}\Phi_1\)</span>, where <span class="math notranslate nohighlight">\(\Pi_{21}\)</span> is the permutation matrix of the pointwise map.</p>
+<p>In practice, we select the first <span class="math notranslate nohighlight">\(K\)</span> eigenfunctions of the Laplacian as a basis.
+Since these eigenfunctions are orthonormal w.r.t the area matrix on each shape, <span class="math notranslate nohighlight">\(\Phi_2^\top A_2 \Phi_2 = I\)</span>, the solution has a simple closed form expression</p>
+<p><div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[C_{12} = \Phi_2^\top A_2 \Pi_{21} \Phi_1\]</div>
+</div>
+</p>
+<p>where <span class="math notranslate nohighlight">\(A_2\)</span> is the area matrix of shape 2.</p>
+<p>In the following, a functional map is always assumed to be expressed in the truncated Laplacian basis of the two shapes, unless specified otherwise.</p>
+<p>In the code, <a class="reference internal" href="../generated/pyFM.spectral.convert.mesh_p2p_to_FM.html#pyFM.spectral.convert.mesh_p2p_to_FM" title="pyFM.spectral.convert.mesh_p2p_to_FM"><code class="xref py py-func docutils literal notranslate"><span class="pre">mesh_p2p_to_FM()</span></code></a> expresses a pointwise map in the two
+spectral bases. <code class="docutils literal notranslate"><span class="pre">dims=k</span></code> gives a <code class="docutils literal notranslate"><span class="pre">(k,</span> <span class="pre">k)</span></code> matrix; <code class="docutils literal notranslate"><span class="pre">dims=(k1,</span> <span class="pre">k2)</span></code> gives a rectangular
+<code class="docutils literal notranslate"><span class="pre">(k2,</span> <span class="pre">k1)</span></code> one.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">FM_12</span></a> <span class="o">=</span> <span class="n">mesh_p2p_to_FM</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gt_p2p_21</span></a><span class="p">,</span> <span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;functional map: </span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">FM_12</span><span class="o">.</span><span class="n">shape</span></a><span class="si">}</span><span class="s2">, from </span><span class="si">{</span><span class="n">mesh1</span><span class="o">.</span><span class="n">n_vertices</span><span class="si">}</span><span class="s2"> x </span><span class="si">{</span><span class="n">mesh2</span><span class="o">.</span><span class="n">n_vertices</span><span class="si">}</span><span class="s2"> indices&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>functional map: (50, 50), from 6890 x 6890 indices
+</pre></div>
+</div>
+<p>The matrix concentrates near the diagonal, which is a signature of a near-isometric pair: low-frequency eigenfunctions of
+one shape are combinations of the low-frequency eigenfunctions of the other. A
+correspondence between unrelated shapes has no such structure.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.figure.Figure.html#matplotlib.figure.Figure" title="matplotlib.figure.Figure" class="sphx-glr-backref-module-matplotlib-figure sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">fig</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">axes</span></a> <span class="o">=</span> <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html#matplotlib.pyplot.subplots" title="matplotlib.pyplot.subplots" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">subplots</span></a><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">),</span> <span class="n">constrained_layout</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.html#matplotlib.axes.Axes" title="matplotlib.axes.Axes" class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">ax</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">axes</span></a><span class="p">,</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">]):</span>
+    <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C</span></a> <span class="o">=</span> <span class="n">mesh_p2p_to_FM</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gt_p2p_21</span></a><span class="p">,</span> <span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="p">)</span>
+    <a href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.float64" title="numpy.float64" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-attribute"><span class="n">bound</span></a> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc" title="numpy.ufunc" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">abs</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C</span></a><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.imshow.html#matplotlib.axes.Axes.imshow" title="matplotlib.axes.Axes.imshow" class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-method"><span class="n">ax</span><span class="o">.</span><span class="n">imshow</span></a><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C</span></a><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;RdBu_r&quot;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=-</span><a href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.float64" title="numpy.float64" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-attribute"><span class="n">bound</span></a><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/arrays.scalars.html#numpy.float64" title="numpy.float64" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-attribute"><span class="n">bound</span></a><span class="p">)</span>
+    <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_title.html#matplotlib.axes.Axes.set_title" title="matplotlib.axes.Axes.set_title" class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-method"><span class="n">ax</span><span class="o">.</span><span class="n">set_title</span></a><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;k = </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_xticks.html#matplotlib.axes.Axes.set_xticks" title="matplotlib.axes.Axes.set_xticks" class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-method"><span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span></a><span class="p">([])</span>
+    <a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.axes.Axes.set_yticks.html#matplotlib.axes.Axes.set_yticks" title="matplotlib.axes.Axes.set_yticks" class="sphx-glr-backref-module-matplotlib-axes sphx-glr-backref-type-py-method"><span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span></a><span class="p">([])</span>
+<a href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.show.html#matplotlib.pyplot.show" title="matplotlib.pyplot.show" class="sphx-glr-backref-module-matplotlib-pyplot sphx-glr-backref-type-py-function"><span class="n">plt</span><span class="o">.</span><span class="n">show</span></a><span class="p">()</span>
+</pre></div>
+</div>
+<img src="../_images/sphx_glr_plot_04_maps_from_correspondence_003.png" srcset="../_images/sphx_glr_plot_04_maps_from_correspondence_003.png" alt="k = 20, k = 50, k = 100" class = "sphx-glr-single-img"/></section>
+<section id="and-back-again">
+<h2>And back again<a class="headerlink" href="#and-back-again" title="Link to this heading">¶</a></h2>
+<p><a class="reference internal" href="../generated/pyFM.spectral.convert.mesh_FM_to_p2p.html#pyFM.spectral.convert.mesh_FM_to_p2p" title="pyFM.spectral.convert.mesh_FM_to_p2p"><code class="xref py py-func docutils literal notranslate"><span class="pre">mesh_FM_to_p2p()</span></code></a> recovers a vertex map, by nearest
+neighbours in the spectral embedding. The round trip is lossy as the matrix only holds
+what the first <code class="docutils literal notranslate"><span class="pre">k</span></code> eigenfunctions can express.
+Errors below are mean geodesic errors, in percent of <span class="math notranslate nohighlight">\(\sqrt{\text{area}}\)</span>.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a> <span class="ow">in</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">]:</span>
+    <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C</span></a> <span class="o">=</span> <span class="n">mesh_p2p_to_FM</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gt_p2p_21</span></a><span class="p">,</span> <span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;k = </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2">: error after the round trip = </span><span class="si">{</span><span class="n">error</span><span class="p">(</span><span class="n">mesh_FM_to_p2p</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C</span></a><span class="p">,</span><span class="w"> </span><span class="n">mesh1</span><span class="p">,</span><span class="w"> </span><span class="n">mesh2</span><span class="p">))</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>k =   5: error after the round trip = 8.98
+k =  20: error after the round trip = 3.37
+k =  50: error after the round trip = 1.46
+k = 100: error after the round trip = 0.57
+</pre></div>
+</div>
+<p>At <code class="docutils literal notranslate"><span class="pre">k</span> <span class="pre">=</span> <span class="pre">20</span></code> the error is already small, so the whole correspondence is essentially encoded in a
+20x20 matrix, whatever the number of vertices.
+<code class="docutils literal notranslate"><span class="pre">use_adj=True</span></code> switches <a class="reference internal" href="../generated/pyFM.spectral.convert.mesh_FM_to_p2p.html#pyFM.spectral.convert.mesh_FM_to_p2p" title="pyFM.spectral.convert.mesh_FM_to_p2p"><code class="xref py py-func docutils literal notranslate"><span class="pre">mesh_FM_to_p2p()</span></code></a> to the adjoint formulation, which is the
+mathematically correct one and usually a little better behaved.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C_20</span></a> <span class="o">=</span> <span class="n">mesh_p2p_to_FM</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">gt_p2p_21</span></a><span class="p">,</span> <span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">show_map</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <span class="n">mesh_FM_to_p2p</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C_20</span></a><span class="p">,</span> <span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">),</span> <span class="s2">&quot;recovered from k = 20&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-4" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-4">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_04_maps_from_correspondence_004.png" srcset="../_images/sphx_glr_plot_04_maps_from_correspondence_004.png" alt="plot 04 maps from correspondence" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-5" name="sd-tab-set-2" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-5">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_04_maps_from_correspondence_004.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+</section>
+<section id="transferring-a-function">
+<h2>Transferring a function<a class="headerlink" href="#transferring-a-function" title="Link to this heading">¶</a></h2>
+<p>The point of the small matrix is that it acts on functions rather than on points:
+project on shape 1, multiply, unproject on shape 2. No pointwise map is involved.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f1</span></a> <span class="o">=</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ufunc.html#numpy.ufunc" title="numpy.ufunc" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">cos</span></a><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <a href="https://docs.python.org/3/library/functions.html#float" title="builtins.float" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">np</span><span class="o">.</span><span class="n">pi</span></a> <span class="o">*</span> <span class="n">mesh1</span><span class="o">.</span><span class="n">geodesic_from</span><span class="p">(</span><span class="mi">400</span><span class="p">)</span> <span class="o">/</span> <span class="mf">0.6</span><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f2</span></a> <span class="o">=</span> <span class="n">mesh2</span><span class="o">.</span><span class="n">unproject</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">FM_12</span></a> <span class="o">@</span> <span class="n">mesh1</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f1</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="o">=</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">FM_12</span><span class="o">.</span><span class="n">shape</span></a><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f1</span><span class="o">.</span><span class="n">shape</span></a><span class="si">}</span><span class="s2"> -&gt; </span><span class="si">{</span><span class="n">mesh1</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f1</span></a><span class="p">,</span><span class="w"> </span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="o">=</span><span class="mi">50</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2"> coefficients -&gt; </span><span class="si">{</span><a href="https://docs.python.org/3/library/stdtypes.html#tuple" title="builtins.tuple" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f2</span><span class="o">.</span><span class="n">shape</span></a><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a> <span class="o">=</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class"><span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span></a><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.subplot.html#pyvista.Plotter.subplot" title="pyvista.Plotter.subplot" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">subplot</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f1</span></a><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.add_title.html#pyvista.Plotter.add_title" title="pyvista.Plotter.add_title" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">add_title</span></a><span class="p">(</span><span class="s2">&quot;function on shape 1&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.subplot.html#pyvista.Plotter.subplot" title="pyvista.Plotter.subplot" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">subplot</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh2</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">f2</span></a><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.add_title.html#pyvista.Plotter.add_title" title="pyvista.Plotter.add_title" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">add_title</span></a><span class="p">(</span><span class="s2">&quot;transferred to shape 2&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.link_views.html#pyvista.Plotter.link_views" title="pyvista.Plotter.link_views" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">link_views</span></a><span class="p">()</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.show.html#pyvista.Plotter.show" title="pyvista.Plotter.show" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">show</span></a><span class="p">(</span><span class="n">cpos</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-6" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-6">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_04_maps_from_correspondence_005.png" srcset="../_images/sphx_glr_plot_04_maps_from_correspondence_005.png" alt="plot 04 maps from correspondence" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-7" name="sd-tab-set-3" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-7">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_04_maps_from_correspondence_005.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>(6890,) -&gt; (50,) coefficients -&gt; (6890,)
+</pre></div>
+</div>
+<p><a class="reference internal" href="../generated/pyFM.functional.FunctionalMapping.html#pyFM.functional.FunctionalMapping.transfer" title="pyFM.functional.FunctionalMapping.transfer"><code class="xref py py-meth docutils literal notranslate"><span class="pre">transfer()</span></code></a> wraps these three steps.</p>
+</section>
+<section id="initialization-by-nearest-neighbours">
+<h2>Initialization by nearest neighbours<a class="headerlink" href="#initialization-by-nearest-neighbours" title="Link to this heading">¶</a></h2>
+<p>Everything above used the ground-truth map as input, which is exactly what we do not have
+in practice. So where does a first <span class="math notranslate nohighlight">\(\Pi_{21}\)</span> come from ?</p>
+<p>The cheapest answer is to match each vertex of shape 2 to the closest vertex of shape 1
+in <span class="math notranslate nohighlight">\(\mathbb{R}^3\)</span>. This compares <em>positions</em>, so it only means something if the two shapes
+are already aligned. Here, <code class="docutils literal notranslate"><span class="pre">tr_reg_040</span></code> is another subject in the same pose as
+<code class="docutils literal notranslate"><span class="pre">tr_reg_000</span></code>, so this is the favourable case.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="n">mesh_aligned</span> <span class="o">=</span> <span class="n">TriMesh</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">example_data</span><span class="p">(</span><span class="s2">&quot;tr_reg_040.off&quot;</span><span class="p">),</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">error_aligned</span> <span class="o">=</span> <span class="n">error_function</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh_aligned</span><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><span class="n">mesh_aligned</span><span class="o">.</span><span class="n">n_vertices</span><span class="p">))</span>
+
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">p2p_nn_aligned</span></a> <span class="o">=</span> <span class="n">knn_query</span><span class="p">(</span><span class="n">mesh1</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">mesh_aligned</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nearest neighbours, same pose     : </span><span class="si">{</span><span class="n">error_aligned</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">p2p_nn_aligned</span></a><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">show_map</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh_aligned</span><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">p2p_nn_aligned</span></a><span class="p">,</span> <span class="s2">&quot;nearest neighbours, same pose&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-8" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-8">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_04_maps_from_correspondence_006.png" srcset="../_images/sphx_glr_plot_04_maps_from_correspondence_006.png" alt="plot 04 maps from correspondence" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-9" name="sd-tab-set-4" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-9">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_04_maps_from_correspondence_006.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>nearest neighbours, same pose     : 3.43
+</pre></div>
+</div>
+<p>The map is noisy up close but globally right, which is all we need from an initialization.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tr_reg_047</span></code> is the same subject as <code class="docutils literal notranslate"><span class="pre">tr_reg_040</span></code>, in a different pose. The exact same
+call now returns something unrelated to the true map: an arm folded across the body picks
+up the colors of the torso, since that is what is nearby.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">p2p_nn</span></a> <span class="o">=</span> <span class="n">knn_query</span><span class="p">(</span><span class="n">mesh1</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <span class="n">mesh2</span><span class="o">.</span><span class="n">vertices</span><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;nearest neighbours, different pose: </span><span class="si">{</span><span class="n">error</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">p2p_nn</span></a><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="n">show_map</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">p2p_nn</span></a><span class="p">,</span> <span class="s2">&quot;nearest neighbours, different pose&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-10" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-10">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_04_maps_from_correspondence_007.png" srcset="../_images/sphx_glr_plot_04_maps_from_correspondence_007.png" alt="plot 04 maps from correspondence" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-11" name="sd-tab-set-5" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-11">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_04_maps_from_correspondence_007.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>nearest neighbours, different pose: 22.83
+</pre></div>
+</div>
+</section>
+<section id="initialization-from-landmarks">
+<h2>Initialization from landmarks<a class="headerlink" href="#initialization-from-landmarks" title="Link to this heading">¶</a></h2>
+<p>When the shapes are not aligned, a handful of matched points is enough to get a small map.</p>
+<p>The idea is the same least-squares problem as above, but written only on the rows we know.
+With <span class="math notranslate nohighlight">\(p\)</span> landmarks on each shape, we solve <span class="math notranslate nohighlight">\(\Phi_2[\text{lmks}_2] C_{12} = \Phi_1[\text{lmks}_1]\)</span>,
+which is <span class="math notranslate nohighlight">\(p\)</span> equations for <span class="math notranslate nohighlight">\(k_2\)</span> unknowns per column of <span class="math notranslate nohighlight">\(C_{12}\)</span>. This only determines <span class="math notranslate nohighlight">\(C_{12}\)</span> if
+<span class="math notranslate nohighlight">\(k_2 \leq p\)</span>, so a few landmarks buy a small map, and only a small one.</p>
+<p>In the code this is <code class="docutils literal notranslate"><span class="pre">subsample=(lmks1,</span> <span class="pre">lmks2)</span></code>, which tells
+<a class="reference internal" href="../generated/pyFM.spectral.convert.mesh_p2p_to_FM.html#pyFM.spectral.convert.mesh_p2p_to_FM" title="pyFM.spectral.convert.mesh_p2p_to_FM"><code class="xref py py-func docutils literal notranslate"><span class="pre">mesh_p2p_to_FM()</span></code></a> that the correspondence is only known on those
+vertices. The area matrix is dropped and the system is solved by least squares.</p>
+<p>Note we use here the same indices on both shapes, which is only valid because this pair shares
+its triangulation. In general landmarks come as pairs of indices, as in <code class="docutils literal notranslate"><span class="pre">examples/data/landmarks.txt</span></code>.</p>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_landmarks</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a> <span class="ow">in</span> <span class="p">[(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">30</span><span class="p">)]:</span>
+    <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmks</span></a> <span class="o">=</span> <span class="n">mesh1</span><span class="o">.</span><span class="n">farthest_point_sampling</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_landmarks</span></a><span class="p">)</span>
+    <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C_lmk</span></a> <span class="o">=</span> <span class="n">mesh_p2p_to_FM</span><span class="p">(</span>
+        <a href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_landmarks</span></a><span class="p">),</span> <span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="p">,</span> <a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="p">),</span> <span class="n">subsample</span><span class="o">=</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmks</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmks</span></a><span class="p">)</span>
+    <span class="p">)</span>
+    <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">p2p_lmk</span></a> <span class="o">=</span> <span class="n">mesh_FM_to_p2p</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C_lmk</span></a><span class="p">,</span> <span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">n_landmarks</span></a><span class="si">:</span><span class="s2">3d</span><span class="si">}</span><span class="s2"> landmarks, k = </span><span class="si">{</span><a href="https://docs.python.org/3/library/functions.html#int" title="builtins.int" class="sphx-glr-backref-module-builtins sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">k</span></a><span class="si">:</span><span class="s2">2d</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">error</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">p2p_lmk</span></a><span class="p">)</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sphx-glr-script-out highlight-none notranslate"><div class="highlight"><pre><span></span>20 landmarks, k = 10: 6.67
+20 landmarks, k = 20: 14.59
+50 landmarks, k = 20: 3.56
+50 landmarks, k = 30: 3.76
+</pre></div>
+</div>
+<p>50 landmarks and a 20x20 matrix already do much better than nearest neighbours on this pair,
+on shapes with no alignment at all. Note this is about what the <em>ground-truth</em> map gave above.
+This means that 50 well spread points are enough to recover a 20x20 map almost as
+well as knowing correspondences for every single vertex.</p>
+<p>Taking <span class="math notranslate nohighlight">\(k\)</span> all the way up to <span class="math notranslate nohighlight">\(p\)</span> actually makes things worse, not better. The system becomes square and
+fits the landmarks exactly, which is somehow noisy as we don’t expect the truncated functional map to
+exactly fit landmarks.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>With very few landmarks, this is probably not the way to go. Prefer
+<a class="reference internal" href="../generated/pyFM.functional.FunctionalMapping.html#pyFM.functional.FunctionalMapping.fit" title="pyFM.functional.FunctionalMapping.fit"><code class="xref py py-meth docutils literal notranslate"><span class="pre">fit()</span></code></a>, which treats landmarks as soft
+constraints and leaves <span class="math notranslate nohighlight">\(k\)</span> free, then ZoomOut. See
+<a class="reference internal" href="plot_05_maps_without_correspondence.html#sphx-glr-auto-examples-plot-05-maps-without-correspondence-py"><span class="std std-ref">Computing a map without a correspondence</span></a>.</p>
+</div>
+<div class="highlight-Python notranslate"><div class="highlight"><pre><span></span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmks</span></a> <span class="o">=</span> <span class="n">mesh1</span><span class="o">.</span><span class="n">farthest_point_sampling</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C_lmk</span></a> <span class="o">=</span> <span class="n">mesh_p2p_to_FM</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.arange.html#numpy.arange" title="numpy.arange" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-function"><span class="n">np</span><span class="o">.</span><span class="n">arange</span></a><span class="p">(</span><span class="mi">50</span><span class="p">),</span> <span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">subsample</span><span class="o">=</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmks</span></a><span class="p">,</span> <a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmks</span></a><span class="p">))</span>
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">p2p_lmk</span></a> <span class="o">=</span> <span class="n">mesh_FM_to_p2p</span><span class="p">(</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">C_lmk</span></a><span class="p">,</span> <span class="n">mesh1</span><span class="p">,</span> <span class="n">mesh2</span><span class="p">)</span>
+
+<a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">colors1</span></a> <span class="o">=</span> <span class="n">vertices_to_rgb</span><span class="p">(</span><span class="n">mesh1</span><span class="o">.</span><span class="n">vertices</span><span class="p">)</span>
+
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a> <span class="o">=</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class"><span class="n">pv</span><span class="o">.</span><span class="n">Plotter</span></a><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.subplot.html#pyvista.Plotter.subplot" title="pyvista.Plotter.subplot" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">subplot</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh1</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">colors1</span></a><span class="p">,</span> <span class="n">points</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmks</span></a><span class="p">,</span> <span class="n">points_color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">point_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.add_title.html#pyvista.Plotter.add_title" title="pyvista.Plotter.add_title" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">add_title</span></a><span class="p">(</span><span class="s2">&quot;source, 50 landmarks&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.subplot.html#pyvista.Plotter.subplot" title="pyvista.Plotter.subplot" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">subplot</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plot_mesh</span><span class="p">(</span><span class="n">mesh2</span><span class="p">,</span> <span class="n">scalars</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">colors1</span></a><span class="p">[</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">p2p_lmk</span></a><span class="p">],</span> <span class="n">points</span><span class="o">=</span><a href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="numpy.ndarray" class="sphx-glr-backref-module-numpy sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">lmks</span></a><span class="p">,</span> <span class="n">points_color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">point_size</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="o">=</span><a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.html#pyvista.Plotter" title="pyvista.Plotter" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-class sphx-glr-backref-instance"><span class="n">pl</span></a><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.add_title.html#pyvista.Plotter.add_title" title="pyvista.Plotter.add_title" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">add_title</span></a><span class="p">(</span><span class="s2">&quot;from landmarks, k = 20&quot;</span><span class="p">,</span> <span class="n">font_size</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.link_views.html#pyvista.Plotter.link_views" title="pyvista.Plotter.link_views" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">link_views</span></a><span class="p">()</span>
+<a href="https://docs.pyvista.org/api/plotting/_autosummary/pyvista.Plotter.show.html#pyvista.Plotter.show" title="pyvista.Plotter.show" class="sphx-glr-backref-module-pyvista sphx-glr-backref-type-py-method"><span class="n">pl</span><span class="o">.</span><span class="n">show</span></a><span class="p">(</span><span class="n">cpos</span><span class="o">=</span><span class="s2">&quot;xy&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="sd-tab-set docutils">
+<input checked="checked" id="sd-tab-item-12" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-12">
+Static Scene</label><div class="sd-tab-content docutils">
+<img src="../_images/sphx_glr_plot_04_maps_from_correspondence_008.png" srcset="../_images/sphx_glr_plot_04_maps_from_correspondence_008.png" alt="plot 04 maps from correspondence" class = "sphx-glr-single-img"/></div>
+<input id="sd-tab-item-13" name="sd-tab-set-6" type="radio">
+<label class="sd-tab-label" for="sd-tab-item-13">
+Interactive Scene</label><div class="sd-tab-content docutils">
+<iframe src='../_static/static_viewer.html?fileURL=../_images/auto_examples/images/sphx_glr_plot_04_maps_from_correspondence_008.vtksz' width='100%%' height='400px' frameborder='0'></iframe></div>
+</div>
+<p>Both of these are initializations, not answers.
+<a class="reference internal" href="plot_05_maps_without_correspondence.html#sphx-glr-auto-examples-plot-05-maps-without-correspondence-py"><span class="std std-ref">Computing a map without a correspondence</span></a> computes a map when
+neither is available, and refines any of them into something usable.</p>
+<p class="sphx-glr-timing"><strong>Total running time of the script:</strong> (0 minutes 6.495 seconds)</p>
+<div class="sphx-glr-footer sphx-glr-footer-example docutils container" id="sphx-glr-download-auto-examples-plot-04-maps-from-correspondence-py">
+<div class="sphx-glr-download sphx-glr-download-jupyter docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/250f887d9983ae10d513b5a011ab396c/plot_04_maps_from_correspondence.ipynb"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Jupyter</span> <span class="pre">notebook:</span> <span class="pre">plot_04_maps_from_correspondence.ipynb</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-python docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/d7e8aebbc529bd8076283ae3d45b0a8d/plot_04_maps_from_correspondence.py"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">Python</span> <span class="pre">source</span> <span class="pre">code:</span> <span class="pre">plot_04_maps_from_correspondence.py</span></code></a></p>
+</div>
+<div class="sphx-glr-download sphx-glr-download-zip docutils container">
+<p><a class="reference download internal" download="" href="../_downloads/736ed73a4f15901473346ea1a848e674/plot_04_maps_from_correspondence.zip"><code class="xref download docutils literal notranslate"><span class="pre">Download</span> <span class="pre">zipped:</span> <span class="pre">plot_04_maps_from_correspondence.zip</span></code></a></p>
+</div>
+</div>
+<p class="sphx-glr-signature"><a class="reference external" href="https://sphinx-gallery.github.io">Gallery generated by Sphinx-Gallery</a></p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="plot_05_maps_without_correspondence.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Computing a map without a correspondence</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="plot_03_spectrum.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">The Laplacian and its spectrum</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Robin Magnet
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Encoding Dense Correspondences in a Functional Map</a><ul>
+<li><a class="reference internal" href="#setup">Setup</a></li>
+<li><a class="reference internal" href="#conventions-and-representations">Conventions and representations</a></li>
+<li><a class="reference internal" href="#what-is-a-functional-map">What is a functional map</a></li>
+<li><a class="reference internal" href="#the-map-as-a-matrix">The map as a matrix</a></li>
+<li><a class="reference internal" href="#and-back-again">And back again</a></li>
+<li><a class="reference internal" href="#transferring-a-function">Transferring a function</a></li>
+<li><a class="reference internal" href="#initialization-by-nearest-neighbours">Initialization by nearest neighbours</a></li>
+<li><a class="reference internal" href="#initialization-from-landmarks">Initialization from landmarks</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=d07e833c"></script>
+    <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/sg-tags.js?v=d80f6fa4"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    </body>
+</html>

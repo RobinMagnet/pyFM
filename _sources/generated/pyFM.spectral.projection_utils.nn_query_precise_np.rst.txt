@@ -1,0 +1,9 @@
+pyFM.spectral.projection\_utils.nn\_query\_precise\_np
+======================================================
+
+.. currentmodule:: pyFM.spectral.projection_utils
+
+.. autofunction:: nn_query_precise_np
+
+.. minigallery:: pyFM.spectral.projection_utils.nn_query_precise_np
+   :add-heading: Examples using ``nn_query_precise_np``

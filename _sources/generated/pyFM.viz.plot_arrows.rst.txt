@@ -1,0 +1,9 @@
+pyFM.viz.plot\_arrows
+=====================
+
+.. currentmodule:: pyFM.viz
+
+.. autofunction:: plot_arrows
+
+.. minigallery:: pyFM.viz.plot_arrows
+   :add-heading: Examples using ``plot_arrows``
