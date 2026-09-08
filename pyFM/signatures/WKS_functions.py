@@ -147,14 +147,16 @@ def mesh_WKS(mesh, num_E, landmarks=None, k=None):
     WKS : (N, num_E) np.ndarray
         Array where each line is the WKS for a given energy value.
     """
-    assert mesh.eigenvalues is not None, "Eigenvalues should be processed"
+    if mesh.eigenvalues is None:
+        raise ValueError("Eigenvalues should be processed: call mesh.process() first")
 
     if k is None:
         k = len(mesh.eigenvalues)
     else:
-        assert len(mesh.eigenvalues) >= k, (
-            f"At least {k} eigenvalues should be computed, not {len(mesh.eigenvalues)}"
-        )
+        if len(mesh.eigenvalues) < k:
+            raise ValueError(
+                f"At least {k} eigenvalues should be computed, not {len(mesh.eigenvalues)}"
+            )
 
     return auto_WKS(
         mesh.eigenvalues[:k],

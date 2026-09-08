@@ -127,14 +127,16 @@ def mesh_HKS(mesh, num_T, landmarks=None, k=None):
         Array where each line is the HKS for a given t.
     """
 
-    assert mesh.eigenvalues is not None, "Eigenvalues should be processed"
+    if mesh.eigenvalues is None:
+        raise ValueError("Eigenvalues should be processed: call mesh.process() first")
 
     if k is None:
         k = len(mesh.eigenvalues)
     else:
-        assert len(mesh.eigenvalues) >= k, (
-            f"At least {k} eigenvalues should be computed, not {len(mesh.eigenvalues)}"
-        )
+        if len(mesh.eigenvalues) < k:
+            raise ValueError(
+                f"At least {k} eigenvalues should be computed, not {len(mesh.eigenvalues)}"
+            )
 
     return auto_HKS(
         mesh.eigenvalues[:k],
