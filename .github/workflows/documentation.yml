@@ -41,8 +41,12 @@ jobs:
     - name: Install dependencies from the lockfile
       run: uv sync --locked
 
+    # -d keeps Sphinx's doctree cache out of the published directory. It defaults
+    # to <outdir>/.doctrees, which means it gets deployed to the website: 12 MB of
+    # build artifacts (61% of the push) plus an environment.pickle containing
+    # absolute build paths.
     - name: Build HTML
-      run: uv run sphinx-build -b html docs/source/ docs/_build/html
+      run: uv run sphinx-build -d docs/_build/doctrees -b html docs/source/ docs/_build/html
 
     - name: upload artifact
       uses: actions/upload-artifact@v4

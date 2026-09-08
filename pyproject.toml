@@ -8,7 +8,7 @@ description = "Python bindings for functional maps"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "Robin Magnet" }]
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 dynamic = ["version"]
 dependencies = [
     "numpy",
@@ -26,11 +26,10 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Testing",
 ]
 
@@ -41,7 +40,15 @@ viz = ["pyvista[jupyter]>=0.44", "matplotlib"]
 # Development-only dependencies live in PEP 735 groups rather than extras, so they stay
 # out of the published wheel metadata (nobody should `pip install pyfmaps[docs]`).
 [dependency-groups]
-dev = ["ruff", "pre-commit", "pytest", "pytest-cov", "build"]
+dev = [
+    "ruff",
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "build",
+    "ipykernel>=6.29.5",
+    "ipywidgets>=8.1.8",
+]
 docs = [
     "furo",
     "myst_parser>=0.13",
@@ -72,12 +79,15 @@ include = ["pyFM*"]
 [tool.setuptools_scm]
 version_file = "pyFM/_version.py"
 
+[tool.pytest.ini_options]
+# Prevent `pytest` from collecting directories at root.
+testpaths = ["tests"]
+
 [tool.ruff]
 line-length = 100
-target-version = "py38"
-# Lint the library and the gallery scripts; sphinx config and the legacy
-# meshplot notebooks follow their own style.
-extend-exclude = ["docs", "examples/mesh_and_matching", "examples/functional_map_network", "build"]
+target-version = "py310"
+# Lint the library and the gallery scripts. Sphinx config follows its own style.
+extend-exclude = ["docs", "build"]
 
 [tool.ruff.lint]
 # E/W: pycodestyle, F: pyflakes, I: isort

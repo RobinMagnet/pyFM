@@ -108,3 +108,6 @@ small_test.ipynb
 # Dask
 dask-worker-space/
 
+
+# research scratch, not part of the package
+studies/
