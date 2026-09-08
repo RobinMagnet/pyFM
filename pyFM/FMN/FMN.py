@@ -7,10 +7,10 @@ import scipy.linalg
 import scipy.sparse as sparse
 import scipy.sparse.linalg
 from scipy.optimize import linprog
-from sklearn.neighbors import NearestNeighbors
 from tqdm.auto import tqdm
 
 from .. import spectral
+from ..spectral.nearest_neighbor import knn_query
 
 
 class FMN:
@@ -98,7 +98,34 @@ class FMN:
 
     @M.setter
     def M(self, M):
+        size, ind = self._spectrum_size()
+        if size is not None and M > size:
+            raise ValueError(
+                f"Functional maps of size {M} need {M} eigenvectors on each mesh, but "
+                f"mesh {ind} only has {size}. Process the meshes with `process(k={M})`, "
+                "or use smaller maps."
+            )
         self._M = M
+
+    def _spectrum_size(self):
+        """
+        Return the smallest number of eigenvectors available, with the mesh it belongs to.
+
+        Returns
+        -------
+        size : int or None
+            Smallest spectrum size, None if no mesh has been processed.
+        ind : int or None
+            Index of the mesh achieving it.
+        """
+        sizes = [
+            (evects.shape[1], i)
+            for i, evects in enumerate(
+                getattr(mesh, "eigenvectors", None) for mesh in self.meshlist
+            )
+            if evects is not None
+        ]
+        return min(sizes) if sizes else (None, None)
 
     @property
     def m_cclb(self):
@@ -205,9 +232,7 @@ class FMN:
             print(f"Computing a {size}-sized subsample for each mesh")
         self.subsample = np.zeros((self.n_meshes, size), dtype=int)
         for i in range(self.n_meshes):
-            self.subsample[i] = self.meshlist[i].extract_fps(
-                size, geodesic=geodesic, random_init=False
-            )
+            self.subsample[i] = self.meshlist[i].farthest_point_sampling(size, geodesic=geodesic)
 
     def set_weights(self, weights=None, weight_type="icsm", verbose=False):
         """
@@ -343,7 +368,7 @@ class FMN:
         if M is not None:
             self.M = M
 
-        self.W = CLB_quad_form(self.maps, self.weights, M=self.M)
+        self.W = CLB_quad_form(self.maps, self.weights, M=self.M, n_meshes=self.n_meshes)
 
     def compute_CLB(self, equals_id=False, verbose=False):
         """
@@ -491,7 +516,7 @@ class FMN:
         latent_basis = self.meshlist[i].eigenvectors[:, : self.M] @ cclb  # (N_i,m)
         return latent_basis
 
-    def compute_p2p(self, complete=True, n_jobs=1):
+    def compute_p2p(self, complete=True, n_jobs=None):
         """
         Compute vertex-to-vertex maps for each (directed) edge from the CCLB.
 
@@ -506,7 +531,7 @@ class FMN:
             If False, uses ``self.subsample`` to obtain pointwise maps between
             subsamples of vertices for each shape.
         n_jobs : int, optional
-            Number of parallel jobs used for the nearest-neighbor queries.
+            Number of parallel jobs. None (default) decides automatically.
 
         Returns
         -------
@@ -514,26 +539,18 @@ class FMN:
             The pointwise maps are stored in ``self.p2p`` in place.
         """
 
+        # Embeddings only depend on the node, whereas each node appears in multiple edges.
+        LB_sub = [self.get_LB(i, complete=False) for i in range(self.n_meshes)]
+        LB_target = (
+            [self.get_LB(i, complete=True) for i in range(self.n_meshes)] if complete else LB_sub
+        )
+
         self.p2p = dict()
-        curr_vind = -1
         for i, j in self.edges:
-            if i != curr_vind:
-                curr_v = i
-                LB_1 = self.get_LB(curr_v, complete=False)  # (n_1',m)
+            LB_1 = LB_sub[i]  # (n_1',m)
+            LB_2 = LB_target[j]  # (n_2',m)
 
-                tree = NearestNeighbors(
-                    n_neighbors=1, leaf_size=40, algorithm="kd_tree", n_jobs=n_jobs
-                )
-                _ = tree.fit(LB_1)
-
-            # LB_1 = self.get_LB(i, complete=complete)  # (n_1',m)
-            LB_2 = self.get_LB(j, complete=complete)  # (n_2',m)
-
-            t_, p2p = tree.kneighbors(LB_2)
-
-            p2p = p2p.flatten()
-
-            self.p2p[(i, j)] = p2p  # (n_2',)
+            self.p2p[(i, j)] = knn_query(LB_1, LB_2, k=1, n_jobs=n_jobs)  # (n_2',)
 
     def compute_maps(self, M, complete=True):
         """
@@ -583,17 +600,20 @@ class FMN:
         """
         self.cycles = []
 
-        # Ugly triple for loop, but only has to be run once
+        # Ugly triple for loop, but only has to be run once.
+        # Membership is tested on the edge2ind dict, not on the edges list, to avoid
+        # a linear scan over all edges at each test.
+        edgeset = self.edge2ind
         # Saves cycles (i,j,k) with either i<j<k or i>j>k
         for i in range(self.n_meshes):
             for j in range(i):
                 for k in range(j):
-                    if (i, j) in self.edges and (j, k) in self.edges and (k, i) in self.edges:
+                    if (i, j) in edgeset and (j, k) in edgeset and (k, i) in edgeset:
                         self.cycles.append((i, j, k))
 
             for j in range(i + 1, self.n_meshes):
                 for k in range(j + 1, self.n_meshes):
-                    if (i, j) in self.edges and (j, k) in self.edges and (k, i) in self.edges:
+                    if (i, j) in edgeset and (j, k) in edgeset and (k, i) in edgeset:
                         self.cycles.append(tuple((i, j, k)))
 
     def compute_Amat(self):
@@ -606,17 +626,26 @@ class FMN:
         Returns
         -------
         None
-            The matrix is stored in ``self.A`` and the indices of edges in a
-            cycle in ``self.A_sub``, in place.
+            The matrix is stored in ``self.A`` (as a sparse matrix) and the
+            indices of edges in a cycle in ``self.A_sub``, in place.
         """
-        self.A = np.zeros((len(self.cycles), len(self.edges)))  # (n_cycles, n_edges)
+        n_cycles, n_edges = len(self.cycles), len(self.edges)
 
-        for cycle_ind, (i, j, k) in enumerate(self.cycles):
-            self.A[cycle_ind, self.edge2ind[(i, j)]] = 1
-            self.A[cycle_ind, self.edge2ind[(j, k)]] = 1
-            self.A[cycle_ind, self.edge2ind[(k, i)]] = 1
+        # Each cycle uses exactly 3 edges, so A only has 3 non-zeros per row.
+        cols = np.array(
+            [
+                (self.edge2ind[(i, j)], self.edge2ind[(j, k)], self.edge2ind[(k, i)])
+                for (i, j, k) in self.cycles
+            ],
+            dtype=int,
+        ).reshape(n_cycles, 3)
+        rows = np.repeat(np.arange(n_cycles), 3)
 
-        self.A_sub = np.where(self.A.sum(0) > 0)[0]  # (n_edges_in_cycle)
+        self.A = sparse.csr_matrix(
+            (np.ones(cols.size), (rows, cols.ravel())), shape=(n_cycles, n_edges)
+        )  # (n_cycles, n_edges)
+
+        self.A_sub = np.unique(cols)  # (n_edges_in_cycle)
 
     def compute_3cycle_weights(self, M=None):
         """
@@ -644,10 +673,12 @@ class FMN:
         for cycle_ind, cycle in enumerate(self.cycles):
             self.cycle_weight[cycle_ind] = self.get_cycle_weight(cycle, M=M)  # n_cycles
 
+        # Sum of the weights of all cycles each edge belongs to. A being binary,
+        # this is simply A.T @ cycle_weight.
+        col_sums = self.A.T @ self.cycle_weight  # (n_edges,)
+
         self.edge_weights = np.zeros(len(self.edges))
-        self.edge_weights[self.A_sub] = 1 / (
-            self.A[:, self.A_sub] * self.cycle_weight[:, None]
-        ).sum(0)
+        self.edge_weights[self.A_sub] = 1 / col_sums[self.A_sub]
 
     def optimize_icsm(self, verbose=False):
         r"""
@@ -732,7 +763,7 @@ class FMN:
         M_final,
         isometric=True,
         weight_type="icsm",
-        n_jobs=1,
+        n_jobs=None,
         equals_id=False,
         complete=False,
     ):
@@ -752,7 +783,7 @@ class FMN:
         weight_type : str, optional
             'icsm' or 'adjacency', type of weights to use.
         n_jobs : int, optional
-            Number of parallel jobs used for the nearest-neighbor queries.
+            Number of parallel jobs. None (default) decides automatically.
         equals_id : bool, optional
             Whether the CLB optimization uses Id or n * Id as a constraint.
         complete : bool, optional
@@ -788,7 +819,7 @@ class FMN:
         weight_type="icsm",
         M_init=None,
         cclb_ratio=0.9,
-        n_jobs=1,
+        n_jobs=None,
         equals_id=False,
         verbose=False,
     ):
@@ -812,7 +843,7 @@ class FMN:
         cclb_ratio : float, optional
             Size of CCLB as a ratio of the current dimension M.
         n_jobs : int, optional
-            Number of parallel jobs used for the nearest-neighbor queries.
+            Number of parallel jobs. None (default) decides automatically.
         equals_id : bool, optional
             Whether the CLB optimization uses Id or n * Id as a constraint.
         verbose : bool, optional
@@ -838,7 +869,17 @@ class FMN:
         else:
             M_init = self.M
 
-        for i in tqdm(range(nit)):
+        # Fail now rather than in the middle of the refinement.
+        size, ind = self._spectrum_size()
+        M_final = M_init + nit * step
+        if size is not None and M_final > size:
+            raise ValueError(
+                f"Refining {nit} times by {step} takes the maps from {M_init} to "
+                f"{M_final}, but mesh {ind} only has {size} eigenvectors. Process the "
+                f"meshes with `process(k={M_final})`, or reduce `nit` or `step`."
+            )
+
+        for i in tqdm(range(nit), disable=not verbose):
             new_M = self.M + step
             m_cclb = int(cclb_ratio * self.M)
             # On the last iteration, always recompute the maps on the full mesh
@@ -856,7 +897,7 @@ class FMN:
             )
 
 
-def CLB_quad_form(maps, weights, M=None):
+def CLB_quad_form(maps, weights, M=None, n_meshes=None):
     """
     Compute the quadratic form of a Functional Maps Network for CLB computation.
 
@@ -868,6 +909,8 @@ def CLB_quad_form(maps, weights, M=None):
         Matrix of weights. Entry (i, j) represents the weight of edge (i, j).
     M : int, optional
         Dimension of functional maps to consider.
+    n_meshes : int, optional
+        Number of meshes. If not specified, inferred from the highest index in ``maps``.
 
     Returns
     -------
@@ -876,10 +919,13 @@ def CLB_quad_form(maps, weights, M=None):
         computation.
     """
     edges = list(maps.keys())
-    N = 1 + np.max(edges)
+    N = 1 + np.max(edges) if n_meshes is None else n_meshes
 
     if M is None:
         M = maps[edges[0]].shape[0]
+
+    # Scalar indexing in a sparse matrix is slow, and each weight is read 4 times.
+    weights = weights.toarray() if sparse.issparse(weights) else np.asarray(weights)
 
     # Prepare a block-sparse matrix
     grid = [[None for _ in range(N)] for _ in range(N)]
@@ -888,19 +934,20 @@ def CLB_quad_form(maps, weights, M=None):
 
     for i, j in edges:
         FM = maps[(i, j)][:M, :M]
+        w_ij = weights[i, j]
 
-        grid[i][i] += sparse.csr_matrix(weights[i, j] * (FM.T @ FM))
-        grid[j][j] += sparse.csr_matrix(weights[i, j] * np.eye(M))
+        grid[i][i] += sparse.csr_matrix(w_ij * (FM.T @ FM))
+        grid[j][j] += sparse.csr_matrix(w_ij * np.eye(M))
 
         if grid[i][j] is None:
             grid[i][j] = sparse.csr_matrix(np.zeros((M, M)))
 
-        grid[i][j] -= sparse.csr_matrix(weights[i, j] * FM.T)
+        grid[i][j] -= sparse.csr_matrix(w_ij * FM.T)
 
         if grid[j][i] is None:
             grid[j][i] = sparse.csr_matrix(np.zeros((M, M)))
 
-        grid[j][i] -= sparse.csr_matrix(weights[i, j] * FM)
+        grid[j][i] -= sparse.csr_matrix(w_ij * FM)
 
     # Build block sparse matrix
     W = sparse.bmat(grid, format="csr")
