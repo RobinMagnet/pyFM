@@ -1,94 +1,189 @@
+import copy
 import os
 import time
+import warnings
 
 import numpy as np
 import potpourri3d as pp3d
 import robust_laplacian
-import scipy.linalg
 import scipy.sparse as sparse
 
 from . import file_utils, laplacian
 from . import geometry as geom
 
 GEODESIC_METHODS = ("heat", "heat_pure", "dijkstra", "fast_marching")
+READ_MESH_EXTENSIONS = (".off", ".obj", ".ply")
+WRITE_MESH_EXTENSIONS = (".off", ".obj")
+
+
+def _read_mesh_file(path):
+    """
+    Read vertices and faces from a mesh file.
+
+    Parameters
+    ----------
+    path : str
+        Path to a ``.off`` or ``.obj`` file.
+
+    Returns
+    -------
+    vertices : (n, 3) np.ndarray
+        Coordinates of the mesh vertices.
+    faces : (m, 3) np.ndarray or None
+        Vertex indices defining the faces.
+    """
+    ext = os.path.splitext(path)[1].lower()
+    if ext == ".off":
+        return file_utils.read_off(path)
+    if ext == ".obj":
+        return file_utils.read_obj(path)
+    if ext == ".ply":
+        return pp3d.read_mesh(path)
+    raise ValueError(
+        f"Cannot read '{ext}' files. Supported formats: {', '.join(READ_MESH_EXTENSIONS)}"
+    )
+
+
+def _alias(target, doc):
+    """Read/write property forwarding to another attribute."""
+    return property(
+        lambda self: getattr(self, target),
+        lambda self, value: setattr(self, target, value),
+        doc=doc,
+    )
+
+
+def _deprecated_alias(target, name):
+    """Read/write property forwarding to ``target``, warning when used."""
+    message = f"`{name}` is deprecated, use `{target}` instead."
+
+    def fget(self):
+        warnings.warn(message, DeprecationWarning, stacklevel=2)
+        return getattr(self, target)
+
+    def fset(self, value):
+        warnings.warn(message, DeprecationWarning, stacklevel=2)
+        setattr(self, target, value)
+
+    return property(fget, fset, doc=message)
+
+
+def _deprecated_method(target, name):
+    """Method forwarding to ``target``, warning when used."""
+    message = f"`{name}()` is deprecated, use `{target}()` instead."
+
+    def wrapper(self, *args, **kwargs):
+        warnings.warn(message, DeprecationWarning, stacklevel=2)
+        return getattr(self, target)(*args, **kwargs)
+
+    wrapper.__name__ = name
+    wrapper.__doc__ = message
+    return wrapper
 
 
 class TriMesh:
     """
-    Mesh (and PointCloud) Class
+    Triangle mesh, or point cloud when no faces are given.
+
+    Derived quantities (edges, normals, areas, Laplace-Beltrami operators and
+    their spectrum) are computed on demand and stored.
 
     Parameters
     ------------------
-    path           : str, optional
-        path to a .off file
-    vertices       : np.ndarray, optional
-        (n,3) vertices coordinates
-    faces          : np.ndarray, optional
-        (m,3) list of indices of triangles
+    vertices : np.ndarray
+        (n,3) coordinates of the vertices. A file path is also accepted, but
+        this is deprecated: use :meth:`TriMesh.load` instead.
+    faces : np.ndarray, optional
+        (m,3) indices of the vertices of each triangle. Leave empty for a point cloud.
     area_normalize : bool, optional
-        If True, normalize the mesh
+        If True, scale the mesh to unit area
     center : bool, optional
-        If True, center the mesh
+        If True, move the center of mass to the origin
+    normalize : bool, optional
+        Shorthand for ``area_normalize=True, center=True``
     rotation : np.ndarray, optional
-        3x3 rotation matrix
+        (3,3) rotation matrix, applied first
     translation : np.ndarray, optional
-        3D translation vector, applied after rotation
+        (3,) translation vector, applied after the rotation
+    name : str, optional
+        Name of the mesh. Defaults to the file stem when loaded from a file.
 
     Attributes
     ------------------
-    path         : str
-        path to the loaded .off file. Set to None if the geometry is modified.
-    meshname     : str
-        name of the .off file. Remains even when geometry is modified. '_n' is
-                   added at the end if the mesh was normalized.
-    W            :
-        (n,n) sparse cotangent weight matrix
-    A            :
-        (n,n) sparse area matrix (either diagonal or computed with finite elements)
-    eigenvalues  :
-        (K,) eigenvalues of the Laplace Beltrami Operator
-    eigenvectors :
-        (n,K) eigenvectors of the Laplace Beltrami Operator
-
+    path : str
+        Path the mesh was loaded from, or None if the geometry has been modified.
+    name : str
+        Name of the mesh. Preserved even when the geometry is modified.
+    stiffness : scipy.sparse
+        (n,n) cotangent weight matrix, also available as ``W``.
+    mass : scipy.sparse
+        (n,n) area matrix, either diagonal or built with finite elements,
+        also available as ``A``.
+    eigenvalues : np.ndarray
+        (k,) eigenvalues of the Laplace-Beltrami operator
+    eigenvectors : np.ndarray
+        (n,k) eigenvectors of the Laplace-Beltrami operator
     """
 
-    def __init__(self, *args, **kwargs):
-        # area_normalize=False, center=False, rotation=None, translation=None):
-        """
-        Read the mesh. Give either the path to a .off file or a list of vertices
-        and corresponding triangles
+    #: Discretizations available to build the Laplace-Beltrami operators.
+    #: Registering a new scheme (for instance one based on intrinsic
+    #: triangulations with a signpost data structure) means adding an entry
+    #: here; nothing else in the class needs to change.
+    _LAPLACIAN_BUILDERS = {
+        "cotan": "_build_cotan_operators",
+        "robust": "_build_robust_operators",
+        "intrinsic": "_build_intrinsic_operators",
+    }
 
-        Parameters
-        ------------------
-        path           : str, optional
-            path to a .off file
-        vertices       : np.ndarray, optional
-            (n,3) vertices coordinates
-        faces          : np.ndarray, optional
-            (m,3) list of indices of triangles
-        area_normalize : bool, optional
-            If True, normalize the mesh
-        center : bool, optional
-            If True, center the mesh
-        rotation : np.ndarray, optional
-            3x3 rotation matrix
-        translation : np.ndarray, optional
-            3D translation vector, applied after rotation
-        """
+    #: Prefactorized solvers. They wrap native objects that can be neither
+    #: copied nor pickled, so they are dropped rather than duplicated and
+    #: rebuilt on demand.
+    _SOLVER_ATTRIBUTES = (
+        "_solver_heat",
+        "_solver_lap",
+        "_solver_geod_heat",
+        "_solver_geod_fmarch",
+    )
+
+    def __init__(
+        self,
+        vertices,
+        faces=None,
+        *,
+        area_normalize=False,
+        center=False,
+        normalize=False,
+        rotation=None,
+        translation=None,
+        name=None,
+    ):
         self._init_all_attributes()
-        assert 0 < len(args) < 3, "Provide a path or vertices / faces"
+        self.name = name
 
-        rotation, translation, area_normalize, center = self._read_init_kwargs(kwargs)
+        path = None
+        if isinstance(vertices, (str, os.PathLike)):
+            if faces is not None:
+                raise TypeError("Cannot give both a file path and a list of faces")
+            warnings.warn(
+                "Building a TriMesh from a file path is deprecated, "
+                "use TriMesh.load(path) instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            path = os.fspath(vertices)
+            vertices, faces = _read_mesh_file(path)
 
-        # Differentiate between [path] or [vertex] or [vertex, faces]
-        if len(args) == 1 and type(args[0]) is str:
-            self._load_mesh(args[0])
-        elif len(args) == 1:
-            self.vertlist = args[0]
-            self.facelist = None
-        else:
-            self.vertlist = args[0]
-            self.facelist = args[1]
+        if normalize:
+            area_normalize = True
+            center = True
+
+        self.vertices = vertices
+        self.faces = faces
+
+        if path is not None:
+            self.path = path
+            if self.name is None:
+                self.name = os.path.splitext(os.path.basename(path))[0]
 
         if rotation is not None:
             self.rotate(rotation)
@@ -101,142 +196,154 @@ class TriMesh:
         if center:
             self.translate(-self.center_mass)
 
-    @property
-    def vertlist(self):
+    @classmethod
+    def load(cls, path, **kwargs):
         """
-        Get or set the vertices.
-        Checks the format when setting
+        Read a mesh from a ``.off`` or ``.obj`` file.
+
+        Parameters
+        ------------------
+        path : str or os.PathLike
+            path to the file to read
+        **kwargs
+            Any keyword argument accepted by :class:`TriMesh`.
 
         Returns
-        -----------------
-        vertlist : np.ndarray
-            (n,3) array of vertices
+        ------------------
+        mesh : TriMesh
+            the loaded mesh
         """
-        return self._vertlist
+        path = os.fspath(path)
+        vertices, faces = _read_mesh_file(path)
 
-    @vertlist.setter
-    def vertlist(self, vertlist):
-        vertlist = np.asarray(vertlist, dtype=float)
-        if vertlist.ndim != 2:
-            raise ValueError("Vertex list has to be 2D")
-        elif vertlist.shape[1] != 3:
-            raise ValueError("Vertex list requires 3D coordinates")
+        mesh = cls(vertices, faces, **kwargs)
+        mesh.path = path
+        if mesh.name is None:
+            mesh.name = os.path.splitext(os.path.basename(path))[0]
+        return mesh
 
-        self._reset_vertex_attributes()
-        if hasattr(self, "_vertlist") and self._vertlist is not None:
-            self._modified = True
-            self._normalized = False
-        self.path = None
-        self._vertlist = vertlist.copy()
+    #: Alias for :meth:`load`.
+    from_file = load
 
-    @property
-    def facelist(self):
-        """
-        Get or set the faces.
-        Checks the format when setting
+    def __repr__(self):
+        name = "" if self.name is None else f" {self.name!r}"
+        if self.is_point_cloud:
+            return f"<{type(self).__name__}{name}: {self.n_vertices} vertices (point cloud)>"
+        return f"<{type(self).__name__}{name}: {self.n_vertices} vertices, {self.n_faces} faces>"
 
-        Returns
-        -----------------
-        facelist : np.ndarray
-            (m,3) array of faces
-        """
-        return self._facelist
-
-    @facelist.setter
-    def facelist(self, facelist):
-        facelist = np.asarray(facelist) if facelist is not None else None
-        if facelist is not None:
-            if facelist.ndim != 2:
-                raise ValueError("Faces list has to be 2D")
-            elif facelist.shape[1] != 3:
-                raise ValueError("Each face is made of 3 points")
-            self._facelist = facelist.copy()
-        else:
-            self._facelist = None
-        self.path = None
+    # ------------------------------------------------------------------
+    # Core data
+    # ------------------------------------------------------------------
 
     @property
     def vertices(self):
-        """alias for vertlist
+        """
+        Get or set the vertices. Checks the format when setting.
 
         Returns
         -----------------
         vertices : np.ndarray
             (n,3) array of vertices
         """
-        return self.vertlist
+        return self._vertices
+
+    @vertices.setter
+    def vertices(self, vertices):
+        vertices = np.asarray(vertices, dtype=float)
+        if vertices.ndim != 2:
+            raise ValueError("Vertex list has to be 2D")
+        elif vertices.shape[1] != 3:
+            raise ValueError("Vertex list requires 3D coordinates")
+
+        if self._vertices is not None:
+            self._modified = True
+            self._normalized = False
+
+        self._reset_vertex_attributes()
+        self.path = None
+        self._vertices = vertices.copy()
 
     @property
     def faces(self):
-        """alias for facelist
+        """
+        Get or set the faces. Checks the format when setting.
 
         Returns
         -----------------
         faces : np.ndarray
-            (m,3) array of faces
+            (m,3) array of faces, or None for a point cloud
         """
-        return self.facelist
+        return self._faces
+
+    @faces.setter
+    def faces(self, faces):
+        if faces is None:
+            self._faces = None
+        else:
+            faces = np.asarray(faces)
+            if faces.ndim != 2:
+                raise ValueError("Faces list has to be 2D")
+            elif faces.shape[1] != 3:
+                raise ValueError("Each face is made of 3 points")
+            self._faces = faces.copy()
+
+        self._reset_face_attributes()
+        self.path = None
+
+    vertlist = _deprecated_alias("vertices", "vertlist")
+    facelist = _deprecated_alias("faces", "facelist")
+
+    @property
+    def is_point_cloud(self):
+        """
+        Whether the mesh has no faces.
+
+        Returns
+        -----------------
+        is_point_cloud : bool
+            True if no faces are defined
+        """
+        return self._faces is None
+
+    def _require_faces(self, operation):
+        """Raise a clear error when a face-based quantity is asked of a point cloud."""
+        if self.is_point_cloud:
+            raise ValueError(f"Cannot compute {operation}: this mesh has no faces.")
 
     @property
     def n_vertices(self):
         """
-        return the number of vertices in the mesh
+        Number of vertices in the mesh.
 
         Returns
         -----------------
         n_vertices : int
             number of vertices in the mesh
         """
-        return self.vertlist.shape[0]
+        return self.vertices.shape[0]
 
     @property
     def n_faces(self):
         """
-        return the number of faces in the mesh
+        Number of faces in the mesh, 0 for a point cloud.
 
         Returns
         -----------------
         n_faces : int
             number of faces in the mesh
         """
-        if self.facelist is None:
+        if self.is_point_cloud:
             return 0
-        return self.facelist.shape[0]
+        return self.faces.shape[0]
 
-    @property
-    def area(self):
-        """
-        Returns the area of the mesh
-
-        Returns
-        -----------------
-        area : float
-            area of the mesh
-        """
-        if self.A is None:
-            if self.facelist is None:
-                return None
-            faces_areas = geom.compute_faces_areas(self.vertlist, self.facelist)
-            return faces_areas.sum()
-
-        return self.A.sum()
-
-    @property
-    def sqrtarea(self):
-        """
-        square root of the area
-
-        Returns
-        -----------------
-        sqrtarea : float
-            square root of the area
-        """
-        return np.sqrt(self.area)
+    # ------------------------------------------------------------------
+    # Derived quantities, computed on first access
+    # ------------------------------------------------------------------
 
     @property
     def edges(self):
         """
-        return a (p,2) array of edges defined by vertex indices.
+        (p,2) array of edges, defined by vertex indices.
 
         Returns
         -----------------
@@ -248,43 +355,44 @@ class TriMesh:
         return self._edges
 
     @property
-    def edges_lengths(self):
+    def edge_lengths(self):
         """
-        return a (p,) array of edge lengths.
+        (p,) array of edge lengths.
 
         Returns
         -----------------
-        edges_lengths : np.ndarray
+        edge_lengths : np.ndarray
             (p,) array of edge lengths
         """
-        edge_lengths = np.linalg.norm(
-            self.vertlist[self.edges[:, 1]] - self.vertlist[self.edges[:, 0]], axis=1
-        )
-
-        return edge_lengths
+        if self._edge_lengths is None:
+            edges = self.edges
+            self._edge_lengths = np.linalg.norm(
+                self.vertices[edges[:, 1]] - self.vertices[edges[:, 0]], axis=1
+            )
+        return self._edge_lengths
 
     @property
-    def normals(self):
+    def face_normals(self):
         """
-        return face normals
+        (m,3) array of face normals.
 
         Returns
         -----------------
-        normals : np.ndarray
+        face_normals : np.ndarray
             (m,3) array of face normals
         """
-        if self._normals is None:
+        if self._face_normals is None:
             self.compute_normals()
-        return self._normals
+        return self._face_normals
 
-    @normals.setter
-    def normals(self, normals):
-        self._normals = normals
+    @face_normals.setter
+    def face_normals(self, face_normals):
+        self._face_normals = face_normals
 
     @property
     def vertex_normals(self):
         """
-        Returns per vertex_normal
+        (n,3) array of vertex normals.
 
         Returns
         -----------------
@@ -300,105 +408,276 @@ class TriMesh:
         self._vertex_normals = vertex_normals
 
     @property
+    def face_areas(self):
+        """
+        (m,) array of face areas.
+
+        Returns
+        -----------------
+        face_areas : np.ndarray
+            (m,) array of face areas
+        """
+        if self._face_areas is None:
+            self._require_faces("face areas")
+            self._face_areas = geom.compute_faces_areas(self.vertices, self.faces)
+        return self._face_areas
+
+    @face_areas.setter
+    def face_areas(self, face_areas):
+        self._face_areas = face_areas
+
+    # Short forms, kept because they read well in formulas such as ``f @ mesh.W @ g``.
+    W = _alias("stiffness", "Alias for :attr:`stiffness`.")
+    A = _alias("mass", "Alias for :attr:`mass`.")
+
+    normals = _deprecated_alias("face_normals", "normals")
+    faces_areas = _deprecated_alias("face_areas", "faces_areas")
+    edges_lengths = _deprecated_alias("edge_lengths", "edges_lengths")
+    meshname = _deprecated_alias("name", "meshname")
+
+    @property
+    def is_intrinsic(self):
+        """
+        Whether the operators were built on an intrinsic triangulation.
+
+        Returns
+        -----------------
+        is_intrinsic : bool
+            True if an intrinsic triangulation was used
+        """
+        return self._intrinsic
+
+    @property
     def vertex_areas(self):
         """
-        per vertex area
+        Per-vertex area.
 
         Returns
         -----------------
         vertex_areas : np.ndarray
             (n,) array of vertex areas
         """
-        if self.A is None:
-            return geom.compute_vertex_areas(self.vertlist, self.facelist)
+        if self.mass is None:
+            return geom.compute_vertex_areas(self.vertices, self.faces)
 
-        return np.asarray(self.A.sum(1)).squeeze()
+        return np.asarray(self.mass.sum(1)).squeeze()
 
     @property
-    def faces_areas(self):
+    def area(self):
         """
-        per face area
+        Area of the mesh, None for an unprocessed point cloud.
 
         Returns
         -----------------
-        faces_areas : np.ndarray
-            (m,) array of face areas
+        area : float
+            area of the mesh
         """
-        if self._faces_areas is None:
-            self._faces_areas = geom.compute_faces_areas(self.vertlist, self.facelist)
-        return self._faces_areas
+        if self.mass is None:
+            if self.is_point_cloud:
+                return None
+            return self.face_areas.sum()
 
-    @faces_areas.setter
-    def faces_areas(self, faces_areas):
-        self._faces_areas = faces_areas
+        return self.mass.sum()
+
+    @property
+    def sqrt_area(self):
+        """
+        Square root of the area.
+
+        Returns
+        -----------------
+        sqrt_area : float
+            square root of the area
+        """
+        return np.sqrt(self.area)
+
+    sqrtarea = _deprecated_alias("sqrt_area", "sqrtarea")
 
     @property
     def center_mass(self):
         """
-        center of mass
+        Center of mass.
 
         Returns
         -----------------
         center_mass : np.ndarray
             (3,) array of the center of mass
         """
-        return np.average(self.vertlist, axis=0, weights=self.vertex_areas)
+        return np.average(self.vertices, axis=0, weights=self.vertex_areas)
 
     @property
     def is_normalized(self):
         """
-        Whether the mash has been manually normalized using the self.area_normalize method
+        Whether the mesh has been area normalized with :meth:`area_normalize`.
 
         Returns
         -----------------
         is_normalized : bool
-            Whether the mesh has been area normalized
+            whether the mesh has been area normalized
         """
-        if not hasattr(self, "_normalized"):
-            self._normalized = False
         return self._normalized
 
     @property
     def is_modified(self):
         """
-        Whether the mash has been modified from path with
-        non-isometric deformations
+        Whether the mesh has been modified from the file it was read from,
+        with non-isometric deformations.
 
         Returns
         -----------------
         is_modified : bool
-            Whether the mesh has been modified wrt to original input
+            whether the mesh was modified with respect to the original input
         """
-        if not hasattr(self, "_modified"):
-            self._modified = False
         return self._modified
+
+    # ------------------------------------------------------------------
+    # Bookkeeping
+    # ------------------------------------------------------------------
+
+    def _init_all_attributes(self):
+        """Set every attribute to its empty value."""
+        self.path = None
+        self.name = None
+
+        self._vertices = None
+        self._faces = None
+
+        self._modified = False
+        self._normalized = False
+
+        self._vertex_normals_weighting = "area"
+
+        self._edges = None
+        self._reset_vertex_attributes()
+
+    def _reset_vertex_attributes(self):
+        """
+        Reset everything that depends on the vertex positions.
+
+        Called whenever the vertices move in a way that is not a rigid motion.
+        """
+        self._edge_lengths = None
+        self._face_areas = None
+
+        self._face_normals = None
+        self._vertex_normals = None
+
+        self._intrinsic = False
+        self._laplacian_method = None
+
+        self.stiffness = None
+        self.mass = None
+
+        self.eigenvalues = None
+        self.eigenvectors = None
+
+        self._reset_solvers()
+
+    def _reset_face_attributes(self):
+        """
+        Reset everything that depends on the faces.
+
+        Changing the faces changes everything changing the vertices does, and
+        the connectivity on top of it.
+        """
+        self._edges = None
+        self._reset_vertex_attributes()
+
+    def _reset_solvers(self):
+        """Drop the prefactorized solvers, which are rebuilt on demand."""
+        for attribute in self._SOLVER_ATTRIBUTES:
+            setattr(self, attribute, None)
+
+    # ------------------------------------------------------------------
+    # Copying (some tricks regarding solvers)
+    # ------------------------------------------------------------------
+
+    def copy(self, deep=True):
+        """
+        Return a copy of the mesh.
+
+        Cached solvers are never copied. They wrap native objects that cannot be
+        duplicated, and are rebuilt on demand on the copy.
+
+        Parameters
+        -----------------
+        deep : bool, optional
+            If True, copy the underlying arrays as well. Defaults to True.
+
+        Returns
+        -----------------
+        mesh : TriMesh
+            a copy of the mesh
+        """
+        return copy.deepcopy(self) if deep else copy.copy(self)
+
+    def __copy__(self):
+        other = type(self).__new__(type(self))
+        other.__dict__.update(self.__dict__)
+        other._reset_solvers()
+        return other
+
+    def __deepcopy__(self, memo):
+        other = type(self).__new__(type(self))
+        memo[id(self)] = other
+        for key, value in self.__dict__.items():
+            if key in self._SOLVER_ATTRIBUTES:
+                other.__dict__[key] = None
+            else:
+                other.__dict__[key] = copy.deepcopy(value, memo)
+        return other
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        for attribute in self._SOLVER_ATTRIBUTES:
+            state[attribute] = None
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+
+    # ------------------------------------------------------------------
+    # Transformations
+    # ------------------------------------------------------------------
 
     def area_normalize(self):
         """
-        Normalize the mesh by its area
+        Normalize the mesh by its area, keeping the center of mass fixed.
+
+        Returns
+        -----------------
+        self : TriMesh
+            the mesh itself
         """
         center_mass = self.center_mass
         self.translate(-center_mass)
-        self.scale(1 / self.sqrtarea)
+        self.scale(1 / self.sqrt_area)
         self.translate(center_mass)
         self._normalized = True
         return self
 
     def rotate(self, R):
         """
-        Rotate mesh and normals
+        Rotate the mesh and its normals.
 
         Parameters
         -----------------
         R : np.ndarray
             (3,3) rotation matrix
+
+        Returns
+        -----------------
+        self : TriMesh
+            the mesh itself
         """
-        if R.shape != (3, 3) or not np.isclose(scipy.linalg.det(R), 1):
+        R = np.asarray(R)
+        if R.shape != (3, 3) or not np.isclose(np.linalg.det(R), 1):
             raise ValueError("Rotation should be a 3x3 matrix with unit determinant")
 
-        self._vertlist = self.vertlist @ R.T
-        if self._normals is not None:
-            self.normals = self.normals @ R.T
+        self._vertices = self.vertices @ R.T
+
+        if self._face_normals is not None:
+            self._face_normals = self._face_normals @ R.T
 
         if self._vertex_normals is not None:
             self._vertex_normals = self._vertex_normals @ R.T
@@ -407,33 +686,45 @@ class TriMesh:
 
     def translate(self, t):
         """
-        translate mesh
+        Translate the mesh.
 
         Parameters
         -----------------
         t : np.ndarray
             (3,) translation vector
+
+        Returns
+        -----------------
+        self : TriMesh
+            the mesh itself
         """
-        self._vertlist += np.asarray(t).squeeze()[None, :]
+        self._vertices += np.asarray(t).squeeze()[None, :]
         return self
 
     def scale(self, alpha):
         """
-        Multiply mesh by alpha.
-        modify vertices, area, spectrum, geodesic distances
+        Multiply the mesh by alpha, updating areas, spectrum and geodesic distances.
 
         Parameters
         -----------------
         alpha : float
             scaling factor
+
+        Returns
+        -----------------
+        self : TriMesh
+            the mesh itself
         """
-        self._vertlist *= alpha
+        self._vertices *= alpha
 
-        if self.A is not None:
-            self.A = alpha**2 * self.A
+        if self.mass is not None:
+            self.mass = alpha**2 * self.mass
 
-        if self._faces_areas is not None:
-            self._faces_areas *= alpha**2
+        if self._face_areas is not None:
+            self._face_areas = alpha**2 * self._face_areas
+
+        if self._edge_lengths is not None:
+            self._edge_lengths = alpha * self._edge_lengths
 
         if self.eigenvalues is not None:
             self.eigenvalues = 1 / alpha**2 * self.eigenvalues
@@ -441,10 +732,8 @@ class TriMesh:
         if self.eigenvectors is not None:
             self.eigenvectors = 1 / alpha * self.eigenvectors
 
-        self._solver_heat = None
-        self._solver_lap = None
-        self._solver_geod_heat = None
-        self._solver_geod_fmarch = None
+        # Solvers were factorized for the previous scale.
+        self._reset_solvers()
 
         self._modified = True
         self._normalized = False
@@ -452,68 +741,137 @@ class TriMesh:
 
     def center(self):
         """
-        center the mesh
+        Center the mesh on its center of mass.
+
+        Returns
+        -----------------
+        self : TriMesh
+            the mesh itself
         """
         self.translate(-self.center_mass)
         return self
 
-    def laplacian_spectrum(
-        self, k, intrinsic=False, return_spectrum=True, robust=False, verbose=False
-    ):
+    # ------------------------------------------------------------------
+    # Laplace-Beltrami operators and spectrum
+    # ------------------------------------------------------------------
+
+    def _build_cotan_operators(self):
+        """Cotangent weights with a lumped diagonal area matrix."""
+        return (
+            laplacian.cotangent_weights(self.vertices, self.faces),
+            laplacian.dia_area_mat(self.vertices, self.faces),
+        )
+
+    def _build_robust_operators(self, mollify_factor=1e-5):
+        """Tufted Laplacian, which also handles point clouds."""
+        if self.is_point_cloud:
+            return robust_laplacian.point_cloud_laplacian(
+                self.vertices, mollify_factor=mollify_factor
+            )
+        return robust_laplacian.mesh_laplacian(
+            self.vertices, self.faces, mollify_factor=mollify_factor
+        )
+
+    def _build_intrinsic_operators(self):
+        """Laplacian on an intrinsic triangulation, without mollification."""
+        return self._build_robust_operators(mollify_factor=0.0)
+
+    def _build_operators(self, method):
         """
-        Compute the Laplace Beltrami Operator and its spectrum.
-        Consider using the .process() function for easier use !
+        Build the stiffness and mass matrices with the given discretization.
+
+        Parameters
+        -----------------
+        method : str
+            name of a discretization registered in ``_LAPLACIAN_BUILDERS``
+
+        Returns
+        -----------------
+        stiffness : scipy.sparse
+            (n,n) stiffness matrix
+        mass : scipy.sparse
+            (n,n) mass matrix
+        """
+        try:
+            builder = self._LAPLACIAN_BUILDERS[method]
+        except KeyError:
+            raise ValueError(
+                f"Unknown Laplacian discretization '{method}', "
+                f"expected one of {tuple(self._LAPLACIAN_BUILDERS)}"
+            ) from None
+
+        return getattr(self, builder)()
+
+    def compute_operators(self, intrinsic=False, robust=False):
+        """
+        Build the Laplace-Beltrami operators, without computing the spectrum.
 
         Parameters
         -------------------------
-        k               : int
+        intrinsic : bool, optional
+            Use an intrinsic triangulation. Defaults to False
+        robust : bool, optional
+            Use the tufted Laplacian, forced for point clouds. Defaults to False
+
+        Returns
+        -------------------------
+        self : TriMesh
+            the mesh itself
+        """
+        if self.is_point_cloud:
+            robust = True
+
+        if robust:
+            method = "robust"
+        elif intrinsic:
+            method = "intrinsic"
+        else:
+            method = "cotan"
+
+        self.stiffness, self.mass = self._build_operators(method)
+        self._laplacian_method = method
+        self._intrinsic = bool(intrinsic) and method != "cotan"
+
+        return self
+
+    def compute_spectrum(
+        self, k, intrinsic=False, return_spectrum=True, robust=False, verbose=False
+    ):
+        """
+        Compute the Laplace-Beltrami operators and their spectrum.
+
+        Consider using :meth:`process` for easier use.
+
+        Parameters
+        -------------------------
+        k : int
             number of eigenvalues to compute
-        intrinsic       : bool, optional
-            Use intrinsic triangulation. Defaults to false
+        intrinsic : bool, optional
+            Use an intrinsic triangulation. Defaults to False
         return_spectrum : bool, optional
             Whether to return the computed spectrum, defaults to True
-        robust          : bool, optional
-            use tufted laplacian, defaults to False
-        verbose         : bool, optional
+        robust : bool, optional
+            use the tufted Laplacian, defaults to False
+        verbose : bool, optional
             print progress. Defaults to False
 
         Returns
         -------------------------
-        eigenvalues: np.ndarray, optional
+        eigenvalues : np.ndarray, optional
             (k,) - Only if return_spectrum is True.
         eigenvectors : np.ndarray, optional
-             (n,k) - Only if return_spectrum is True.
+            (n,k) - Only if return_spectrum is True.
         """
-        if self.facelist is None:
-            robust = True
-
-        if robust:
-            mollify_factor = 1e-5
-        elif intrinsic:
-            mollify_factor = 0
-
-        if robust or intrinsic:
-            self._intrinsic = intrinsic
-            if self.facelist is not None:
-                self.W, self.A = robust_laplacian.mesh_laplacian(
-                    self.vertlist, self.facelist, mollify_factor=mollify_factor
-                )
-            else:
-                self.W, self.A = robust_laplacian.point_cloud_laplacian(
-                    self.vertlist, mollify_factor=mollify_factor
-                )
-
-        else:
-            self.W = laplacian.cotangent_weights(self.vertlist, self.facelist)
-            self.A = laplacian.dia_area_mat(self.vertlist, self.facelist)
+        self.compute_operators(intrinsic=intrinsic, robust=robust)
 
         # If k is 0, stop here
         if k > 0:
             if verbose:
                 print(f"Computing {k} eigenvectors")
                 start_time = time.time()
+
             self.eigenvalues, self.eigenvectors = laplacian.laplacian_spectrum(
-                self.W, self.A, spectrum_size=k
+                self.stiffness, self.mass, spectrum_size=k
             )
 
             if verbose:
@@ -522,27 +880,32 @@ class TriMesh:
             if return_spectrum:
                 return self.eigenvalues, self.eigenvectors
 
+    laplacian_spectrum = _deprecated_method("compute_spectrum", "laplacian_spectrum")
+
     def process(self, k=200, skip_normals=True, intrinsic=False, robust=False, verbose=False):
         """
-        Process the LB spectrum and saves it.
-        Additionnaly computes per-face normals
+        Compute the LB spectrum and store it.
 
         Parameters
         -----------------------
-        k            : int
+        k : int
             (default = 200) Number of eigenvalues to compute
         skip_normals : bool, optional
             If set to True, skip normals computation. Defaults to True
-        intrinsic    : bool, optional
-            Use intrinsic triangulation. Defaults to False
-        robust       : bool
-            use tufted laplacian
-        verbose      : bool
+        intrinsic : bool, optional
+            Use an intrinsic triangulation. Defaults to False
+        robust : bool, optional
+            use the tufted Laplacian
+        verbose : bool, optional
             print progress
 
+        Returns
+        -----------------------
+        self : TriMesh
+            the mesh itself
         """
-        if not skip_normals and self._normals is None:
-            self.compute_normals()
+        if not skip_normals:
+            _ = self.face_normals
 
         if (
             (self.eigenvectors is not None)
@@ -553,9 +916,7 @@ class TriMesh:
             self.eigenvalues = self.eigenvalues[:k]
 
         else:
-            if self.facelist is None:
-                robust = True
-            self.laplacian_spectrum(
+            self.compute_spectrum(
                 k,
                 return_spectrum=False,
                 intrinsic=intrinsic,
@@ -565,15 +926,19 @@ class TriMesh:
 
         return self
 
+    # ------------------------------------------------------------------
+    # Spectral projection
+    # ------------------------------------------------------------------
+
     def project(self, func, k=None):
         """
-        Project one or multiple functions on the spectral basis
+        Project one or multiple functions on the spectral basis.
 
         Parameters
         -----------------------
         func : np.ndarray
             (n,p) or (n,) functions on the shape
-        k    : int
+        k : int, optional
             dimension of the LB basis on which to project. If None use all the computed basis
 
         Returns
@@ -582,38 +947,17 @@ class TriMesh:
             (k,p) or (k,) projected function
         """
         if k is None:
-            return self.eigenvectors.T @ (self.A @ func)
+            return self.eigenvectors.T @ (self.mass @ func)
 
         elif k <= self.eigenvectors.shape[1]:
-            return self.eigenvectors[:, :k].T @ (self.A @ func)
+            return self.eigenvectors[:, :k].T @ (self.mass @ func)
 
         else:
             raise ValueError(f"At least {k} eigenvectors should be computed before projecting")
 
-    def decode(self, projection):
-        """
-        Build a function from its coefficient in the spectral basis
-
-        Parameters
-        -----------------------
-        projection : np.ndarray
-            (k,p) or (k,) functions on the reduced basis of the shape
-
-        Returns
-        -----------------------
-        func : np.ndarray
-            (n,p) or (n,) projected function
-        """
-        k = projection.shape[0]
-        if k <= self.eigenvectors.shape[1]:
-            return self.eigenvectors[:, :k] @ projection
-
-        else:
-            raise ValueError(f"At least {k} eigenvectors should be computed before decoding")
-
     def unproject(self, projection):
         """
-        Alias for decode
+        Build a function from its coefficients in the spectral basis.
 
         Parameters
         -----------------------
@@ -625,18 +969,25 @@ class TriMesh:
         func : np.ndarray
             (n,p) or (n,) reconstructed function on the vertices
         """
-        return self.decode(projection)
+        k = projection.shape[0]
+        if k <= self.eigenvectors.shape[1]:
+            return self.eigenvectors[:, :k] @ projection
+
+        else:
+            raise ValueError(f"At least {k} eigenvectors should be computed before decoding")
+
+    decode = _deprecated_method("unproject", "decode")
 
     def reconstruct(self, func, k=None):
         """
-        Reconstruct function with the LB eigenbasis, ie project on the spectral basis
-        and rebuild values on all vertices.
+        Reconstruct a function with the LB eigenbasis, ie project on the spectral
+        basis and rebuild values on all vertices.
 
         Parameters
         -----------------------
         func : np.ndarray
             (n,p) or (n,) - functions on the shape
-        k    : int
+        k : int, optional
             Number of eigenfunctions to use. If None, uses the complete computed basis.
 
         Returns
@@ -646,21 +997,144 @@ class TriMesh:
         """
         return self.unproject(self.project(func, k=k))
 
-    def get_geodesic(
+    # ------------------------------------------------------------------
+    # Norms and inner products
+    # ------------------------------------------------------------------
+
+    def l2_sqnorm(self, func):
+        """
+        Return the squared L2 norm of one or multiple functions on the mesh.
+
+        For a single function f, this returns f.T @ A @ f with A the area matrix.
+
+        Parameters
+        -----------------
+        func : np.ndarray
+            (n,p) or (n,) functions on the mesh
+
+        Returns
+        -----------------
+        sqnorm : np.ndarray
+            (p,) array of squared l2 norms or a float only one function was provided.
+        """
+        return self.l2_inner(func, func)
+
+    def l2_inner(self, func1, func2):
+        """
+        Return the L2 inner product of two functions, or pairwise inner products
+        if lists of functions are given.
+
+        For two functions f1 and f2, this returns f1.T @ A @ f2 with A the area matrix.
+
+        Parameters
+        -----------------
+        func1 : np.ndarray
+            (n,p) or (n,) functions on the mesh
+        func2 : np.ndarray
+            (n,p) or (n,) functions on the mesh
+
+        Returns
+        -----------------
+        sqnorm : np.ndarray
+            (p,) array of L2 inner products or a float if only one function per
+            argument was provided.
+        """
+        assert func1.shape == func2.shape, "Shapes must be equal"
+
+        if func1.ndim == 1:
+            return func1 @ self.mass @ func2
+
+        return np.einsum("np,np->p", func1, self.mass @ func2)
+
+    def h1_sqnorm(self, func):
+        """
+        Return the squared H^1_0 norm (L2 norm of the gradient) of one or multiple
+        functions on the mesh.
+
+        For a single function f, this returns f.T @ W @ f with W the stiffness matrix.
+
+        Parameters
+        -----------------
+        func : np.ndarray
+            (n,p) or (n,) functions on the mesh
+
+        Returns
+        -----------------
+        sqnorm : np.ndarray
+            (p,) array of squared H1 norms or a float only one function was provided.
+        """
+        return self.h1_inner(func, func)
+
+    def h1_inner(self, func1, func2):
+        """
+        Return the H1 inner product of two functions, or pairwise inner products
+        if lists of functions are given.
+
+        For two functions f1 and f2, this returns f1.T @ W @ f2 with W the stiffness matrix.
+
+        Parameters
+        -----------------
+        func1 : np.ndarray
+            (n,p) or (n,) functions on the mesh
+        func2 : np.ndarray
+            (n,p) or (n,) functions on the mesh
+
+        Returns
+        -----------------
+        sqnorm : np.ndarray
+            (p,) array of H1 inner products or a float if only one function per
+            argument was provided.
+        """
+        assert func1.shape == func2.shape, "Shapes must be equal"
+
+        if func1.ndim == 1:
+            return func1 @ self.stiffness @ func2
+
+        return np.einsum("np,np->p", func1, self.stiffness @ func2)
+
+    def integrate(self, func):
+        """
+        Integrate a function or a set of functions on the mesh.
+
+        Parameters
+        -----------------
+        func : np.ndarray
+            (n,p) or (n,) functions on the mesh
+
+        Returns
+        -----------------
+        integral : np.ndarray
+            (p,) array of integrals or a float only one function was provided.
+        """
+        if func.ndim == 1:
+            return np.sum(self.mass @ func)
+        return np.sum(self.mass @ func, axis=0)
+
+    # ------------------------------------------------------------------
+    # Geodesics
+    # ------------------------------------------------------------------
+
+    def _heat_time(self):
+        """Squared mean edge length, used as the diffusion time of the heat method."""
+        return self.edge_lengths.mean() ** 2
+
+    def geodesic_matrix(
         self,
         method="heat",
-        save=False,
-        force_compute=False,
         sym=False,
         batch_size=500,
         verbose=False,
     ):
         """
-        Compute the geodesic distance matrix. Loads from cache if possible.
+        Compute the full matrix of pairwise geodesic distances.
+
+        This is an (n,n) dense matrix, so it gets expensive quickly. Save it
+        yourself with ``np.save`` if you need it more than once, and hand it back
+        to :meth:`farthest_point_sampling` through its ``distances`` argument.
 
         Parameters
         -----------------
-        method        : str, optional
+        method : str, optional
             Method to use to compute geodesic distances. One of:
 
             - "heat" : potpourri3d robust heat method (default)
@@ -671,16 +1145,12 @@ class TriMesh:
             - "fast_marching" : potpourri3d fast marching method
 
             Defaults to "heat".
-        save          : bool, optional
-            If True, save the resulting distance matrix at '{path}/geod_cache/{meshname}.npy' with 'path/meshname.{ext}' path of the
-            current mesh. Defaults to False
-        force_compute : bool, optional
-            If True, doesn't look for a cached distance matrix. Defaults to False
-        sym           : bool, optional
-            Symmetrize the matrix if computed with the heat or fast marching method. Defaults to False
-        batch_size    : int, optional
+        sym : bool, optional
+            Symmetrize the matrix if computed with the heat or fast marching method.
+            Defaults to False
+        batch_size : int, optional
             If method is "heat_pure", compute distances by batch
-        verbose       : bool, optional
+        verbose : bool, optional
             Print progress
 
         Returns
@@ -691,42 +1161,29 @@ class TriMesh:
         if method not in GEODESIC_METHODS:
             raise ValueError(f"method must be one of {GEODESIC_METHODS}, got '{method}'")
 
-        # Load cache if possible and not explicitly forbidden
-        if not force_compute:
-            geod_dist = self._get_geod_cache(verbose=verbose)
-            if geod_dist is not None:
-                return geod_dist
+        self._require_faces("geodesic distances")
 
-        # Else compute the complete matrix
         if method == "dijkstra":
-            geod_dist = geom.geodesic_distmat_dijkstra(self.vertlist, self.facelist)
+            geod_dist = geom.geodesic_distmat_dijkstra(self.vertices, self.faces)
 
         elif method == "fast_marching":
-            geod_dist = geom.geodesic_distmat_fast_marching(self.vertlist, self.facelist)
+            geod_dist = geom.geodesic_distmat_fast_marching(self.vertices, self.faces)
 
-        elif method == "heat" or (method == "heat_pure" and self._intrinsic):
-            geod_dist = geom.heat_geodmat_robust(self.vertlist, self.facelist, verbose=verbose)
+        elif method == "heat" or (method == "heat_pure" and self.is_intrinsic):
+            geod_dist = geom.heat_geodmat_robust(self.vertices, self.faces, verbose=verbose)
 
         else:
             # Ensure LB matrices are processed.
-            if self.A is None or self.W is None:
+            if self.mass is None or self.stiffness is None:
                 self.process(k=0)
-            if self._normals is None:
-                self.compute_normals()
-
-            # Set the time parameter as the squared mean edge length
-            edges = self.edges
-            v1 = self.vertlist[edges[:, 0]]
-            v2 = self.vertlist[edges[:, 1]]
-            t = np.linalg.norm(v2 - v1, axis=1).mean() ** 2
 
             geod_dist = geom.heat_geodmat(
-                self.vertlist,
-                self.facelist,
-                self.normals,
-                self.A,
-                self.W,
-                t=t,
+                self.vertices,
+                self.faces,
+                self.face_normals,
+                self.mass,
+                self.stiffness,
+                t=self._heat_time(),
                 batch_size=batch_size,
                 verbose=verbose,
             )
@@ -735,32 +1192,17 @@ class TriMesh:
             geod_dist *= 0.5
             geod_dist += geod_dist.T
 
-        # Save the geodesic distance matrix if required
-        if save:
-            if self.path is None:
-                raise ValueError("No path specified")
-
-            root_dir = os.path.dirname(self.path)
-
-            if self.is_normalized:
-                geod_filename = os.path.join(root_dir, "geod_cache", f"{self.meshname}_n.npy")
-            elif self.is_modified:
-                geod_filename = os.path.join(root_dir, "geod_cache", f"{self.meshname}_mod.npy")
-            else:
-                geod_filename = os.path.join(root_dir, "geod_cache", f"{self.meshname}.npy")
-
-            os.makedirs(os.path.dirname(geod_filename), exist_ok=True)
-            np.save(geod_filename, geod_dist)
-
         return geod_dist
 
-    def geod_from(self, i, method="heat"):
+    get_geodesic = _deprecated_method("geodesic_matrix", "get_geodesic")
+
+    def geodesic_from(self, i, method="heat"):
         """
         Compute geodesic distances from vertex (or vertices) i using the given method.
 
         Parameters
         ----------------------
-        i      : int or (p,) array of ints
+        i : int or (p,) array of ints
             index (or indices) of the source vertex/vertices
         method : str, optional
             Method to use to compute geodesic distances. One of:
@@ -782,10 +1224,12 @@ class TriMesh:
         if method not in GEODESIC_METHODS:
             raise ValueError(f"method must be one of {GEODESIC_METHODS}, got '{method}'")
 
+        self._require_faces("geodesic distances")
+
         if method == "fast_marching":
             if self._solver_geod_fmarch is None:
                 self._solver_geod_fmarch = pp3d.MeshFastMarchingDistanceSolver(
-                    self.vertlist, self.facelist
+                    self.vertices, self.faces
                 )
 
             if np.issubdtype(type(i), np.integer):
@@ -796,13 +1240,13 @@ class TriMesh:
                 ).T
 
         elif method == "dijkstra":
-            graph = geom.build_dijkstra_graph(self.vertlist, self.facelist)
+            graph = geom.build_dijkstra_graph(self.vertices, self.faces)
             return geom.dijkstra_from(i, graph)
 
-        elif method == "heat" or (method == "heat_pure" and self._intrinsic):
+        elif method == "heat" or (method == "heat_pure" and self.is_intrinsic):
             if self._solver_geod_heat is None:
                 self._solver_geod_heat = pp3d.MeshHeatMethodDistanceSolver(
-                    self.vertlist, self.facelist
+                    self.vertices, self.faces
                 )
 
             if np.issubdtype(type(i), np.integer):
@@ -810,291 +1254,174 @@ class TriMesh:
             else:
                 return np.array([self._solver_geod_heat.compute_distance(x) for x in i]).T
 
-        # method == "heat_pure" and not self._intrinsic
-        if self.A is None or self.W is None:
+        # method == "heat_pure" and not self.is_intrinsic
+        if self.mass is None or self.stiffness is None:
             self.process(k=0)
-        if self._normals is None:
-            self.compute_normals()
 
-        edges = self.edges
-        v1 = self.vertlist[edges[:, 0]]
-        v2 = self.vertlist[edges[:, 1]]
-        t = np.linalg.norm(v2 - v1, axis=1).mean() ** 2
+        t = self._heat_time()
 
         if self._solver_heat is None:
-            self._solver_heat = sparse.linalg.factorized(self.A.tocsc() + t * self.W)
-            self._solver_lap = sparse.linalg.factorized(self.W)
+            self._solver_heat = sparse.linalg.factorized(self.mass.tocsc() + t * self.stiffness)
+            self._solver_lap = sparse.linalg.factorized(self.stiffness)
 
         # Compute distance with cached solvers
-        dists = geom.heat_geodesic_from(
+        return geom.heat_geodesic_from(
             i,
-            self.vertlist,
-            self.facelist,
-            self.normals,
-            self.A,
+            self.vertices,
+            self.faces,
+            self.face_normals,
+            self.mass,
             W=None,
             t=t,
             solver_heat=self._solver_heat,
             solver_lap=self._solver_lap,
         )
 
-        return dists
+    geod_from = _deprecated_method("geodesic_from", "geod_from")
 
-    def l2_sqnorm(self, func):
+    # ------------------------------------------------------------------
+    # Sampling
+    # ------------------------------------------------------------------
+
+    def farthest_point_sampling(
+        self, size, random_init=True, geodesic=True, distances=None, verbose=False
+    ):
         """
-        Return the squared L2 norm of one or multiple functions on the mesh.
-        For a single function f, this returns f.T @ A @ f with A the area matrix.
+        Sample points using farthest point sampling.
 
-        Parameters
-        -----------------
-        func : np.ndarray
-            (n,p) or (n,) functions on the mesh
-
-        Returns
-        -----------------
-        sqnorm : np.ndarray
-            (p,) array of squared l2 norms or a float only one function was provided.
-        """
-        return self.l2_inner(func, func)
-
-    def l2_inner(self, func1, func2):
-        """
-        Return the L2 inner product of two functions, or pairwise inner products if lists
-        of function is given.
-
-        For two functions f1 and f2, this returns f1.T @ A @ f2 with A the area matrix.
-
-        Parameters
-        -----------------
-        func1 : np.ndarray
-            (n,p) or (n,) functions on the mesh
-        func2 : np.ndarray
-            (n,p) or (n,) functions on the mesh
-
-        Returns
-        -----------------
-        sqnorm : np.ndarray
-            (p,) array of L2 inner product or a float only one function per argument
-                  was provided.
-        """
-        assert func1.shape == func2.shape, "Shapes must be equal"
-
-        if func1.ndim == 1:
-            return func1 @ self.A @ func2
-
-        return np.einsum("np,np->p", func1, self.A @ func2)
-
-    def h1_sqnorm(self, func):
-        """
-        Return the squared H^1_0 norm (L2 norm of the gradient) of one or multiple functions
-        on the mesh.
-        For a single function f, this returns f.T @ W @ f with W the stiffness matrix.
-
-        Parameters
-        -----------------
-        func : np.ndarray
-            (n,p) or (n,) functions on the mesh
-
-        Returns
-        -----------------
-        sqnorm : np.ndarray
-            (p,) array of squared H1 norms or a float only one function was provided.
-        """
-        return self.h1_inner(func, func)
-
-    def h1_inner(self, func1, func2):
-        """
-        Return the H1 inner product of two functions, or pairwise inner products if lists
-        of function is given.
-
-        For two functions f1 and f2, this returns f1.T @ W @ f2 with W the stiffness matrix.
-
-        Parameters
-        -----------------
-        func1 : np.ndarray
-            (n,p) or (n,) functions on the mesh
-        func2 : np.ndarray
-            (n,p) or (n,) functions on the mesh
-
-        Returns
-        -----------------
-        sqnorm : np.ndarray
-            (p,) array of H1 inner product or a float only one function per argument
-                  was provided.
-        """
-        assert func1.shape == func2.shape, "Shapes must be equal"
-
-        if func1.ndim == 1:
-            return func1 @ self.W @ func2
-
-        return np.einsum("np,np->p", func1, self.W @ func2)
-
-    def integrate(self, func):
-        """
-        Integrate a function or a set of function on the mesh
-
-        Parameters
-        -----------------
-        func : np.ndarray
-            (n,p) or (n,) functions on the mesh
-
-        Returns
-        -----------------
-        integral : np.ndarray
-            (p,) array of integrals or a float only one function was provided.
-        """
-        if func.ndim == 1:
-            return np.sum(self.A @ func)
-        return np.sum(self.A @ func, axis=0)
-
-    def extract_fps(self, size, random_init=True, geodesic=True, no_load=False, verbose=False):
-        """
-        Samples points using farthest point sampling with geodesic distances. If the geodesic matrix
-        is precomputed (in the cache folder) uses it, else computes geodesic distance in real time
+        Distances to each new sample are computed on the fly, unless a full
+        distance matrix is given as ``distances``.
 
         Parameters
         -------------------------
-        size        : int
+        size : int
             number of points to sample
         random_init : bool, optional
-            Whether to sample the first point randomly or to take the furthest away from
-            all the other ones. This is only done if the geodesic matrix is accessible from cache. defaults to True
-        geodesic    : bool, optional
+            Whether to sample the first point randomly or to take the furthest away
+            from all the other ones. The latter needs the full distance matrix, so
+            this is only read when ``distances`` is given. Defaults to True
+        geodesic : bool, optional
             If True perform geodesic fps, else euclidean. Defaults to True
-        no_load     : bool, optional
-            if True never loads cache. Defaults to False
-        verbose     : bool, optional
+        distances : np.ndarray, optional
+            (n,n) matrix of precomputed pairwise distances, as returned by
+            :meth:`geodesic_matrix`. Saves recomputing distances at each step.
+        verbose : bool, optional
             Print progress. Defaults to False
 
         Returns
         --------------------------
         fps : np.ndarray
             (size,) array of indices of sampled points (given on the complete mesh)
+
+        Notes
+        --------------------------
+        Without ``distances``, the first point is always drawn at random, so the
+        result varies between calls. Pass ``distances`` with ``random_init=False``
+        for a reproducible sample.
         """
-        if not geodesic:
-
-            def dist_func(i):
-                return np.linalg.norm(self.vertlist - self.vertlist[i, None, :], axis=1)
-
-            fps = geom.farthest_point_sampling_call(
-                dist_func, size, n_points=self.n_vertices, verbose=verbose
+        if distances is not None:
+            return geom.farthest_point_sampling(
+                distances, size, random_init=random_init, verbose=verbose
             )
 
-            return fps
-
-        # Check if the geodesic matrix is accessible from cache
-        A_geod = self._get_geod_cache() if not no_load else None
-
-        if A_geod is None:
-            # Set the time parameter as the squared mean edge length
-            def geod_func(i):
-                return self.geod_from(i)
-
-            # Use the self.geod_from function as callable
-            fps = geom.farthest_point_sampling_call(
-                geod_func, size, n_points=self.n_vertices, verbose=verbose
+        if geodesic:
+            return geom.farthest_point_sampling_call(
+                self.geodesic_from, size, n_points=self.n_vertices, verbose=verbose
             )
 
-        else:
-            fps = geom.farthest_point_sampling(
-                A_geod, size, random_init=random_init, verbose=verbose
-            )
+        def dist_func(i):
+            return np.linalg.norm(self.vertices - self.vertices[i, None, :], axis=1)
 
-        return fps
+        return geom.farthest_point_sampling_call(
+            dist_func, size, n_points=self.n_vertices, verbose=verbose
+        )
 
-    def extract_fps_sub(
+    extract_fps = _deprecated_method("farthest_point_sampling", "extract_fps")
+
+    def farthest_point_sampling_sub(
         self,
         size,
         sub_points,
         return_sub_inds=False,
         random_init=True,
         geodesic=True,
-        no_load=False,
+        distances=None,
         verbose=False,
     ):
         """
-        Samples points using farthest point sampling with geodesic distances, but reduced on a set
-        of samples. If the geodesic matrix is precomputed (in the cache folder) uses it, else
-        computes geodesic distance in real time
+        Sample points using farthest point sampling, restricted to a subset of vertices.
+
+        Distances to each new sample are computed on the fly, unless a full
+        distance matrix is given as ``distances``.
 
         Parameters
         -------------------------
-        size        : int
+        size : int
             number of points to sample
-        sub_points  : np.ndarray
+        sub_points : np.ndarray
             (size,) array of indices of the sub points
-        random_init :
-            Whether to sample the first point randomly or to take the furthest away from all the other ones.
-            This is only done if the geodesic matrix is accessible from cache. defaults to True
-        geodesic    : bool, optional
+        return_sub_inds : bool, optional
+            Whether to also return the indices in the sub mesh. Defaults to False
+        random_init : bool, optional
+            Whether to sample the first point randomly or to take the furthest away
+            from all the other ones. Defaults to True
+        geodesic : bool, optional
             If True perform geodesic fps, else euclidean. Defaults to True
-        no_load     : bool
-            if True never loads cache. Defaults to False
-        verbose     : bool
+        distances : np.ndarray, optional
+            (n,n) matrix of precomputed pairwise distances, as returned by
+            :meth:`geodesic_matrix`. Saves recomputing distances at each step.
+        verbose : bool, optional
             Print progress. Defaults to False
 
         Returns
         --------------------------
         fps : np.ndarray
             (size,) array of indices of sampled points (given on the complete mesh)
-        fps_sub :  np.ndarray
+        fps_sub : np.ndarray
             (size,) array of indices of sampled points (given on the sub mesh)
         """
-        if not geodesic:
+        if distances is not None:
+            fps_sub = geom.farthest_point_sampling(
+                distances[np.ix_(sub_points, sub_points)],
+                size,
+                random_init=random_init,
+                verbose=verbose,
+            )
+            if return_sub_inds:
+                return sub_points[fps_sub], fps_sub
+            return sub_points[fps_sub]
+
+        if geodesic:
+            dist_func = self.geodesic_from
+        else:
 
             def dist_func(i):
-                return np.linalg.norm(self.vertlist - self.vertlist[i, None, :], axis=1)
+                return np.linalg.norm(self.vertices - self.vertices[i, None, :], axis=1)
 
-            res_fps = geom.farthest_point_sampling_call_sub(
-                dist_func,
-                size,
-                sub_points,
-                return_sub_inds=return_sub_inds,
-                random_init=random_init,
-                verbose=verbose,
-            )
+        return geom.farthest_point_sampling_call_sub(
+            dist_func,
+            size,
+            sub_points,
+            return_sub_inds=return_sub_inds,
+            random_init=random_init,
+            verbose=verbose,
+        )
 
-            return res_fps
+    extract_fps_sub = _deprecated_method("farthest_point_sampling_sub", "extract_fps_sub")
 
-        # Check if the geodesic matrix is accessible from cache
-        A_geod = self._get_geod_cache() if not no_load else None
-
-        if A_geod is None:
-            # Set the time parameter as the squared mean edge length
-            def geod_func(i):
-                return self.geod_from(i)
-
-            # Use the self.geod_from function as callable
-            res_fps = geom.farthest_point_sampling_call_sub(
-                geod_func,
-                size,
-                sub_points,
-                return_sub_inds=return_sub_inds,
-                random_init=random_init,
-                verbose=verbose,
-            )
-
-        else:
-            fps_sub = geom.farthest_point_sampling(
-                A_geod[np.ix_(sub_points, sub_points)],
-                size,
-                random_init=random_init,
-                verbose=verbose,
-            )
-            res_fps = [sub_points[fps_sub], fps_sub]
-
-        return res_fps
+    # ------------------------------------------------------------------
+    # Differential operators
+    # ------------------------------------------------------------------
 
     def gradient(self, f, normalize=False):
         """
-        computes the gradient of a function on f using linear
-        interpolation between vertices.
+        Compute the gradient of a function using linear interpolation between vertices.
 
         Parameters
         --------------------------
-        f         : np.ndarray
+        f : np.ndarray
             (n_v,) function value on each vertex
-        normalize : bool
+        normalize : bool, optional
             Whether the gradient should be normalized on each face
 
         Returns
@@ -1102,8 +1429,9 @@ class TriMesh:
         gradient : np.ndarray
             (n_f,3) gradient of f on each face
         """
+        self._require_faces("gradients")
 
-        grad = geom.grad_f(f, self.vertlist, self.facelist, self.normals)  # (n_f,3)
+        grad = geom.grad_f(f, self.vertices, self.faces, self.face_normals)  # (n_f,3)
 
         if normalize:
             grad /= np.linalg.norm(grad, axis=1, keepdims=True)
@@ -1112,11 +1440,11 @@ class TriMesh:
 
     def divergence(self, f):
         """
-        Computes the divergence of a vector field on the mesh
+        Compute the divergence of a vector field on the mesh.
 
         Parameters
         --------------------------
-        f         : np.ndarray
+        f : np.ndarray
             (n_f, 3) vector value on each face
 
         Returns
@@ -1124,9 +1452,9 @@ class TriMesh:
         divergence : np.ndarray
             (n_v,) divergence of f on each vertex
         """
-        div = geom.div_f(f, self.vertlist, self.facelist, self.normals)
+        self._require_faces("divergence")
 
-        return div
+        return geom.div_f(f, self.vertices, self.faces, self.face_normals)
 
     def orientation_op(self, gradf, normalize=False):
         """
@@ -1138,7 +1466,7 @@ class TriMesh:
 
         Parameters
         --------------------------
-        gradf     : np.ndarray
+        gradf : np.ndarray
             (n_f,3) gradient field on the mesh
         normalize : bool, optional
             Whether to normalize the gradient on each face
@@ -1148,120 +1476,63 @@ class TriMesh:
         operator : scipy.sparse.csc_matrix
             (n_v,n_v) orientation operator.
         """
+        self._require_faces("the orientation operator")
+
         if normalize:
             gradf /= np.linalg.norm(gradf, axis=1, keepdims=True)
 
-        operator = geom.get_orientation_op(
-            gradf, self.vertlist, self.facelist, self.normals, self.vertex_areas
+        return geom.get_orientation_op(
+            gradf, self.vertices, self.faces, self.face_normals, self.vertex_areas
         )
 
-        return operator
-
-    def export(self, filename, precision=None):
-        """
-        Write the mesh in a .off file
-
-        Parameters
-        -----------------------------
-        filename  : str
-            path to the file to write
-        precision : int
-            floating point precision
-        """
-        # assert os.path.splitext(filename)[1] in ['.off',''], "Can only export .off files"
-        file_ext = os.path.splitext(filename)[1]
-        if file_ext == "":
-            filename += ".off"
-            file_ext = ".off"
-
-        if file_ext == ".off":
-            file_utils.write_off(filename, self.vertlist, self.facelist, precision=precision)
-
-        elif file_ext == ".obj":
-            file_utils.write_obj(filename, self.vertlist, faces=self.facelist, precision=precision)
-
-        return self
-
-    def get_uv(self, ind1, ind2, mult_const, rotation=None):
-        """
-        Extracts UV coordinates for each vertices.
-
-        Extracted by orthogonal projection on 2 of x,y,z axes
-
-        Parameters
-        -----------------------------
-        ind1       : int
-            column index to use as first coordinate
-        ind2       : int
-            column index to use as second coordinate
-        mult_const : float
-            number of time to repeat the pattern
-
-        Returns
-        ------------------------------
-        uv : np.ndarray
-            (n,2) UV coordinates of each vertex
-        """
-        vert = self.vertlist if rotation is None else self.vertlist @ rotation.T
-        return file_utils.get_uv(vert, ind1, ind2, mult_const=mult_const)
-
-    def export_texture(
-        self,
-        filename,
-        uv,
-        mtl_file="material.mtl",
-        texture_im="texture_1.jpg",
-        precision=None,
-        verbose=False,
-    ):
-        """
-        Write a .obj file with texture using uv coordinates
-
-        Parameters
-        ------------------------------
-        filename   : str
-            path to the .obj file to write
-        uv         : np.ndarray
-            (n,2) uv coordinates of each vertex
-        mtl_file   : str
-            name of the .mtl file
-        texture_im : str
-            name of the .jpg file defining texture
-        precision  : int, optional
-            number of significant digits to write for each float
-        verbose    : bool, optional
-            whether to print information
-        """
-        if os.path.splitext(filename)[1] != ".obj":
-            filename += ".obj"
-
-        file_utils.write_obj_texture(
-            filename,
-            self.vertlist,
-            self.facelist,
-            uv=uv,
-            mtl_file=mtl_file,
-            texture_im=texture_im,
-            precision=precision,
-            verbose=verbose,
-        )
-
-        return self
+    # ------------------------------------------------------------------
+    # Normals and edges
+    # ------------------------------------------------------------------
 
     def compute_normals(self):
         """
-        Compute normal vectors for each face
+        Compute the per-face normals.
 
         Returns
         -----------------
-        normals : np.ndarray
-            (m,3) array of normal vectors
+        face_normals : np.ndarray
+            (m,3) array of face normals
         """
-        self.normals = geom.compute_normals(self.vertlist, self.facelist)
+        self._require_faces("face normals")
+        self._face_normals = geom.compute_normals(self.vertices, self.faces)
+        return self._face_normals
+
+    def compute_vertex_normals(self):
+        """
+        Compute the per-vertex normals.
+
+        Returns
+        -----------------
+        vertex_normals : np.ndarray
+            (n,3) array of vertex normals
+        """
+        self._require_faces("vertex normals")
+        self._vertex_normals = geom.per_vertex_normal(
+            self.vertices, self.faces, weighting=self._vertex_normals_weighting
+        )
+        return self._vertex_normals
+
+    def compute_edges(self):
+        """
+        Compute the edges.
+
+        Returns
+        -----------------
+        edges : np.ndarray
+            (p,2) array of edges
+        """
+        self._require_faces("edges")
+        self._edges = geom.edges_from_faces(self.faces)
+        return self._edges
 
     def set_vertex_normal_weighting(self, weight_type):
         """
-        Set weighting type for vertex normals between 'area' and 'uniform'
+        Set the weighting scheme for vertex normals, between 'area' and 'uniform'.
 
         Parameters
         -----------------
@@ -1278,143 +1549,193 @@ class TriMesh:
             self._vertex_normals_weighting = weight_type
             self._vertex_normals = None
 
-    def compute_vertex_normals(self):
+    # ------------------------------------------------------------------
+    # Writing to file
+    # ------------------------------------------------------------------
+
+    def save(
+        self,
+        path,
+        precision=None,
+        face_colors=None,
+        vertex_normals=None,
+        uv=None,
+        texture=None,
+        mtl_file="material.mtl",
+        verbose=False,
+    ):
         """
-        computes vertex normals in self.vertex_normals
+        Write the mesh to a ``.off`` or ``.obj`` file.
 
-        Returns
-        -----------------
-        vertex_normals : np.ndarray
-            (n,3) array of vertex normals
-        """
-        self.vertex_normals = geom.per_vertex_normal(
-            self.vertlist, self.facelist, weighting=self._vertex_normals_weighting
-        )
-
-    def compute_edges(self):
-        """
-        computes edges in self.edges
-
-        Returns
-        -----------------
-        edges : np.ndarray
-            (p,2) array of edges
-        """
-        self._edges = geom.edges_from_faces(self.facelist)
-
-    def _reset_vertex_attributes(self):
-        """
-        Resets attributes which depend on the vertex positions
-        in the case of nonisometric deformation
-        """
-        self._faces_areas = None
-
-        self._normals = None
-        self._vertex_normals = None
-
-        self._intrinsic = False
-
-        self.W = None
-        self.A = None
-
-        self.eigenvalues = None
-        self.eigenvectors = None
-
-        self._solver_heat = None
-        self._solver_lap = None
-        self._solver_geod_heat = None
-        self._solver_geod_fmarch = None
-
-    def _get_geod_cache(self, verbose=False):
-        # Check if the mesh has a stored path
-        if self.path is None:
-            return None
-
-        root_dir = os.path.dirname(self.path)
-        if self.is_normalized:
-            geod_filename = os.path.join(root_dir, "geod_cache", f"{self.meshname}_n.npy")
-
-        elif self.is_modified:
-            return None
-
-        else:
-            geod_filename = os.path.join(root_dir, "geod_cache", f"{self.meshname}.npy")
-
-        # Check if the geodesic matrix exists
-        if os.path.isfile(geod_filename):
-            if verbose:
-                print("Loading Geodesic Distances from cache")
-            return np.load(geod_filename)
-
-        return None
-
-    def _load_mesh(self, meshpath):
-        """
-        Load a mesh from a file
+        The format is chosen from the extension, defaulting to ``.off`` when the
+        path has none.
 
         Parameters
-        --------------------------
-        meshpath : str
-            path to the mesh file (.off or .obj)
-        """
+        -----------------------------
+        path : str or os.PathLike
+            path of the file to write
+        precision : int, optional
+            number of significant digits to write for each float
+        face_colors : np.ndarray, optional
+            (m,3) color of each face. Only supported by the ``.off`` format.
+        vertex_normals : np.ndarray or bool, optional
+            (n,3) normal at each vertex, or True to use the normals of the mesh.
+            Only supported by the ``.obj`` format.
+        uv : np.ndarray, optional
+            (n,2) uv coordinates of each vertex. Only supported by the ``.obj`` format.
+        texture : str, optional
+            name or path of the image defining the texture. Requires ``uv``, and
+            writes the accompanying ``.mtl`` file.
+        mtl_file : str, optional
+            name or path of the ``.mtl`` file to write alongside the texture
+        verbose : bool, optional
+            whether to print information
 
-        if os.path.splitext(meshpath)[1] == ".off":
-            self.vertlist, self.facelist = file_utils.read_off(meshpath)
-        elif os.path.splitext(meshpath)[1] == ".obj":
-            self.vertlist, self.facelist = file_utils.read_obj(meshpath)
+        Returns
+        -----------------------------
+        self : TriMesh
+            the mesh itself
+        """
+        path = os.fspath(path)
+        ext = os.path.splitext(path)[1].lower()
+        if ext == "":
+            path += ".off"
+            ext = ".off"
+
+        if ext not in WRITE_MESH_EXTENSIONS:
+            raise ValueError(
+                f"Cannot write '{ext}' files. Supported formats: {', '.join(WRITE_MESH_EXTENSIONS)}"
+            )
+
+        if vertex_normals is True:
+            vertex_normals = self.vertex_normals
+        elif vertex_normals is False:
+            vertex_normals = None
+
+        if ext == ".off":
+            unsupported = [
+                name
+                for name, value in (("vertex normals", vertex_normals), ("uv coordinates", uv))
+                if value is not None
+            ]
+            if unsupported:
+                raise ValueError(
+                    f"The .off format cannot store {' or '.join(unsupported)}, use .obj instead"
+                )
+
+            file_utils.write_off(
+                path,
+                self.vertices,
+                self.faces,
+                precision=precision,
+                face_colors=face_colors,
+            )
 
         else:
-            raise ValueError("Provide file in .off or .obj format")
+            if face_colors is not None:
+                raise ValueError("The .obj format cannot store face colors, use .off instead")
 
-        self.path = meshpath
-        self.meshname = os.path.splitext(os.path.basename(meshpath))[0]
-
-    def _read_init_kwargs(self, kwargs):
-        rotation = kwargs["rotation"] if "rotation" in kwargs.keys() else None
-        translation = kwargs["translation"] if "translation" in kwargs.keys() else None
-        area_normalize = kwargs["area_normalize"] if "area_normalize" in kwargs.keys() else False
-        center = kwargs["center"] if "center" in kwargs.keys() else False
-
-        if "normalize" in kwargs.keys():
-            if "area_normalize" in kwargs.keys() and kwargs["area_normalize"] is False:
-                raise ValueError(
-                    "Area normalization is included in normalize, can't set normalize to True and area_normalize to False"
+            if texture is not None:
+                if uv is None:
+                    raise ValueError("uv coordinates are required to write a texture")
+                file_utils.write_obj_texture(
+                    path,
+                    self.vertices,
+                    self.faces,
+                    uv=uv,
+                    mtl_file=mtl_file,
+                    texture_im=texture,
+                    precision=precision,
+                    vertex_normals=vertex_normals,
+                    verbose=verbose,
                 )
-            if "center" in kwargs.keys() and kwargs["center"] is False:
-                raise ValueError(
-                    "Centering is included in normalize, can't set normalize to True and center to False"
+            else:
+                file_utils.write_obj(
+                    path,
+                    self.vertices,
+                    faces=self.faces,
+                    uv=uv,
+                    vertex_normals=vertex_normals,
+                    precision=precision,
                 )
-            area_normalize = True
-            center = True
-        return rotation, translation, area_normalize, center
 
-    def _init_all_attributes(self):
+        return self
 
-        self.path = None
-        self.meshname = None
+    export = _deprecated_method("save", "export")
 
-        self._vertlist = None
-        self._facelist = None
+    def get_uv(self, ind1, ind2, mult_const, rotation=None):
+        """
+        Extract UV coordinates for each vertex.
 
-        self._modified = False
-        self._normalized = False
+        Extracted by orthogonal projection on 2 of the x,y,z axes.
 
-        self._edges = None
-        self._normals = None
+        Parameters
+        -----------------------------
+        ind1 : int
+            column index to use as first coordinate
+        ind2 : int
+            column index to use as second coordinate
+        mult_const : float
+            number of times to repeat the pattern
+        rotation : np.ndarray, optional
+            (3,3) rotation matrix applied before the projection
 
-        self._vertex_normals_weighting = "area"
-        self._vertex_normals = None
+        Returns
+        ------------------------------
+        uv : np.ndarray
+            (n,2) UV coordinates of each vertex
+        """
+        vert = self.vertices if rotation is None else self.vertices @ rotation.T
+        return file_utils.get_uv(vert, ind1, ind2, mult_const=mult_const)
 
-        self.W = None
-        self.A = None
-        self._intrinsic = False
+    def export_texture(
+        self,
+        filename,
+        uv,
+        mtl_file="material.mtl",
+        texture_im="texture_1.jpg",
+        precision=None,
+        verbose=False,
+    ):
+        """
+        Write a .obj file with texture, using uv coordinates.
 
-        self._faces_areas = None
+        Deprecated, use ``save(path, uv=uv, texture=texture_im)`` instead.
 
-        self.eigenvalues = None
-        self.eigenvectors = None
+        Parameters
+        ------------------------------
+        filename : str
+            path to the .obj file to write
+        uv : np.ndarray
+            (n,2) uv coordinates of each vertex
+        mtl_file : str, optional
+            name of the .mtl file
+        texture_im : str, optional
+            name of the .jpg file defining the texture
+        precision : int, optional
+            number of significant digits to write for each float
+        verbose : bool, optional
+            whether to print information
 
-        self._solver_geod_heat = None
-        self._solver_geod_fmarch = None
-        self._solver_heat = None
-        self._solver_lap = None
+        Returns
+        ------------------------------
+        self : TriMesh
+            the mesh itself
+        """
+        warnings.warn(
+            "`export_texture()` is deprecated, use `save(path, uv=uv, texture=...)` instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        filename = os.fspath(filename)
+        if os.path.splitext(filename)[1] != ".obj":
+            filename += ".obj"
+
+        return self.save(
+            filename,
+            uv=uv,
+            texture=texture_im,
+            mtl_file=mtl_file,
+            precision=precision,
+            verbose=verbose,
+        )
