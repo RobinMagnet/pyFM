@@ -43,7 +43,8 @@ Whether you are an academic researcher exploring functional map theory or an ind
 What’s Next?
 ------------
 
-To get started with `pyFM`, check out the example notebook for a quick overview of the package’s capabilities.
+To get started with `pyFM`, work through :doc:`getting_started`, then browse the :ref:`gallery` for runnable
+examples with interactive 3D figures.
 
 .. To get started with `pyFM`, check out the [Installation Guide](#installation) and the [Quickstart Tutorial](#getting-started) for a hands-on introduction. For a deeper dive, explore the [API Reference](#detailed-api-reference) and [Tutorials](#tutorials) to learn more about advanced features and workflows.
 
@@ -58,7 +59,6 @@ Table of Contents
    install.md
    getting_started.md
    auto_examples/index
-   examples.md
 
 .. toctree::
    :maxdepth: 2

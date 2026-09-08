@@ -25,10 +25,13 @@ Full [API documentation](https://robinmagnet.github.io/pyFM/) is available onlin
 ## Installation
 ```bash
 pip install pyfmaps
+
+# with the optional PyVista-based plotting helpers used in the gallery
+pip install 'pyfmaps[viz]'
 ```
 
 ### Key Dependencies
-Requires Python 3.8+ and: numpy, scipy, tqdm, scikit-learn,
+Requires Python 3.10+ and: numpy, scipy, tqdm, scikit-learn,
 [`potpourri3d`](https://github.com/nmwsharp/potpourri3d) (geodesic distances via the heat
 and fast-marching methods), and
 [`robust_laplacian`](https://github.com/nmwsharp/robust-laplacians-py) (Delaunay/tufted
@@ -40,24 +43,26 @@ from pyFM.mesh import TriMesh
 from pyFM.functional import FunctionalMapping
 
 # Load a source and a target mesh
-mesh1 = TriMesh("cat.off", area_normalize=True, center=False)
-mesh2 = TriMesh("lion.off", area_normalize=True, center=False)
+mesh1 = TriMesh.load("cat.off", area_normalize=True, center=True)
+mesh2 = TriMesh.load("lion.off", area_normalize=True, center=True)
 
-# Compute the LBO spectrum + descriptors, then fit a functional map
+# Compute the LBO spectrum + descriptors, then fit a functional map.
+# Keep w_orient above 0: descriptors alone cannot tell left from right,
+# and w_orient=0 (the default) usually returns a symmetry-flipped map.
 model = FunctionalMapping(mesh1, mesh2)
-model.preprocess(K=(35, 35), descr_type="WKS", verbose=True)
-model.fit(w_descr=1e0, w_lap=1e-2, w_dcomm=1e-1, verbose=True)
+model.preprocess(descr_type="WKS", subsample_step=2, verbose=True)
+model.fit(K=30, w_descr=1e0, w_lap=1e-1, w_dcomm=1e0, w_orient=1e0, verbose=True)
 
 # Convert the functional map to a point-to-point map (mesh2 -> mesh1)
 p2p_21 = model.get_p2p()
 
-# Optionally refine the map with ZoomOut
-FM_zo = model.zoomout_refine(nit=10, step=5)
+# Refine the map -- this is where most of the accuracy comes from
+FM_zo = model.zoomout_refine(nit=16, step=5)
 p2p_21_zo = model.get_p2p(FM_zo)
 ```
 
-See the [example notebooks](https://github.com/RobinMagnet/pyFM/tree/master/examples) for
-complete, runnable workflows.
+See the [example gallery](https://robinmagnet.github.io/pyFM/auto_examples/index.html) for
+complete, runnable workflows with interactive 3D figures.
 
 ## Design Philosophy
 This codebase prioritizes readability and adaptability over rigid modularity.
@@ -86,7 +91,7 @@ I selected this approach from my personal experience with research codebases and
 
 ## Documentation & Examples
 - [API Documentation](https://robinmagnet.github.io/pyFM/)
-- [Example Notebooks](https://github.com/RobinMagnet/pyFM/tree/master/examples)
+- [Example Gallery](https://robinmagnet.github.io/pyFM/auto_examples/index.html)
 
 ## Implemented Papers
 This library implements methods from several key papers in shape correspondence, including:

@@ -70,6 +70,9 @@ sphinx_gallery_conf = {
     "gallery_dirs": "auto_examples",
     # Only plot_*.py are executed. os.sep keeps this working on Windows.
     "filename_pattern": re.escape(os.sep) + r"plot_",
+    # The default ("NumberOfCodeLinesSortKey") orders the gallery by script length.
+    # Sorting by file name lets the file names encode the reading order instead.
+    "within_subsection_order": "FileNameSortKey",
     "image_scrapers": (DynamicScraper(), "matplotlib"),
     "doc_module": ("pyFM",),
     # Rendered by the ``minigallery`` directive in _templates/autosummary/.

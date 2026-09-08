@@ -91,6 +91,18 @@ Laplacians, and mesh file readers/writers.
    pyFM.mesh.laplacian
    pyFM.mesh.file_utils
 
+Visualization
+-------------
+
+PyVista-based plotting helpers for meshes, point clouds and vector fields.
+Requires the ``viz`` extra (``pip install 'pyfmaps[viz]'``).
+
+.. autosummary::
+   :toctree: generated
+   :recursive:
+
+   pyFM.viz
+
 Optimization internals
 ----------------------
 
