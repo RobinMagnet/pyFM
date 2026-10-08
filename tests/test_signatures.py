@@ -15,4 +15,6 @@ def test_auto_WKS_is_scale_invariant(cat, landmarks):
     wks = auto_WKS(evals, evects, 20, landmarks=landmarks)
     wks_scaled = auto_WKS(evals / scale**2, evects / scale, 20, landmarks=landmarks)
 
-    np.testing.assert_allclose(scale**2 * wks_scaled, wks, rtol=1e-8)
+    # Some entries are near zero, where a purely relative tolerance cannot absorb roundoff.
+    roundoff = 1e-12 * np.abs(wks).max()
+    np.testing.assert_allclose(scale**2 * wks_scaled, wks, rtol=1e-8, atol=roundoff)
