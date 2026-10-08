@@ -26,10 +26,7 @@ def WKS(evals, evects, energy_list, sigma, scaled=False):
     """
     assert sigma > 0, f"Sigma should be positive ! Given value : {sigma}"
 
-    evals = np.asarray(evals).flatten()
-    indices = np.where(evals > 1e-5)[0].flatten()
-    evals = evals[indices]
-    evects = evects[:, indices]
+    evals, evects = _drop_constant_eigenpairs(evals, evects)
 
     e_list = np.asarray(energy_list)
     coefs = np.exp(
@@ -71,10 +68,7 @@ def lm_WKS(evals, evects, landmarks, energy_list, sigma, scaled=False):
     """
     assert sigma > 0, f"Sigma should be positive ! Given value : {sigma}"
 
-    evals = np.asarray(evals).flatten()
-    indices = np.where(evals > 1e-2)[0].flatten()
-    evals = evals[indices]
-    evects = evects[:, indices]
+    evals, evects = _drop_constant_eigenpairs(evals, evects)
 
     e_list = np.asarray(energy_list)
     coefs = np.exp(
@@ -165,3 +159,11 @@ def mesh_WKS(mesh, num_E, landmarks=None, k=None):
         landmarks=landmarks,
         scaled=True,
     )
+
+
+def _drop_constant_eigenpairs(evals, evects):
+    """Return the eigenpairs whose eigenvalue is not numerically zero."""
+    evals = np.asarray(evals).flatten()
+    # Relative to the spectrum, since eigenvalues scale with 1 / area.
+    keep = evals > 1e-8 * evals.max()
+    return evals[keep], evects[:, keep]
