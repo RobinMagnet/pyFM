@@ -1,4 +1,9 @@
 """
+Projection of a pointcloud onto a triangle mesh.
+
+Shapes: n1 mesh vertices, m1 faces, n2 pointcloud points, p dimensions. Faces are
+(m1, 3) vertex indices, barycentric coordinates (n2, 3), the 3 being the vertices of the triangle.
+
 .. note::
     Python implementation of:
         [1] - "Deblurring and Denoising of Maps between Shapes", by Danielle Ezuz and Mirela Ben-Chen.
@@ -42,23 +47,24 @@ def nn_query_precise_np(
     points_emb : (n2, p) np.ndarray
         Coordinates of the pointcloud.
     return_dist : bool, optional
-        Whether to return the distance to the nearest vertex.
+        Whether to also return the distance from each point to its projection.
     batch_size : int, optional
-        If precompute_dmin is False, projects batches of points on the surface.
+        If given, projects batches of points instead of precomputing all of dmin, which
+        trades speed for memory. None (default) precomputes.
     n_jobs : int, optional
-        Number of parallel jobs. None (default) decides automatically.
+        Number of parallel processes for the nearest neighbor precomputation.
 
     Returns
     -------
     face_match : (n2,) np.ndarray
-        Indices of the face assigned to each point.
+        Index of the face assigned to each point.
     bary_coord : (n2, 3) np.ndarray
-        Barycentric coordinates of each point within the face.
+        Barycentric coordinates of each point within its assigned face.
     dists : (n2,) np.ndarray
-        Distance to the nearest vertex. Returned ONLY if return_dist is True.
+        Distance from each point to its projection on the mesh, not to the nearest
+        vertex. Returned ONLY if return_dist is True.
     """
 
-    # n2,  (n2,3)
     face_match, bary_coords = project_pc_to_triangles(
         vert_emb,
         faces,
@@ -90,11 +96,11 @@ def project_pc_to_triangles(
     verbose=False,
 ):
     """
-    Project a pointcloud on a set of triangles in p-dimension.
+    Project a pointcloud on a set of triangles in p dimensions.
 
-    Projection is defined as barycentric coordinates on one of the triangles. Line i
-    of the output has 3 non-zero values at indices j, k and l of the vertices of the
-    triangle point i was projected on.
+    The projection is expressed as barycentric coordinates within one of the triangles.
+    Row i of the sparse output has 3 non-zero values, at the indices of the vertices of
+    the triangle point i was projected on.
 
     Parameters
     ----------
@@ -157,9 +163,9 @@ def project_pc_to_triangles(
             print(f"\tDone in {time.time() - start_time:.2f}s")
 
     else:
-        vert_sqnorms = np.linalg.norm(vert_emb, axis=1) ** 2
-        points_sqnorm = np.linalg.norm(points_emb, axis=1) ** 2
-        dmin_params = {"vert_sqnorms": vert_sqnorms, "points_sqnorm": points_sqnorm}
+        vert_sqnorm = np.linalg.norm(vert_emb, axis=1) ** 2  # (n1,)
+        points_sqnorm = np.linalg.norm(points_emb, axis=1) ** 2  # (n2,)
+        dmin_params = {"vert_sqnorm": vert_sqnorm, "points_sqnorm": points_sqnorm}
 
     # Iterate along all points
     if precompute_dmin or batch_size is None:
@@ -183,28 +189,25 @@ def project_pc_to_triangles(
         iterable = range(n_batches) if not verbose else tqdm(range(n_batches))
 
         for batchind in iterable:
-            batch_minmax = [
-                batch_size * batchind,
-                min(n_points, batch_size * (1 + batchind)),
-            ]
+            batch_start = batch_size * batchind
+            batch_stop = min(n_points, batch_size * (1 + batchind))
             dmin_batch = compute_all_dmin(
                 vert_emb,
                 faces,
-                points_emb[batch_minmax[0] : batch_minmax[1]],
-                vert_sqnorm=vert_sqnorms,
-                points_sqnorm=points_sqnorm[batch_minmax[0] : batch_minmax[1]],
-            )
+                points_emb[batch_start:batch_stop],
+                vert_sqnorm=vert_sqnorm,
+                points_sqnorm=points_sqnorm[batch_start:batch_stop],
+            )  # (m1, batch)
 
-            batch_iterable = range(*batch_minmax)  # if not verbose else tqdm(range(*batch_minmax))
-            for vertind in batch_iterable:
-                batch_vertind = vertind - batch_minmax[0]
+            for vertind in range(batch_start, batch_stop):
+                batch_vertind = vertind - batch_start
                 faceind, bary = project_to_mesh(
                     vert_emb,
                     faces,
-                    points_emb[batch_minmax[0] : batch_minmax[1]],
+                    points_emb[batch_start:batch_stop],
                     batch_vertind,
                     lmax,
-                    Deltamin[batch_minmax[0] : batch_minmax[1]],
+                    Deltamin[batch_start:batch_stop],
                     dmin=dmin_batch,
                     dmin_params=dmin_params,
                 )
@@ -216,7 +219,6 @@ def project_pc_to_triangles(
         return barycentric_to_precise(faces, face_match, bary_coord, n_vertices=n_vertices)
 
     return face_match, bary_coord
-    # return barycentric_to_precise(faces, face_match, bary_coord, n_vertices=n_vertices)
 
 
 def compute_lmax(vert_emb, faces):
@@ -312,9 +314,9 @@ def mycdist(X, Y, sqnormX=None, sqnormY=None, squared=False):
 
     if sqnormY is None:
         if Y.ndim == 2:
-            sqnormY = np.linalg.norm(Y, axis=1) ** 2
+            sqnormY = np.linalg.norm(Y, axis=1) ** 2  # (n2,)
         else:
-            sqnormY = np.linalg.norm(Y)
+            sqnormY = np.linalg.norm(Y) ** 2  # scalar
 
     distmat = X @ Y.T
     distmat *= -2
@@ -334,7 +336,7 @@ def mycdist(X, Y, sqnormX=None, sqnormY=None, squared=False):
     return distmat
 
 
-def compute_dmin(vert_emb, faces, points_emb, vertind, vert_sqnorms=None, points_sqnorm=None):
+def compute_dmin(vert_emb, faces, points_emb, vertind, vert_sqnorm=None, points_sqnorm=None):
     r"""
     Given a vertex in the pointcloud and each face on the surface, gives the minimum
     distance between the vertex and each of the 3 points of the triangle.
@@ -353,40 +355,40 @@ def compute_dmin(vert_emb, faces, points_emb, vertind, vert_sqnorms=None, points
         Coordinates of the pointcloud.
     vertind : int
         Index of the vertex for which to compute dmin.
-    vert_sqnorms : (n1,) np.ndarray, optional
+    vert_sqnorm : (n1,) np.ndarray, optional
         Squared norm of each vertex. Computed on the fly if None.
     points_sqnorm : (n2,) np.ndarray, optional
-        Squared norm of each point.
+        Squared norm of each point. Computed on the fly if None.
 
     Returns
     -------
     delta_min : (m1,) np.ndarray
         delta_min for each face on the source shape.
     """
-    if vert_sqnorms is None:
-        vert_sqnorms = np.linalg.norm(vert_emb, axis=1) ** 2
+    if vert_sqnorm is None:
+        vert_sqnorm = np.linalg.norm(vert_emb, axis=1) ** 2  # (n1,)
 
-    emb0 = vert_emb[faces[:, 0]]  # (m1,k1)
-    emb1 = vert_emb[faces[:, 1]]  # (m1,k1)
-    emb2 = vert_emb[faces[:, 2]]  # (m1,k1)
-    b = points_emb[vertind]  # (k1,)
+    emb0 = vert_emb[faces[:, 0]]  # (m1,p)
+    emb1 = vert_emb[faces[:, 1]]  # (m1,p)
+    emb2 = vert_emb[faces[:, 2]]  # (m1,p)
+    b = points_emb[vertind]  # (p,)
 
     b_sqnorm = np.linalg.norm(b) ** 2 if points_sqnorm is None else points_sqnorm[vertind]
 
-    dmin = mycdist(emb0, b, sqnormX=vert_sqnorms[faces[:, 0]], sqnormY=b_sqnorm, squared=True)
+    dmin = mycdist(emb0, b, sqnormX=vert_sqnorm[faces[:, 0]], sqnormY=b_sqnorm, squared=True)
     np.minimum(
         dmin,
-        mycdist(emb1, b, sqnormX=vert_sqnorms[faces[:, 1]], sqnormY=b_sqnorm, squared=True),
+        mycdist(emb1, b, sqnormX=vert_sqnorm[faces[:, 1]], sqnormY=b_sqnorm, squared=True),
         out=dmin,
     )
     np.minimum(
         dmin,
-        mycdist(emb2, b, sqnormX=vert_sqnorms[faces[:, 2]], sqnormY=b_sqnorm, squared=True),
+        mycdist(emb2, b, sqnormX=vert_sqnorm[faces[:, 2]], sqnormY=b_sqnorm, squared=True),
         out=dmin,
     )
     np.sqrt(dmin, out=dmin)
 
-    return dmin
+    return dmin  # (m1,)
 
 
 def compute_all_dmin(vert_emb, faces, points_emb, vert_sqnorm=None, points_sqnorm=None):
@@ -494,24 +496,21 @@ def project_to_mesh(
         Barycentric coordinates on the chosen face.
     """
     dmin_params = dict() if dmin_params is None else dmin_params
-    # Obtain deltamin
     if dmin is None:
-        deltamin = compute_dmin(vert_emb, faces, points_emb, vertind, **dmin_params)  # (m1,)
+        dmin_point = compute_dmin(vert_emb, faces, points_emb, vertind, **dmin_params)  # (m1,)
     else:
-        deltamin = dmin[:, vertind]  # (m1,)
+        dmin_point = dmin[:, vertind]  # (m1,)
 
-    query_faceinds = np.where(deltamin - lmax < Deltamin[vertind])[0]  # (p)
+    query_faceinds = np.where(dmin_point - lmax < Deltamin[vertind])[0]  # (q,)
 
     # Fall back to all faces if the pre-selection filtered everything out
     # (can happen with numerical round-off on the threshold).
     if len(query_faceinds) == 0:
-        query_faceinds = np.arange(faces.shape[0])
+        query_faceinds = np.arange(faces.shape[0])  # (m1,)
 
     # Projection can be done on multiple triangles
-    query_triangles = vert_emb[faces[query_faceinds]]  # (p, 3, k1)
-    query_point = points_emb[vertind]
-    # query_triangles = mesh1.eigenvectors[mesh1.faces[query_faceinds], :k1]  # (p, 3,k1)
-    # query_point = FM.T @ mesh2.eigenvectors[vertind,:k2]  # (k1,)
+    query_triangles = vert_emb[faces[query_faceinds]]  # (q, 3, p)
+    query_point = points_emb[vertind]  # (p,)
 
     if len(query_faceinds) == 1:
         min_dist, proj, min_bary = pointTriangleDistance(
@@ -699,7 +698,7 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         inds4_2 = inds_4[~test4_1]
 
         # FIRST PART - SUBDIVIDE IN 2
-        final_t[inds4_1] = 0  # Useless already done
+        final_t[inds4_1] = 0
 
         test4_11 = -d[inds4_1] >= a[inds4_1]
         inds4_11 = inds4_1[test4_11]
@@ -712,7 +711,7 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         final_dists[inds4_12] = d[inds4_12] * final_s[inds4_12] + f[inds4_12]
 
         # SECOND PART - SUBDIVIDE IN 2
-        final_s[inds4_2] = 0  # Useless already done
+        final_s[inds4_2] = 0
 
         test4_21 = e[inds4_2] >= 0
         inds4_21 = inds4_2[test4_21]
@@ -775,11 +774,12 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         final_dists[inds5_22] = d[inds5_22] * final_s[inds5_22] + f[inds5_22]
 
     if len(inds_0) > 0:
-        # Clamp det away from 0 (matches the torch backend) so degenerate/near-degenerate
-        # triangles yield a finite projection instead of inf/NaN. det = a*c - b**2 >= 0.
-        invDet = 1.0 / np.clip(det[inds_0], 1e-6, None)
-        final_s[inds_0] = s[inds_0] * invDet
-        final_t[inds_0] = t[inds_0] * invDet
+        # Region 0 has 0 <= s, t and s + t <= det, so s/det, t/det lie in [0, 1] whenever
+        # det > 0; det == 0 forces s = t = 0, so dividing by 1 there avoids 0/0.
+        det_0 = det[inds_0]
+        safe_det = np.where(det_0 > 0, det_0, 1.0)
+        final_s[inds_0] = s[inds_0] / safe_det
+        final_t[inds_0] = t[inds_0] / safe_det
         final_dists[inds_0] = (
             final_s[inds_0]
             * (a[inds_0] * final_s[inds_0] + b[inds_0] * final_t[inds_0] + 2.0 * d[inds_0])
@@ -789,14 +789,14 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         )
 
     if len(inds_2) > 0:
-        tmp0 = b[inds_2] + d[inds_2]
-        tmp1 = c[inds_2] + e[inds_2]
+        b_plus_d = b[inds_2] + d[inds_2]
+        c_plus_e = c[inds_2] + e[inds_2]
 
-        test2_1 = tmp1 > tmp0
+        test2_1 = c_plus_e > b_plus_d
         inds2_1 = inds_2[test2_1]
         inds2_2 = inds_2[~test2_1]
 
-        numer = tmp1[test2_1] - tmp0[test2_1]
+        numer = c_plus_e[test2_1] - b_plus_d[test2_1]
         denom = a[inds2_1] - 2.0 * b[inds2_1] + c[inds2_1]
 
         test2_11 = numer >= denom
@@ -819,7 +819,7 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
 
         final_s[inds2_2] = 0.0
 
-        test2_21 = tmp1[~test2_1] <= 0.0
+        test2_21 = c_plus_e[~test2_1] <= 0.0
         inds2_21 = inds2_2[test2_21]
         inds2_22 = inds2_2[~test2_21]
 
@@ -837,14 +837,14 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
         final_dists[inds2_222] = e[inds2_222] * final_t[inds2_222] + f[inds2_222]
 
     if len(inds_6) > 0:
-        tmp0 = b[inds_6] + e[inds_6]
-        tmp1 = a[inds_6] + d[inds_6]
+        b_plus_e = b[inds_6] + e[inds_6]
+        a_plus_d = a[inds_6] + d[inds_6]
 
-        test6_1 = tmp1 > tmp0
+        test6_1 = a_plus_d > b_plus_e
         inds6_1 = inds_6[test6_1]
         inds6_2 = inds_6[~test6_1]
 
-        numer = tmp1[test6_1] - tmp0[test6_1]
+        numer = a_plus_d[test6_1] - b_plus_e[test6_1]
         denom = a[inds6_1] - 2.0 * b[inds6_1] + c[inds6_1]
 
         test6_11 = numer >= denom
@@ -875,7 +875,7 @@ def point_to_triangles_projection(triangles, point, return_bary=False):
 
         final_t[inds6_2] = 0.0
 
-        test6_21 = tmp1[~test6_1] <= 0.0
+        test6_21 = a_plus_d[~test6_1] <= 0.0
         inds6_21 = inds6_2[test6_21]
         inds6_22 = inds6_2[~test6_21]
 
