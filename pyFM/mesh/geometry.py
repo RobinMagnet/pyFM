@@ -180,13 +180,12 @@ def per_vertex_normal_area(vertices, faces):
     v3 = vertices[faces[:, 2]]  # (m,3)
 
     # That is 2* A(T) n(T) with A(T) area of face T
-    face_normals_weighted = np.cross(1e3 * (v2 - v1), 1e3 * (v3 - v1))  # (m,3)
+    face_normals_weighted = np.cross(v2 - v1, v3 - v1)  # (m,3)
 
     vert_normals = np.zeros((n_vertices, 3))
     np.add.at(vert_normals, faces.flatten(), np.repeat(face_normals_weighted, 3, axis=0))
-    vert_normals /= 1e-8 + np.linalg.norm(vert_normals, axis=1, keepdims=True)
 
-    return vert_normals
+    return _normalize_vectors(vert_normals)
 
 
 def per_vertex_normal_uniform(vertices, faces, face_normals=None):
@@ -210,19 +209,19 @@ def per_vertex_normal_uniform(vertices, faces, face_normals=None):
 
     n_vertices = vertices.shape[0]
 
-    v1 = vertices[faces[:, 0]]  # (m,3)
-    v2 = vertices[faces[:, 1]]  # (m,3)
-    v3 = vertices[faces[:, 2]]  # (m,3)
-
     if face_normals is None:
-        face_normals = np.cross(1e3 * (v2 - v1), 1e3 * (v3 - v1))  # (m,3)
-        face_normals /= np.linalg.norm(face_normals, axis=1, keepdims=True)
+        face_normals = compute_normals(vertices, faces)  # (m,3)
 
     vert_normals = np.zeros((n_vertices, 3))
     np.add.at(vert_normals, faces.flatten(), np.repeat(face_normals, 3, axis=0))
-    vert_normals /= 1e-8 + np.linalg.norm(vert_normals, axis=1, keepdims=True)
 
-    return vert_normals
+    return _normalize_vectors(vert_normals)
+
+
+def _normalize_vectors(vectors):
+    """Return `vectors` scaled to unit norm along the last axis, leaving zero vectors at zero."""
+    norms = np.linalg.norm(vectors, axis=-1, keepdims=True)
+    return np.divide(vectors, norms, out=np.zeros_like(vectors), where=norms > 0)
 
 
 def neigh_faces(faces):
@@ -720,7 +719,7 @@ def heat_geodesic_from(
 
     # Compute and normalize the gradient of the solution
     g = grad_f(u, vertices, faces, normals, face_areas=face_areas, grads=grads)  # (m,3) or (m,p,3)
-    h = -g / np.linalg.norm(g, axis=-1, keepdims=True)  # (m,3) or (m,p,3)
+    h = -_normalize_vectors(g)  # (m,3) or (m,p,3)
 
     # Solve L*phi = div(h). Actually W*phi = A*div(h)
     div_h = div_f(h, vertices, faces, normals, vert_areas=vert_areas, grads=grads)  # (n,) or (n,p)
