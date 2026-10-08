@@ -540,15 +540,12 @@ class FMN:
         """
 
         # Embeddings only depend on the node, whereas each node appears in multiple edges.
-        LB_sub = [self.get_LB(i, complete=False) for i in range(self.n_meshes)]
-        LB_target = (
-            [self.get_LB(i, complete=True) for i in range(self.n_meshes)] if complete else LB_sub
-        )
+        LB_nodes = [self.get_LB(i, complete=complete) for i in range(self.n_meshes)]
 
         self.p2p = dict()
         for i, j in self.edges:
-            LB_1 = LB_sub[i]  # (n_1',m)
-            LB_2 = LB_target[j]  # (n_2',m)
+            LB_1 = LB_nodes[i]  # (n_1',m)
+            LB_2 = LB_nodes[j]  # (n_2',m)
 
             self.p2p[(i, j)] = knn_query(LB_1, LB_2, k=1, n_jobs=n_jobs)  # (n_2',)
 
