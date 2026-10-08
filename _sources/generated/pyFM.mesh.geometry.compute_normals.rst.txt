@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.compute\_normals
+===================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: compute_normals
+
+.. minigallery:: pyFM.mesh.geometry.compute_normals
+   :add-heading: Examples using ``compute_normals``

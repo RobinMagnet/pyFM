@@ -1,0 +1,9 @@
+pyFM.mesh.laplacian.laplacian\_spectrum
+=======================================
+
+.. currentmodule:: pyFM.mesh.laplacian
+
+.. autofunction:: laplacian_spectrum
+
+.. minigallery:: pyFM.mesh.laplacian.laplacian_spectrum
+   :add-heading: Examples using ``laplacian_spectrum``

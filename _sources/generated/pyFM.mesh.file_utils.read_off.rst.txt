@@ -1,0 +1,9 @@
+pyFM.mesh.file\_utils.read\_off
+===============================
+
+.. currentmodule:: pyFM.mesh.file_utils
+
+.. autofunction:: read_off
+
+.. minigallery:: pyFM.mesh.file_utils.read_off
+   :add-heading: Examples using ``read_off``

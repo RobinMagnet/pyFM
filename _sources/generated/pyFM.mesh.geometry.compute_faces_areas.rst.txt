@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.compute\_faces\_areas
+========================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: compute_faces_areas
+
+.. minigallery:: pyFM.mesh.geometry.compute_faces_areas
+   :add-heading: Examples using ``compute_faces_areas``

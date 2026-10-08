@@ -1,0 +1,9 @@
+pyFM.spectral.projection\_utils.project\_pc\_to\_triangles
+==========================================================
+
+.. currentmodule:: pyFM.spectral.projection_utils
+
+.. autofunction:: project_pc_to_triangles
+
+.. minigallery:: pyFM.spectral.projection_utils.project_pc_to_triangles
+   :add-heading: Examples using ``project_pc_to_triangles``

@@ -1,0 +1,9 @@
+pyFM.optimize.weights.resolvent\_mask
+=====================================
+
+.. currentmodule:: pyFM.optimize.weights
+
+.. autofunction:: resolvent_mask
+
+.. minigallery:: pyFM.optimize.weights.resolvent_mask
+   :add-heading: Examples using ``resolvent_mask``

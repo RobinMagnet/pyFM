@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.heat\_geodmat
+================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: heat_geodmat
+
+.. minigallery:: pyFM.mesh.geometry.heat_geodmat
+   :add-heading: Examples using ``heat_geodmat``

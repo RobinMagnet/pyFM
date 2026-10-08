@@ -1,0 +1,9 @@
+pyFM.spectral.nearest\_neighbor.compute\_sqdistmat
+==================================================
+
+.. currentmodule:: pyFM.spectral.nearest_neighbor
+
+.. autofunction:: compute_sqdistmat
+
+.. minigallery:: pyFM.spectral.nearest_neighbor.compute_sqdistmat
+   :add-heading: Examples using ``compute_sqdistmat``

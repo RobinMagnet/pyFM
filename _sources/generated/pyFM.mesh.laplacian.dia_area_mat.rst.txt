@@ -1,0 +1,9 @@
+pyFM.mesh.laplacian.dia\_area\_mat
+==================================
+
+.. currentmodule:: pyFM.mesh.laplacian
+
+.. autofunction:: dia_area_mat
+
+.. minigallery:: pyFM.mesh.laplacian.dia_area_mat
+   :add-heading: Examples using ``dia_area_mat``

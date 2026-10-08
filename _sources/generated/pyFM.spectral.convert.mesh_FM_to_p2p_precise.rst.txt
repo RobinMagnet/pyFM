@@ -1,0 +1,9 @@
+pyFM.spectral.convert.mesh\_FM\_to\_p2p\_precise
+================================================
+
+.. currentmodule:: pyFM.spectral.convert
+
+.. autofunction:: mesh_FM_to_p2p_precise
+
+.. minigallery:: pyFM.spectral.convert.mesh_FM_to_p2p_precise
+   :add-heading: Examples using ``mesh_FM_to_p2p_precise``

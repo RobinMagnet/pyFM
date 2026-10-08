@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.geodesic\_distmat\_fast\_marching
+====================================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: geodesic_distmat_fast_marching
+
+.. minigallery:: pyFM.mesh.geometry.geodesic_distmat_fast_marching
+   :add-heading: Examples using ``geodesic_distmat_fast_marching``

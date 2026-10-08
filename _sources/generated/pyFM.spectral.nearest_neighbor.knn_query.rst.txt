@@ -1,0 +1,9 @@
+pyFM.spectral.nearest\_neighbor.knn\_query
+==========================================
+
+.. currentmodule:: pyFM.spectral.nearest_neighbor
+
+.. autofunction:: knn_query
+
+.. minigallery:: pyFM.spectral.nearest_neighbor.knn_query
+   :add-heading: Examples using ``knn_query``

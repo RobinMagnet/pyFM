@@ -1,0 +1,9 @@
+pyFM.spectral.projection\_utils.mycdist
+=======================================
+
+.. currentmodule:: pyFM.spectral.projection_utils
+
+.. autofunction:: mycdist
+
+.. minigallery:: pyFM.spectral.projection_utils.mycdist
+   :add-heading: Examples using ``mycdist``

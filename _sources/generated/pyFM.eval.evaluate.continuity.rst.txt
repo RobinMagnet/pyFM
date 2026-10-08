@@ -1,0 +1,9 @@
+pyFM.eval.evaluate.continuity
+=============================
+
+.. currentmodule:: pyFM.eval.evaluate
+
+.. autofunction:: continuity
+
+.. minigallery:: pyFM.eval.evaluate.continuity
+   :add-heading: Examples using ``continuity``

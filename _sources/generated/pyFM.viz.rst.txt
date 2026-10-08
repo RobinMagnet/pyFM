@@ -1,0 +1,29 @@
+﻿pyFM.viz
+========
+
+.. automodule:: pyFM.viz
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      plot_mesh
+      plot_arrows
+      to_polydata
+      vertices_to_rgb
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

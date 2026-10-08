@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.neigh\_faces
+===============================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: neigh_faces
+
+.. minigallery:: pyFM.mesh.geometry.neigh_faces
+   :add-heading: Examples using ``neigh_faces``

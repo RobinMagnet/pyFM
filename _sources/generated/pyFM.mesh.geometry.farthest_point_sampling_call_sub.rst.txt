@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.farthest\_point\_sampling\_call\_sub
+=======================================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: farthest_point_sampling_call_sub
+
+.. minigallery:: pyFM.mesh.geometry.farthest_point_sampling_call_sub
+   :add-heading: Examples using ``farthest_point_sampling_call_sub``

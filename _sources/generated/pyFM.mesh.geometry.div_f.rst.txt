@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.div\_f
+=========================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: div_f
+
+.. minigallery:: pyFM.mesh.geometry.div_f
+   :add-heading: Examples using ``div_f``

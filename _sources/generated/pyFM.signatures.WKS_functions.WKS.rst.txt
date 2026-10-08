@@ -1,0 +1,9 @@
+pyFM.signatures.WKS\_functions.WKS
+==================================
+
+.. currentmodule:: pyFM.signatures.WKS_functions
+
+.. autofunction:: WKS
+
+.. minigallery:: pyFM.signatures.WKS_functions.WKS
+   :add-heading: Examples using ``WKS``

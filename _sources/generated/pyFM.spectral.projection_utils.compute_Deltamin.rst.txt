@@ -1,0 +1,9 @@
+pyFM.spectral.projection\_utils.compute\_Deltamin
+=================================================
+
+.. currentmodule:: pyFM.spectral.projection_utils
+
+.. autofunction:: compute_Deltamin
+
+.. minigallery:: pyFM.spectral.projection_utils.compute_Deltamin
+   :add-heading: Examples using ``compute_Deltamin``

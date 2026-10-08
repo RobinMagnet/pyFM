@@ -1,0 +1,9 @@
+pyFM.optimize.base\_functions.LB\_commutation
+=============================================
+
+.. currentmodule:: pyFM.optimize.base_functions
+
+.. autofunction:: LB_commutation
+
+.. minigallery:: pyFM.optimize.base_functions.LB_commutation
+   :add-heading: Examples using ``LB_commutation``

@@ -1,0 +1,9 @@
+pyFM.refine.zoomout.mesh\_zoomout\_refine\_p2p
+==============================================
+
+.. currentmodule:: pyFM.refine.zoomout
+
+.. autofunction:: mesh_zoomout_refine_p2p
+
+.. minigallery:: pyFM.refine.zoomout.mesh_zoomout_refine_p2p
+   :add-heading: Examples using ``mesh_zoomout_refine_p2p``

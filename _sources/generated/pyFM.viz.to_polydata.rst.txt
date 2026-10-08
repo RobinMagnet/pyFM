@@ -1,0 +1,9 @@
+pyFM.viz.to\_polydata
+=====================
+
+.. currentmodule:: pyFM.viz
+
+.. autofunction:: to_polydata
+
+.. minigallery:: pyFM.viz.to_polydata
+   :add-heading: Examples using ``to_polydata``

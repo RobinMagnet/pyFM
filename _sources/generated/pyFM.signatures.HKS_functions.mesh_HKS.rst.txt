@@ -1,0 +1,9 @@
+pyFM.signatures.HKS\_functions.mesh\_HKS
+========================================
+
+.. currentmodule:: pyFM.signatures.HKS_functions
+
+.. autofunction:: mesh_HKS
+
+.. minigallery:: pyFM.signatures.HKS_functions.mesh_HKS
+   :add-heading: Examples using ``mesh_HKS``

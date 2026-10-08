@@ -1,0 +1,9 @@
+pyFM.spectral.shape\_difference.conformal\_SD
+=============================================
+
+.. currentmodule:: pyFM.spectral.shape_difference
+
+.. autofunction:: conformal_SD
+
+.. minigallery:: pyFM.spectral.shape_difference.conformal_SD
+   :add-heading: Examples using ``conformal_SD``

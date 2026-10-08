@@ -1,0 +1,9 @@
+pyFM.optimize.base\_functions.oplist\_commutation
+=================================================
+
+.. currentmodule:: pyFM.optimize.base_functions
+
+.. autofunction:: oplist_commutation
+
+.. minigallery:: pyFM.optimize.base_functions.oplist_commutation
+   :add-heading: Examples using ``oplist_commutation``

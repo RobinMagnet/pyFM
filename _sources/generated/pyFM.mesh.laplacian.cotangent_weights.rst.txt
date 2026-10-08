@@ -1,0 +1,9 @@
+pyFM.mesh.laplacian.cotangent\_weights
+======================================
+
+.. currentmodule:: pyFM.mesh.laplacian
+
+.. autofunction:: cotangent_weights
+
+.. minigallery:: pyFM.mesh.laplacian.cotangent_weights
+   :add-heading: Examples using ``cotangent_weights``

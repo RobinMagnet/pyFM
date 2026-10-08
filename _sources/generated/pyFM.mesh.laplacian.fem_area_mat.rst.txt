@@ -1,0 +1,9 @@
+pyFM.mesh.laplacian.fem\_area\_mat
+==================================
+
+.. currentmodule:: pyFM.mesh.laplacian
+
+.. autofunction:: fem_area_mat
+
+.. minigallery:: pyFM.mesh.laplacian.fem_area_mat
+   :add-heading: Examples using ``fem_area_mat``

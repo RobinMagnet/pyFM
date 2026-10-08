@@ -1,0 +1,9 @@
+pyFM.mesh.file\_utils.read\_tri
+===============================
+
+.. currentmodule:: pyFM.mesh.file_utils
+
+.. autofunction:: read_tri
+
+.. minigallery:: pyFM.mesh.file_utils.read_tri
+   :add-heading: Examples using ``read_tri``

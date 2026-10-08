@@ -1,0 +1,9 @@
+pyFM.mesh.file\_utils.read\_vert
+================================
+
+.. currentmodule:: pyFM.mesh.file_utils
+
+.. autofunction:: read_vert
+
+.. minigallery:: pyFM.mesh.file_utils.read_vert
+   :add-heading: Examples using ``read_vert``

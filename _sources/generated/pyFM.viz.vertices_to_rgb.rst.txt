@@ -1,0 +1,9 @@
+pyFM.viz.vertices\_to\_rgb
+==========================
+
+.. currentmodule:: pyFM.viz
+
+.. autofunction:: vertices_to_rgb
+
+.. minigallery:: pyFM.viz.vertices_to_rgb
+   :add-heading: Examples using ``vertices_to_rgb``

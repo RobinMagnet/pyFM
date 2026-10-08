@@ -1,0 +1,9 @@
+pyFM.mesh.file\_utils.write\_off
+================================
+
+.. currentmodule:: pyFM.mesh.file_utils
+
+.. autofunction:: write_off
+
+.. minigallery:: pyFM.mesh.file_utils.write_off
+   :add-heading: Examples using ``write_off``

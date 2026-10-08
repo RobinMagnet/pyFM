@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.dijkstra\_from
+=================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: dijkstra_from
+
+.. minigallery:: pyFM.mesh.geometry.dijkstra_from
+   :add-heading: Examples using ``dijkstra_from``

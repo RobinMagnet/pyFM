@@ -1,0 +1,9 @@
+pyFM.spectral.shape\_difference.compute\_SD
+===========================================
+
+.. currentmodule:: pyFM.spectral.shape_difference
+
+.. autofunction:: compute_SD
+
+.. minigallery:: pyFM.spectral.shape_difference.compute_SD
+   :add-heading: Examples using ``compute_SD``

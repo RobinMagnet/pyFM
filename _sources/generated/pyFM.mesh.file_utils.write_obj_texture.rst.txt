@@ -1,0 +1,9 @@
+pyFM.mesh.file\_utils.write\_obj\_texture
+=========================================
+
+.. currentmodule:: pyFM.mesh.file_utils
+
+.. autofunction:: write_obj_texture
+
+.. minigallery:: pyFM.mesh.file_utils.write_obj_texture
+   :add-heading: Examples using ``write_obj_texture``

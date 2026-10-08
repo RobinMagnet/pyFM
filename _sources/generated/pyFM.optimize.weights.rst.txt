@@ -1,0 +1,29 @@
+pyFM.optimize.weights
+=====================
+
+.. automodule:: pyFM.optimize.weights
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+      :toctree:
+   
+      resolvent_mask
+      effective_p
+      canonical_taus
+      legacy_taus
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

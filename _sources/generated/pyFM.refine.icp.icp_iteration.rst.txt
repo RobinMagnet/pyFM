@@ -1,0 +1,9 @@
+pyFM.refine.icp.icp\_iteration
+==============================
+
+.. currentmodule:: pyFM.refine.icp
+
+.. autofunction:: icp_iteration
+
+.. minigallery:: pyFM.refine.icp.icp_iteration
+   :add-heading: Examples using ``icp_iteration``

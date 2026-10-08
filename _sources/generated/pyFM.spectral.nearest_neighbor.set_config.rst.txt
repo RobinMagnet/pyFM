@@ -1,0 +1,9 @@
+pyFM.spectral.nearest\_neighbor.set\_config
+===========================================
+
+.. currentmodule:: pyFM.spectral.nearest_neighbor
+
+.. autofunction:: set_config
+
+.. minigallery:: pyFM.spectral.nearest_neighbor.set_config
+   :add-heading: Examples using ``set_config``

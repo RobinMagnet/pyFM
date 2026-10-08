@@ -1,0 +1,9 @@
+pyFM.mesh.geometry.edges\_from\_faces
+=====================================
+
+.. currentmodule:: pyFM.mesh.geometry
+
+.. autofunction:: edges_from_faces
+
+.. minigallery:: pyFM.mesh.geometry.edges_from_faces
+   :add-heading: Examples using ``edges_from_faces``

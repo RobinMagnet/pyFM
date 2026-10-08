@@ -1,0 +1,9 @@
+pyFM.mesh.file\_utils.get\_uv
+=============================
+
+.. currentmodule:: pyFM.mesh.file_utils
+
+.. autofunction:: get_uv
+
+.. minigallery:: pyFM.mesh.file_utils.get_uv
+   :add-heading: Examples using ``get_uv``

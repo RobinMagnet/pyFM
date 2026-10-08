@@ -1,0 +1,9 @@
+pyFM.optimize.weights.effective\_p
+==================================
+
+.. currentmodule:: pyFM.optimize.weights
+
+.. autofunction:: effective_p
+
+.. minigallery:: pyFM.optimize.weights.effective_p
+   :add-heading: Examples using ``effective_p``

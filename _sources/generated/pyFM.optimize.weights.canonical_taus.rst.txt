@@ -1,0 +1,9 @@
+pyFM.optimize.weights.canonical\_taus
+=====================================
+
+.. currentmodule:: pyFM.optimize.weights
+
+.. autofunction:: canonical_taus
+
+.. minigallery:: pyFM.optimize.weights.canonical_taus
+   :add-heading: Examples using ``canonical_taus``

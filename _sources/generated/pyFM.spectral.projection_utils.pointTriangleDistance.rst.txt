@@ -1,0 +1,9 @@
+pyFM.spectral.projection\_utils.pointTriangleDistance
+=====================================================
+
+.. currentmodule:: pyFM.spectral.projection_utils
+
+.. autofunction:: pointTriangleDistance
+
+.. minigallery:: pyFM.spectral.projection_utils.pointTriangleDistance
+   :add-heading: Examples using ``pointTriangleDistance``
