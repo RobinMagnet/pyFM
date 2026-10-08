@@ -156,9 +156,21 @@ def test_normals_are_unit(cat):
 
 def test_vertex_normals_are_unit(cat):
     assert cat.vertex_normals.shape == (N_VERTICES, 3)
-    # geometry.per_vertex_normal_* divides by `1e-6 + norm` as a zero-guard, so
-    # vertex normals are unit only up to that epsilon.
-    np.testing.assert_allclose(np.linalg.norm(cat.vertex_normals, axis=1), 1.0, atol=1e-5)
+    np.testing.assert_allclose(np.linalg.norm(cat.vertex_normals, axis=1), 1.0)
+
+
+@pytest.mark.parametrize("weighting", ["area", "uniform"])
+def test_vertex_normals_are_scale_invariant(cat, weighting):
+    small = TriMesh(1e-4 * cat.vertices, cat.faces)
+    small.set_vertex_normal_weighting(weighting)
+    cat.set_vertex_normal_weighting(weighting)
+    np.testing.assert_allclose(small.vertex_normals, cat.vertex_normals, atol=1e-12)
+
+
+def test_isolated_vertex_has_zero_normal(cat):
+    vertices = np.vstack([cat.vertices, [[10.0, 10.0, 10.0]]])
+    mesh = TriMesh(vertices, cat.faces)
+    np.testing.assert_array_equal(mesh.vertex_normals[-1], 0.0)
 
 
 def test_vertex_normal_weighting_switch(cat):
@@ -166,7 +178,7 @@ def test_vertex_normal_weighting_switch(cat):
     cat.set_vertex_normal_weighting("uniform")
     uniform_normals = cat.vertex_normals
     assert not np.allclose(area_normals, uniform_normals)
-    np.testing.assert_allclose(np.linalg.norm(uniform_normals, axis=1), 1.0, atol=1e-5)
+    np.testing.assert_allclose(np.linalg.norm(uniform_normals, axis=1), 1.0)
 
 
 def test_vertex_normal_weighting_rejects_unknown(cat):
